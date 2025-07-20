@@ -215,11 +215,34 @@
 
         /* Touch feedback */
         .touch-feedback {
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, background-color 0.1s ease;
+            -webkit-tap-highlight-color: rgba(14, 165, 233, 0.2);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .touch-feedback:active {
             transform: scale(0.95);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile menu button specific styles */
+        #mobile-menu-button {
+            cursor: pointer;
+            outline: none;
+            border: none;
+            background: transparent;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(14, 165, 233, 0.3);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #mobile-menu-button:focus {
+            outline: 2px solid #0ea5e9;
+            outline-offset: 2px;
         }
 
         /* Sidebar móvil */
@@ -351,8 +374,17 @@
     {% if user.is_authenticated %}
         <!-- Header Móvil -->
         <header class="mobile-header">
-            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback">
+            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback" 
+                    onclick="toggleSidebar()" 
+                    style="touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.1);">
                 <i class="fas fa-bars text-gray-600 text-xl"></i>
+            </button>
+            
+            <!-- Botón de debug temporal (solo visible en móviles) -->
+            <button id="debug-button" class="lg:hidden p-1 ml-2 rounded bg-red-500 text-white text-xs" 
+                    onclick="debugToggle()" 
+                    style="touch-action: manipulation;">
+                DEBUG
             </button>
             
             <div class="flex-1 flex items-center justify-center">
@@ -631,41 +663,107 @@
     
     <!-- JavaScript mejorado -->
     <script>
+        // Variables globales
+        let isSidebarOpen = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        // Función global para toggle sidebar
+        function toggleSidebar() {
+            console.log('toggleSidebar called, current state:', isSidebarOpen);
+            
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar || !sidebarOverlay) {
+                console.error('Sidebar elements not found');
+                return;
+            }
+
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('Sidebar opened');
+            } else {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                console.log('Sidebar closed');
+            }
+        }
+
+        // Función de debug temporal
+        function debugToggle() {
+            alert('Debug: Toggle function called!');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebar && overlay) {
+                alert('Debug: Elements found! Calling toggleSidebar...');
+                toggleSidebar();
+            } else {
+                alert('Debug: Elements NOT found! sidebar=' + !!sidebar + ', overlay=' + !!overlay);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing mobile menu...');
+            
             // Elementos
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             
-            // Variables de estado
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let isSidebarOpen = false;
+            console.log('Elements found:', {
+                mobileMenuButton: !!mobileMenuButton,
+                sidebar: !!sidebar,
+                sidebarOverlay: !!sidebarOverlay
+            });
 
-            // Función para abrir/cerrar sidebar móvil
-            function toggleSidebar() {
-                if (window.innerWidth <= 768) {
-                    isSidebarOpen = !isSidebarOpen;
-                    if (isSidebarOpen) {
-                        sidebar.classList.add('mobile-open');
-                        sidebarOverlay.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        sidebar.classList.remove('mobile-open');
-                        sidebarOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                }
-            }
-
-            // Event listeners para botón de menú
+            // Event listeners adicionales para el botón de menú
             if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleSidebar);
+                // Click normal
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Button clicked');
+                    toggleSidebar();
+                });
+
+                // Touch específicamente para móviles
+                mobileMenuButton.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Button touched');
+                    toggleSidebar();
+                });
+
+                // Feedback visual
+                mobileMenuButton.addEventListener('touchstart', function(e) {
+                    this.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                });
+
+                mobileMenuButton.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.backgroundColor = '';
+                    }, 150);
+                });
+            } else {
+                console.error('Mobile menu button not found!');
             }
 
             // Cerrar sidebar al hacer click en overlay
             if (sidebarOverlay) {
                 sidebarOverlay.addEventListener('click', function() {
+                    if (isSidebarOpen) {
+                        toggleSidebar();
+                    }
+                });
+
+                sidebarOverlay.addEventListener('touchend', function() {
                     if (isSidebarOpen) {
                         toggleSidebar();
                     }
@@ -680,12 +778,12 @@
 
             document.addEventListener('touchmove', function(e) {
                 if (window.innerWidth > 768) return;
-                
+
                 const touchX = e.touches[0].clientX;
                 const touchY = e.touches[0].clientY;
                 const deltaX = touchX - touchStartX;
                 const deltaY = touchY - touchStartY;
-                
+
                 // Swipe horizontal para abrir/cerrar sidebar
                 if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
                     if (deltaX > 0 && touchStartX < 50 && !isSidebarOpen) {
@@ -713,9 +811,7 @@
                     document.body.style.overflow = '';
                     isSidebarOpen = false;
                 }
-            });
-
-            // PWA: Prevenir pull-to-refresh en iOS
+            });            // PWA: Prevenir pull-to-refresh en iOS
             document.addEventListener('touchmove', function(e) {
                 if (e.touches.length > 1) {
                     e.preventDefault();
