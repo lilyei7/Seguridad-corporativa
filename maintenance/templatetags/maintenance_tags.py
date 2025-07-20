@@ -21,27 +21,32 @@ def has_group(user, group_name):
 @register.filter
 def is_admin_or_superuser(user):
     """
-    Verifica si el usuario es superusuario o no tiene grupos (admin)
+    Verifica si el usuario es administrador o superusuario
     Uso: {{ user|is_admin_or_superuser }}
     """
     if not user.is_authenticated:
         return False
     
-    return user.is_superuser or not user.groups.exists()
+    return user.is_superuser or user.groups.filter(name__in=['Administradores', 'Admin']).exists()
 
-@register.simple_tag
-def user_role_display(user):
+@register.filter
+def is_guard(user):
     """
-    Retorna el rol del usuario para mostrar
-    Uso: {% user_role_display user %}
+    Verifica si el usuario es vigilante
+    Uso: {{ user|is_guard }}
     """
     if not user.is_authenticated:
-        return "Invitado"
+        return False
     
-    if user.is_superuser:
-        return "Administrador"
+    return user.groups.filter(name='Vigilantes').exists()
+
+@register.filter
+def is_tenant(user):
+    """
+    Verifica si el usuario es inquilino
+    Uso: {{ user|is_tenant }}
+    """
+    if not user.is_authenticated:
+        return False
     
-    if user.groups.exists():
-        return user.groups.first().name
-    
-    return "Administrador"
+    return user.groups.filter(name='Inquilinos').exists()
