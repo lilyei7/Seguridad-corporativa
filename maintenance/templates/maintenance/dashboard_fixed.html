@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Sistema de Mantenimiento - Olcha Tecnología{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+    .animate-slideInRight { animation: slideInRight 0.6s ease-out forwards; }
+    
+    .stat-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        border-left-width: 4px;
+    }
+    
+    .stat-card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, #059669, #047857);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(to right, #047857, #065f46);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .header-bg {
+        background: linear-gradient(135deg, #059669 0%, #047857 50%, #0f766e 100%);
+        border-radius: 0.75rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .header-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="header-bg p-8 mb-8 text-white">
+        <div class="relative z-10">
+            <h1 class="text-4xl font-bold mb-3">
+                <i class="fas fa-tools mr-3"></i>
+                Sistema de Mantenimiento
+            </h1>
+            <p class="text-xl opacity-90">
+                Gestión integral de checklists, evidencias y equipos de seguridad
+            </p>
+        </div>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Checklists -->
+        <div class="stat-card border-blue-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Total Checklists</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.total_checklists|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pendientes -->
+        <div class="stat-card border-yellow-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Pendientes</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.pending_checklists|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completados -->
+        <div class="stat-card border-green-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Completados</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.completed_checklists|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alta Prioridad -->
+        <div class="stat-card border-red-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Alta Prioridad</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.high_priority_checklists|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Cámaras -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Cámaras -->
+        <div class="stat-card border-purple-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-video text-purple-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Total Cámaras</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.total_cameras|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cámaras Activas -->
+        <div class="stat-card border-green-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-play-circle text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Activas</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.active_cameras|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cámaras Offline -->
+        <div class="stat-card border-red-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Offline</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.offline_cameras|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- En Mantenimiento -->
+        <div class="stat-card border-yellow-500">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-wrench text-yellow-600 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 uppercase">Mantenimiento</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.maintenance_cameras|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Gestión de Checklists -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clipboard-list text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Gestión de Checklists</h3>
+                <p class="text-gray-600 mb-4">Crear, editar y supervisar checklists de mantenimiento</p>
+                <div class="space-y-3">
+                    <a href="{% url 'maintenance:checklists_list' %}" class="btn-primary w-full text-center">
+                        <i class="fas fa-list mr-2"></i>
+                        Ver Checklists
+                    </a>
+                    <a href="{% url 'maintenance:checklist_create' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full text-center block">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Nuevo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoreo de Cámaras -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-video text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Monitoreo de Cámaras</h3>
+                <p class="text-gray-600 mb-4">Supervisar estado y funcionamiento de cámaras</p>
+                <div class="space-y-3">
+                    <a href="{% url 'maintenance:cameras_list' %}" class="btn-primary w-full text-center">
+                        <i class="fas fa-video mr-2"></i>
+                        Ver Cámaras
+                    </a>
+                    <a href="{% url 'maintenance:camera_create' %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors w-full text-center block">
+                        <i class="fas fa-plus mr-2"></i>
+                        Agregar Cámara
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Áreas -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-map-marker-alt text-emerald-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Gestión de Áreas</h3>
+                <p class="text-gray-600 mb-4">Administrar áreas y zonas de mantenimiento</p>
+                <div class="space-y-3">
+                    <a href="{% url 'maintenance:areas_list' %}" class="btn-primary w-full text-center">
+                        <i class="fas fa-building mr-2"></i>
+                        Ver Áreas
+                    </a>
+                    <a href="{% url 'maintenance:area_create' %}" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors w-full text-center block">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Área
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklists Recientes -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">
+                <i class="fas fa-clock mr-2 text-gray-600"></i>
+                Actividad Reciente
+            </h2>
+        </div>
+        <div class="p-6">
+            {% if recent_checklists %}
+                <div class="space-y-4">
+                    {% for checklist in recent_checklists|slice:":5" %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-clipboard-list text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">{{ checklist.title }}</h4>
+                                    <p class="text-sm text-gray-600">{{ checklist.area.name }} • Creado por {{ checklist.created_by.get_full_name|default:checklist.created_by.username }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ checklist.get_status_display_color }}">
+                                    {{ checklist.get_status_display }}
+                                </span>
+                                <p class="text-sm text-gray-500 mt-1">{{ checklist.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-6 text-center">
+                    <a href="{% url 'maintenance:checklists_list' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                        Ver todos los checklists →
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">No hay checklists creados aún</h3>
+                    <p class="text-gray-500 mb-4">Comienza creando tu primer checklist de mantenimiento</p>
+                    <a href="{% url 'maintenance:checklist_create' %}" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Primer Checklist
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar notificación de bienvenida
+    setTimeout(() => {
+        showWelcomeNotification();
+    }, 1000);
+});
+
+function showWelcomeNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-emerald-500 text-white px-6 py-4 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300 z-50';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-3"></i>
+            <div>
+                <div class="font-semibold">¡Bienvenido al Sistema de Mantenimiento!</div>
+                <div class="text-sm opacity-90">Todo listo para gestionar tus checklists</div>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.remove('translate-y-full');
+    }, 100);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('translate-y-full');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}
