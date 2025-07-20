@@ -1,0 +1,17 @@
+[Unit]
+Description=Security Corp Django Application
+After=network.target
+
+[Service]
+Type=exec
+User=root
+Group=root
+WorkingDirectory=/var/www/security_corp
+Environment=DJANGO_SETTINGS_MODULE=security_corp.settings_production
+ExecStart=/var/www/security_corp/venv/bin/python /var/www/security_corp/manage.py runserver 0.0.0.0:8000
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
