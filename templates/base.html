@@ -377,7 +377,7 @@
 
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block">
-            <div class="h-full px-3 py-6 overflow-y-auto">
+            <div class="h-full px-3 py-6 overflow-y-auto flex flex-col">
                 <!-- Logo -->
                 <div class="flex items-center justify-center mb-8 px-4">
                     <div class="flex items-center space-x-3">
@@ -391,6 +391,8 @@
                     </div>
                 </div>
 
+                <!-- Navegación Principal -->
+                <div class="flex-1">
                 <!-- Panel de Control -->
                 <div class="mb-6">
                     <div class="px-4 mb-2">
@@ -514,6 +516,25 @@
                     </nav>
                 </div>
                 {% endif %}
+                </div>
+
+                <!-- Usuario y Cerrar Sesión -->
+                <div class="mt-auto mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario</h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <div class="px-4 py-2 text-gray-300 text-sm">
+                            <i class="fas fa-user w-5 text-center mr-3"></i>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                        </div>
+                        <a href="{% url 'logout' %}" 
+                           class="sidebar-link">
+                            <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </nav>
+                </div>
             </div>
         </aside>
 

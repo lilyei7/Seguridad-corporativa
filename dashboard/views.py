@@ -62,7 +62,7 @@ def dashboard_index(request):
             context.update({
                 'user_role': 'admin',
                 'total_visits_today': Visit.objects.filter(created_at__date=timezone.now().date()).count(),
-                'active_guards': Guard.objects.filter(is_active=True).count(),
+                'active_guards': Guard.objects.filter(status='activo').count(),
                 'pending_incidents': SecurityIncident.objects.filter(status='open').count(),
             })
         elif request.user.groups.filter(name='Vigilantes').exists():
