@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Usuarios - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Gestión de Usuarios</h1>
+                <p class="text-indigo-100">Administración de cuentas de acceso del sistema</p>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <a href="{% url 'accounts:user_create' %}" class="inline-flex items-center px-4 py-2 bg-white text-indigo-600 font-semibold rounded-lg shadow hover:bg-indigo-50 transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Crear Usuario
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-users text-xl text-blue-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Total</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.total }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-xl text-green-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Activos</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.activos }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-times-circle text-xl text-red-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Inactivos</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.inactivos }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-user-shield text-xl text-purple-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Admins</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.administradores }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-shield-alt text-xl text-orange-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Vigilantes</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.vigilantes }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-building text-xl text-yellow-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-500">Inquilinos</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ stats.inquilinos }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                <input type="text" name="search" id="search" value="{{ search }}" 
+                       placeholder="Buscar por nombre, usuario o email..."
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            
+            <div>
+                <label for="group" class="block text-sm font-medium text-gray-700 mb-2">Grupo</label>
+                <select name="group" id="group" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Todos los grupos</option>
+                    {% for group in groups %}
+                        <option value="{{ group.name }}" {% if group_filter == group.name %}selected{% endif %}>{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select name="status" id="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Todos los estados</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-search mr-2"></i>
+                    Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Usuarios -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        {% if users %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Login</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creado</th>
+                            <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for user in users %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                                <span class="text-white text-sm font-semibold">
+                                                    {{ user.first_name.0|default:user.username.0|upper }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ user.get_full_name|default:user.username }}
+                                            </div>
+                                            <div class="text-sm text-gray-500">{{ user.email }}</div>
+                                            <div class="text-xs text-gray-400">@{{ user.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if user.is_superuser %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            <i class="fas fa-crown mr-1"></i>
+                                            Administrador
+                                        </span>
+                                    {% elif user.groups.exists %}
+                                        {% for group in user.groups.all %}
+                                            {% if group.name == 'Vigilantes' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                    <i class="fas fa-shield-alt mr-1"></i>
+                                                    Vigilante
+                                                </span>
+                                            {% elif group.name == 'Inquilinos' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    <i class="fas fa-building mr-1"></i>
+                                                    Inquilino
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    {{ group.name }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Sin grupo
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if user.is_active %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Activo
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                            Inactivo
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        <span class="text-gray-400">Nunca</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ user.date_joined|date:"d/m/Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{% url 'accounts:user_detail' user.id %}" 
+                                           class="text-indigo-600 hover:text-indigo-900 transition-colors"
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'accounts:user_edit' user.id %}" 
+                                           class="text-blue-600 hover:text-blue-900 transition-colors"
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if user.id != request.user.id %}
+                                            <button onclick="toggleUserStatus({{ user.id }})" 
+                                                    class="{% if user.is_active %}text-red-600 hover:text-red-900{% else %}text-green-600 hover:text-green-900{% endif %} transition-colors"
+                                                    title="{% if user.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                                <i class="fas {% if user.is_active %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <div class="flex flex-col items-center">
+                    <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay usuarios</h3>
+                    <p class="text-gray-500 mb-4">Comienza creando el primer usuario del sistema</p>
+                    <a href="{% url 'accounts:user_create' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Crear Primer Usuario
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleUserStatus(userId) {
+    if (confirm('¿Estás seguro de que deseas cambiar el estado de este usuario?')) {
+        fetch(`/accounts/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo cambiar el estado'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado del usuario');
+        });
+    }
+}
+</script>
+{% endblock %}

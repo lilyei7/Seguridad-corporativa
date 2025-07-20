@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Olcha Security{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Animaciones específicas para dashboard móvil */
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    .fade-in-up-delay {
+        animation: fadeInUp 0.6s ease-out 0.2s forwards;
+        opacity: 0;
+    }
+    
+    .alert-card {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        border: 1px solid #f87171;
+        animation: pulse 2s infinite;
+    }
+    
+    .access-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .access-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .status-online {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+    
+    .status-offline {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    
+    .quick-action {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        color: white;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .quick-action:active {
+        transform: scale(0.95);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Vista Desktop -->
+<div class="desktop-only">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header del Dashboard -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-tachometer-alt mr-3 text-primary-600"></i>
+                Dashboard de Seguridad
+            </h1>
+            <p class="text-gray-600">Bienvenido al sistema de gestión de seguridad corporativa</p>
+        </div>
+
+        <!-- Contenido del dashboard desktop existente -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards existentes del dashboard -->
+        </div>
+    </div>
+</div>
+
+<!-- Vista Móvil tipo App -->
+<div class="mobile-only">
+    <!-- Header con saludo -->
+    <div class="bg-white rounded-2xl mx-4 mb-4 p-4 shadow-sm fade-in-up">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">¡Hola, {{ user.first_name|default:user.username }}!</h1>
+                <p class="text-sm text-gray-500">{% now "l, d F Y" %}</p>
+            </div>
+            <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-bold text-lg">
+                    {{ user.first_name.0|default:user.username.0|upper }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="mx-4 mb-6 fade-in-up-delay">
+        <h2 class="text-lg font-bold text-gray-900 mb-3">Security Alerts</h2>
+        
+        <div class="alert-card rounded-2xl p-4 mb-3">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 mr-3">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center mb-1">
+                        <span class="inline-block bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-full">Urgent</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 text-base mb-1">Suspicious Activity Detected</h3>
+                    <p class="text-sm text-gray-700 mb-2">Unusual entry attempt at the main entrance. Security is on site.</p>
+                </div>
+                <div class="flex-shrink-0 ml-3">
+                    <div class="w-16 h-12 bg-gray-800 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-video text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Controls -->
+    <div class="mx-4 mb-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-3">Access Controls</h2>
+        
+        <div class="space-y-3">
+            <!-- Front Door -->
+            <div class="access-card p-4 touch-feedback" onclick="handleAccessControl('front-door')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-door-open text-gray-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900">Front Door</h3>
+                        <p class="text-sm text-gray-500">Main Entrance</p>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Office Suite -->
+            <div class="access-card p-4 touch-feedback" onclick="handleAccessControl('office-suite')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-building text-gray-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900">Office Suite</h3>
+                        <p class="text-sm text-gray-500">Floor 3</p>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 status-online rounded-full mr-2"></div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parking Garage -->
+            <div class="access-card p-4 touch-feedback" onclick="handleAccessControl('parking')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-car text-gray-600 text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900">Parking Garage</h3>
+                        <p class="text-sm text-gray-500">Basement Level</p>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 status-offline rounded-full mr-2"></div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mx-4 mb-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-3">Quick Actions</h2>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'visits:visit_create' %}" class="quick-action touch-feedback">
+                <i class="fas fa-user-plus text-2xl mb-2"></i>
+                <p class="font-medium text-sm">Register Visit</p>
+            </a>
+            
+            <div class="quick-action touch-feedback" onclick="handleEmergency()">
+                <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                <p class="font-medium text-sm">Emergency</p>
+            </div>
+            
+            <a href="{% url 'maintenance:checklists_list' %}" class="quick-action touch-feedback">
+                <i class="fas fa-clipboard-list text-2xl mb-2"></i>
+                <p class="font-medium text-sm">Maintenance</p>
+            </a>
+            
+            <div class="quick-action touch-feedback" onclick="handleReport()">
+                <i class="fas fa-file-alt text-2xl mb-2"></i>
+                <p class="font-medium text-sm">Reports</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="mx-4 mb-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-3">System Status</h2>
+        
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <div class="w-8 h-8 status-online rounded-full mx-auto mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Cameras</p>
+                    <p class="text-xs text-gray-500">12/12 Online</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-8 h-8 status-online rounded-full mx-auto mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Sensors</p>
+                    <p class="text-xs text-gray-500">8/8 Active</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-8 h-8 bg-yellow-500 rounded-full mx-auto mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Alarms</p>
+                    <p class="text-xs text-gray-500">1 Warning</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-8 h-8 status-online rounded-full mx-auto mb-2"></div>
+                    <p class="text-xs font-medium text-gray-900">Network</p>
+                    <p class="text-xs text-gray-500">Stable</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Funciones para manejar las acciones móviles
+    function handleAccessControl(location) {
+        // Feedback háptico
+        if ('vibrate' in navigator) {
+            navigator.vibrate(50);
+        }
+        
+        // Mostrar modal o navegar a control de acceso
+        showNotification(`Accediendo a control de ${location}`, 'info');
+        
+        // Simular navegación
+        setTimeout(() => {
+            // Aquí iría la lógica real de control de acceso
+            console.log(`Accessing ${location} control`);
+        }, 300);
+    }
+    
+    function handleEmergency() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate([100, 50, 100]);
+        }
+        
+        if (confirm('¿Confirmas que deseas activar el protocolo de emergencia?')) {
+            showNotification('Protocolo de emergencia activado', 'error');
+            // Lógica de emergencia
+        }
+    }
+    
+    function handleReport() {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(30);
+        }
+        
+        showNotification('Abriendo módulo de reportes', 'info');
+        // Navegar a reportes
+    }
+    
+    // Simular actualizaciones en tiempo real
+    function updateSystemStatus() {
+        // Actualizar indicadores de estado
+        const statusElements = document.querySelectorAll('.status-online, .status-offline');
+        // Lógica de actualización
+    }
+    
+    // Actualizar cada 30 segundos
+    setInterval(updateSystemStatus, 30000);
+    
+    // Pull to refresh para móvil
+    let startY = 0;
+    let pullDistance = 0;
+    const pullThreshold = 100;
+    
+    document.addEventListener('touchstart', function(e) {
+        if (window.pageYOffset === 0) {
+            startY = e.touches[0].pageY;
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', function(e) {
+        if (window.pageYOffset === 0 && startY < e.touches[0].pageY) {
+            pullDistance = e.touches[0].pageY - startY;
+            
+            if (pullDistance > pullThreshold) {
+                // Mostrar indicador de refresh
+                document.body.style.transform = `translateY(${Math.min(pullDistance - pullThreshold, 50)}px)`;
+            }
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function(e) {
+        if (pullDistance > pullThreshold) {
+            // Ejecutar refresh
+            showNotification('Actualizando dashboard...', 'info');
+            location.reload();
+        }
+        
+        // Reset
+        document.body.style.transform = '';
+        pullDistance = 0;
+    }, { passive: true });
+</script>
+{% endblock %}

@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - SecureCorp{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:tenants_list' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">{{ title }}</h1>
+                    <p class="text-sm text-gray-500">Complete la información del inquilino</p>
+                </div>
+            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-building text-blue-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="container mx-auto px-4 py-6 max-w-4xl">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+                        Información Básica
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.tenant_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.tenant_name.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.tenant_name }}
+                            {% if form.tenant_name.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.tenant_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.razon_social.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.razon_social.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.razon_social }}
+                            {% if form.razon_social.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.razon_social.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.representante_legal.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.representante_legal.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.representante_legal }}
+                        {% if form.representante_legal.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.representante_legal.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-address-book mr-2 text-green-600"></i>
+                        Información de Contacto
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.contact_person.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.contact_person.label }}
+                            </label>
+                            {{ form.contact_person }}
+                            {% if form.contact_person.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.contact_person.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.contact_email.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.contact_email }}
+                            {% if form.contact_email.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.contact_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.contact_phone.label }}
+                            </label>
+                            {{ form.contact_phone }}
+                            {% if form.contact_phone.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.contact_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.telefono_oficina.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.telefono_oficina.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.telefono_oficina }}
+                            {% if form.telefono_oficina.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.telefono_oficina.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.correo_recepcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.correo_recepcion.label }}
+                            <span class="text-gray-500">(Opcional)</span>
+                        </label>
+                        {{ form.correo_recepcion }}
+                        {% if form.correo_recepcion.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.correo_recepcion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Ubicación -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>
+                        Información de Ubicación
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.address.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.city.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.city.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.state.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.state.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.state }}
+                            {% if form.state.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.state.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.zip_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.zip_code.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.zip_code }}
+                            {% if form.zip_code.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.zip_code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Oficina -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-door-open mr-2 text-purple-600"></i>
+                        Información de Oficina
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="{{ form.piso.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.piso.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.piso }}
+                            {% if form.piso.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.piso.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.numero_oficina.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.numero_oficina.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.numero_oficina }}
+                            {% if form.numero_oficina.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.numero_oficina.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.metros_cuadrados.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.metros_cuadrados.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.metros_cuadrados }}
+                            {% if form.metros_cuadrados.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.metros_cuadrados.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.tipo_oficina.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tipo_oficina.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.tipo_oficina }}
+                        {% if form.tipo_oficina.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.tipo_oficina.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-cog mr-2 text-yellow-600"></i>
+                        Servicios e Información Adicional
+                    </h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.recibo_luz.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.recibo_luz.label }}
+                            <span class="text-gray-500">(Opcional)</span>
+                        </label>
+                        {{ form.recibo_luz }}
+                        {% if form.recibo_luz.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.recibo_luz.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-500 mt-1">Puede incluir información sobre el número de servicio, medidor, etc.</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.assigned_user.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.assigned_user.label }}
+                            <span class="text-gray-500">(Opcional)</span>
+                        </label>
+                        {{ form.assigned_user }}
+                        {% if form.assigned_user.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.assigned_user.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex justify-end space-x-4 pt-6">
+                <a href="{% url 'dashboard:tenants_list' %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+                    <i class="fas fa-save mr-2"></i>{{ button_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Estilos para campos requeridos */
+.required-field {
+    border-left: 4px solid #ef4444;
+}
+
+.required-field:focus {
+    border-left-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos adicionales para móviles */
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    input, select, textarea {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+{% load user_tags %}
+<html lang="es" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{% block title %}Olcha Tecnología En Seguridad{% endblock %}</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Olcha Security">
+    <meta name="application-name" content="Olcha Security">
+    <meta name="msapplication-TileColor" content="#0ea5e9">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="description" content="Sistema de gestión de seguridad corporativa y mantenimiento para Olcha Tecnología">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Favicon y iconos PWA -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Mobile App Styles -->
+    <link rel="stylesheet" href="/static/css/mobile.css">
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        'roboto': ['Roboto', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    colors: {
+                        'primary': {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        'sidebar': '#1e293b',
+                        'sidebar-hover': '#334155',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                        '88': '22rem',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Estilos personalizados -->
+    <style>
+        /* Reset y configuración base */
+        * {
+            font-family: 'Inter', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-feature-settings: "cv01", "cv03", "cv04", "cv11";
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+
+        /* PWA y viewport móvil */
+        @media (max-width: 768px) {
+            html {
+                height: 100vh;
+                height: -webkit-fill-available;
+            }
+            
+            body {
+                min-height: 100vh;
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        /* Sidebar estilos */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            margin: 4px 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-nav {
+                display: none;
+            }
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            min-width: 60px;
+        }
+
+        .mobile-nav-item:hover,
+        .mobile-nav-item.active {
+            color: #0ea5e9;
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        .mobile-nav-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .mobile-nav-text {
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1;
+        }
+
+        /* Touch feedback */
+        .touch-feedback {
+            transition: transform 0.1s ease;
+        }
+
+        .touch-feedback:active {
+            transform: scale(0.95);
+        }
+
+        /* Sidebar móvil */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 280px;
+                transform: translateX(-100%);
+                z-index: 999;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 998;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .main-content {
+                padding-bottom: 80px;
+            }
+        }
+
+        /* Header móvil */
+        .mobile-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+
+        @media (min-width: 769px) {
+            .mobile-header {
+                display: none;
+            }
+        }
+
+        /* Animaciones mejoradas */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Scroll suave */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Personalización de scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Notificaciones */
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading states */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-50 font-inter">
+    {% if user.is_authenticated %}
+        <!-- Header Móvil -->
+        <header class="mobile-header">
+            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback">
+                <i class="fas fa-bars text-gray-600 text-xl"></i>
+            </button>
+            
+            <div class="flex-1 flex items-center justify-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-lg font-bold text-gray-900">Olcha Tecnología</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-medium text-gray-700">{{ user.first_name|default:user.username }}</span>
+                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Overlay para sidebar móvil -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block">
+            <div class="h-full px-3 py-6 overflow-y-auto">
+                <!-- Logo -->
+                <div class="flex items-center justify-center mb-8 px-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-shield-alt text-primary-600 text-xl"></i>
+                        </div>
+                        <div class="text-white">
+                            <h2 class="text-lg font-bold">Olcha Tecnología</h2>
+                            <p class="text-xs text-gray-300">Seguridad Corporativa</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Control -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Panel de Control</h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard:index' %}" 
+                           class="sidebar-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                            <i class="fas fa-home w-5 text-center mr-3"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Mantenimiento -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                            <i class="fas fa-tools mr-1"></i> Mantenimiento
+                        </h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'maintenance:dashboard' %}" 
+                           class="sidebar-link {% if 'maintenance' in request.path and 'dashboard' in request.path %}active{% endif %}">
+                            <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="{% url 'maintenance:checklists_list' %}" 
+                           class="sidebar-link {% if 'checklist' in request.path %}active{% endif %}">
+                            <i class="fas fa-clipboard-list w-5 text-center mr-3"></i>
+                            <span>Checklists</span>
+                        </a>
+                        <a href="{% url 'maintenance:cameras_list' %}" 
+                           class="sidebar-link {% if 'camera' in request.path %}active{% endif %}">
+                            <i class="fas fa-video w-5 text-center mr-3"></i>
+                            <span>Cámaras</span>
+                        </a>
+                        <a href="{% url 'maintenance:areas_list' %}" 
+                           class="sidebar-link {% if 'area' in request.path %}active{% endif %}">
+                            <i class="fas fa-map-marked-alt w-5 text-center mr-3"></i>
+                            <span>Áreas</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Seguridad -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-green-400 uppercase tracking-wider">
+                            <i class="fas fa-shield-alt mr-1"></i> Seguridad
+                        </h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard:visits_list' %}" 
+                           class="sidebar-link {% if 'visits' in request.path and 'visit_list' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-users w-5 text-center mr-3"></i>
+                            <span>Visitas</span>
+                        </a>
+                        <a href="{% url 'visits:visit_create' %}" 
+                           class="sidebar-link {% if 'visit_create' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                            <span>Registrar Visita</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Inquilinos -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                            <i class="fas fa-building mr-1"></i> Inquilinos
+                        </h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'tenants:tenant_list' %}" 
+                           class="sidebar-link {% if 'tenants' in request.path and 'tenant_list' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-building w-5 text-center mr-3"></i>
+                            <span>Inquilinos</span>
+                        </a>
+                        <a href="{% url 'tenants:tenant_create' %}" 
+                           class="sidebar-link {% if 'tenant_create' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-plus w-5 text-center mr-3"></i>
+                            <span>Registrar Inquilino</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Personal -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                            <i class="fas fa-users mr-1"></i> Personal
+                        </h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard:guards_list' %}" 
+                           class="sidebar-link {% if 'guards' in request.path and 'guard_list' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-user-shield w-5 text-center mr-3"></i>
+                            <span>Vigilantes</span>
+                        </a>
+                        <a href="{% url 'guards:guard_create' %}" 
+                           class="sidebar-link {% if 'guard_create' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                            <span>Registrar Vigilante</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Configuración (solo para administradores) -->
+                {% if user|is_admin_or_superuser %}
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Configuración</h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard:admin_panel' %}" 
+                           class="sidebar-link {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-cog w-5 text-center mr-3"></i>
+                            <span>Administración</span>
+                        </a>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="lg:ml-64 min-h-screen">
+            <div class="main-content p-4 lg:p-8">
+                <!-- Mensajes del sistema -->
+                {% if messages %}
+                    <div class="mb-6 space-y-3">
+                        {% for message in messages %}
+                            <div class="flex items-center p-4 rounded-lg border-l-4 {{ message.tags|default:'info' }} bg-white shadow-sm animate-slide-up">
+                                <div class="flex-shrink-0 mr-3">
+                                    {% if message.tags == 'success' %}
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                    {% elif message.tags == 'error' %}
+                                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                                    {% elif message.tags == 'warning' %}
+                                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle text-blue-500"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 font-medium text-sm">
+                                    {{ message }}
+                                </div>
+                                <button onclick="this.parentElement.parentElement.remove()" 
+                                        class="ml-2 text-gray-400 hover:text-gray-600 transition-colors touch-feedback">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- Navegación Móvil Inferior -->
+        <nav class="mobile-nav">
+            <a href="{% url 'dashboard:index' %}" 
+               class="mobile-nav-item touch-feedback {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                <i class="mobile-nav-icon fas fa-home"></i>
+                <span class="mobile-nav-text">Home</span>
+            </a>
+            
+            <a href="{% url 'maintenance:dashboard' %}" 
+               class="mobile-nav-item touch-feedback {% if 'maintenance' in request.path %}active{% endif %}">
+                <i class="mobile-nav-icon fas fa-tools"></i>
+                <span class="mobile-nav-text">Mantenim.</span>
+            </a>
+            
+            {% if user|is_admin_or_superuser %}
+                <a href="{% url 'dashboard:visits_list' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'visits' in request.path %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-user-friends"></i>
+                    <span class="mobile-nav-text">Visitas</span>
+                </a>
+                
+                <a href="{% url 'dashboard:admin_panel' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-cog"></i>
+                    <span class="mobile-nav-text">Config</span>
+                </a>
+            {% else %}
+                <a href="{% url 'visits:visit_create' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'visit_create' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-user-plus"></i>
+                    <span class="mobile-nav-text">Registrar</span>
+                </a>
+                
+                <a href="{% url 'dashboard:my_shift' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'my_shift' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-clock"></i>
+                    <span class="mobile-nav-text">Mi Turno</span>
+                </a>
+            {% endif %}
+            
+            <a href="{% url 'logout' %}" 
+               class="mobile-nav-item touch-feedback">
+                <i class="mobile-nav-icon fas fa-sign-out-alt"></i>
+                <span class="mobile-nav-text">Salir</span>
+            </a>
+        </nav>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Mobile App JavaScript -->
+    <script src="/static/js/mobile-app.js"></script>
+    
+    <!-- JavaScript mejorado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            // Variables de estado
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isSidebarOpen = false;
+
+            // Función para abrir/cerrar sidebar móvil
+            function toggleSidebar() {
+                if (window.innerWidth <= 768) {
+                    isSidebarOpen = !isSidebarOpen;
+                    if (isSidebarOpen) {
+                        sidebar.classList.add('mobile-open');
+                        sidebarOverlay.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        sidebar.classList.remove('mobile-open');
+                        sidebarOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                }
+            }
+
+            // Event listeners para botón de menú
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleSidebar);
+            }
+
+            // Cerrar sidebar al hacer click en overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    if (isSidebarOpen) {
+                        toggleSidebar();
+                    }
+                });
+            }
+
+            // Gestos táctiles para sidebar
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (window.innerWidth > 768) return;
+                
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const deltaX = touchX - touchStartX;
+                const deltaY = touchY - touchStartY;
+                
+                // Swipe horizontal para abrir/cerrar sidebar
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    if (deltaX > 0 && touchStartX < 50 && !isSidebarOpen) {
+                        // Swipe right desde el borde izquierdo - abrir sidebar
+                        toggleSidebar();
+                    } else if (deltaX < -50 && isSidebarOpen) {
+                        // Swipe left - cerrar sidebar
+                        toggleSidebar();
+                    }
+                }
+            }, { passive: true });
+
+            // Cerrar sidebar con tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isSidebarOpen) {
+                    toggleSidebar();
+                }
+            });
+
+            // Ajustar al cambiar tamaño de pantalla
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768 && isSidebarOpen) {
+                    sidebar.classList.remove('mobile-open');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                    isSidebarOpen = false;
+                }
+            });
+
+            // PWA: Prevenir pull-to-refresh en iOS
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // Feedback háptico para dispositivos compatibles
+            function hapticFeedback() {
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(10);
+                }
+            }
+
+            // Agregar feedback háptico a botones táctiles
+            document.querySelectorAll('.touch-feedback').forEach(element => {
+                element.addEventListener('touchstart', function() {
+                    hapticFeedback();
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                element.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // Función para mostrar notificaciones mejorada
+            function showNotification(message, type = 'info') {
+                const isMobile = window.innerWidth <= 768;
+                const notification = document.createElement('div');
+                
+                notification.className = `fixed ${isMobile ? 'top-16 left-4 right-4' : 'top-20 right-4 max-w-sm'} bg-white border-l-4 rounded-lg shadow-lg z-50 transform ${isMobile ? 'translate-y-full' : 'translate-x-full'} transition-transform duration-300 ${
+                    type === 'success' ? 'border-green-400' : 
+                    type === 'error' ? 'border-red-400' : 
+                    type === 'warning' ? 'border-yellow-400' : 'border-blue-400'
+                }`;
+                
+                notification.innerHTML = `
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas ${
+                                    type === 'success' ? 'fa-check-circle text-green-400' : 
+                                    type === 'error' ? 'fa-exclamation-circle text-red-400' : 
+                                    type === 'warning' ? 'fa-exclamation-triangle text-yellow-400' : 'fa-info-circle text-blue-400'
+                                }"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p class="text-sm font-medium text-gray-800">${message}</p>
+                            </div>
+                            <div class="ml-auto pl-3">
+                                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 touch-feedback">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.remove(isMobile ? 'translate-y-full' : 'translate-x-full');
+                }, 100);
+                
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.classList.add(isMobile ? 'translate-y-full' : 'translate-x-full');
+                        setTimeout(() => {
+                            if (notification.parentElement) {
+                                document.body.removeChild(notification);
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+
+                // Feedback háptico para notificaciones
+                hapticFeedback();
+            }
+
+            // Hacer la función disponible globalmente
+            window.showNotification = showNotification;
+            
+            // Performance: Lazy loading de imágenes
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            img.classList.remove('lazy');
+                            imageObserver.unobserve(img);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('img[data-src]').forEach(img => {
+                    imageObserver.observe(img);
+                });
+            }
+
+            // Service Worker para PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(function(registration) {
+                            console.log('SW registered: ', registration);
+                        })
+                        .catch(function(registrationError) {
+                            console.log('SW registration failed: ', registrationError);
+                        });
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

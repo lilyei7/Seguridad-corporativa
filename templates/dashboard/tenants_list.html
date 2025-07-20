@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Inquilinos - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header de la página -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Gestión de Inquilinos</h1>
+                <p class="text-blue-100">Administración de inquilinos del corporativo</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'tenants:tenant_create' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors backdrop-blur-lg border border-white/30">
+                    <i class="fas fa-plus mr-2"></i>Nuevo Inquilino
+                </a>
+                <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-building text-3xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg border border-blue-200/30 p-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-search text-blue-600"></i>
+                <input type="text" 
+                       id="searchInput"
+                       placeholder="Buscar inquilinos..." 
+                       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all">
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-filter text-blue-600"></i>
+                <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+                    <option value="">Todos los estados</option>
+                    <option value="activo">Activos</option>
+                    <option value="inactivo">Inactivos</option>
+                </select>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-layer-group text-blue-600"></i>
+                <select id="floorFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+                    <option value="">Todos los pisos</option>
+                    {% for tenant in tenants %}
+                        {% if tenant.floor %}
+                            <option value="{{ tenant.floor }}">Piso {{ tenant.floor }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de inquilinos -->
+    <div class="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-blue-200/30 overflow-hidden">
+        <!-- Header de la tabla -->
+        <div class="bg-gradient-to-r from-blue-50 to-slate-50 px-6 py-4 border-b border-blue-200/30">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">Lista de Inquilinos</h3>
+                <span class="text-sm text-gray-600">{{ tenants.count }} inquilinos registrados</span>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inquilino</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200/50">
+                    {% for tenant in tenants %}
+                        <tr class="hover:bg-blue-50/30 transition-colors cursor-pointer" data-tenant-id="{{ tenant.id }}" data-status="{% if tenant.is_active %}activo{% else %}inactivo{% endif %}" data-floor="{{ tenant.floor|default:'' }}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
+                                        <span class="text-white text-sm font-semibold">
+                                            {{ tenant.tenant_name.0|upper }}{{ tenant.tenant_name|slice:":1"|last|upper }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ tenant.tenant_name }}</div>
+                                        {% if tenant.business_description %}
+                                            <div class="text-sm text-gray-500">{{ tenant.business_description|truncatechars:40 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ tenant.contact_person }}</div>
+                                <div class="text-sm text-gray-500">{{ tenant.contact_email }}</div>
+                                <div class="text-sm text-gray-500">{{ tenant.contact_phone }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    <i class="fas fa-door-open mr-1 text-blue-600"></i>{{ tenant.office_number }}
+                                </div>
+                                {% if tenant.floor %}
+                                    <div class="text-sm text-gray-500">
+                                        <i class="fas fa-layer-group mr-1 text-gray-400"></i>Piso {{ tenant.floor }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if tenant.is_active %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                        <i class="fas fa-check-circle mr-1"></i>Activo
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                        <i class="fas fa-times-circle mr-1"></i>Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'tenants:tenant_detail' tenant.id %}" 
+                                       class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors text-xs"
+                                       onclick="event.stopPropagation()">
+                                        Ver detalles
+                                    </a>
+                                    <a href="{% url 'tenants:tenant_edit' tenant.id %}" 
+                                       class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-lg transition-colors text-xs"
+                                       onclick="event.stopPropagation()">
+                                        <i class="fas fa-edit mr-1"></i>Editar
+                                    </a>
+                                    {% if tenant.is_active %}
+                                        <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg transition-colors text-xs"
+                                                onclick="event.stopPropagation(); toggleTenantStatus({{ tenant.id }}, false)">
+                                            <i class="fas fa-ban mr-1"></i>Desactivar
+                                        </button>
+                                    {% else %}
+                                        <button class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg transition-colors text-xs"
+                                                onclick="event.stopPropagation(); toggleTenantStatus({{ tenant.id }}, true)">
+                                            <i class="fas fa-check mr-1"></i>Activar
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-building text-gray-400 text-4xl mb-4"></i>
+                                    <p class="text-gray-500 text-lg">No hay inquilinos registrados</p>
+                                    <p class="text-gray-400 text-sm mb-4">Comienza registrando el primer inquilino</p>
+                                    <a href="{% url 'tenants:tenant_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                        <i class="fas fa-plus mr-2"></i>Registrar Primer Inquilino
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts para funcionalidad -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const floorFilter = document.getElementById('floorFilter');
+    
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value.toLowerCase();
+        const floorValue = floorFilter.value;
+        
+        const rows = document.querySelectorAll('tbody tr[data-tenant-id]');
+        
+        rows.forEach(row => {
+            const tenantName = row.querySelector('td:first-child .text-sm').textContent.toLowerCase();
+            const contactPerson = row.querySelector('td:nth-child(2) .text-sm').textContent.toLowerCase();
+            const status = row.getAttribute('data-status');
+            const floor = row.getAttribute('data-floor');
+            
+            const matchesSearch = tenantName.includes(searchTerm) || contactPerson.includes(searchTerm);
+            const matchesStatus = !statusValue || status === statusValue;
+            const matchesFloor = !floorValue || floor === floorValue;
+            
+            if (matchesSearch && matchesStatus && matchesFloor) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (statusFilter) statusFilter.addEventListener('change', filterTable);
+    if (floorFilter) floorFilter.addEventListener('change', filterTable);
+});
+
+// Función para cambiar estado del inquilino
+function toggleTenantStatus(tenantId, activate) {
+    const action = activate ? 'activar' : 'desactivar';
+    if (confirm(`¿Está seguro de ${action} este inquilino?`)) {
+        fetch(`/tenants/${tenantId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado del inquilino');
+        });
+    }
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}

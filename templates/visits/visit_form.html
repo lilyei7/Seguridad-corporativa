@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header de la página -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">{{ title }}</h1>
+                <p class="text-blue-100">Complete la información de la visita</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:visits_list' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors backdrop-blur-lg border border-white/30">
+                    <i class="fas fa-arrow-left mr-2"></i>Volver a la Lista
+                </a>
+                <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-user-plus text-3xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-blue-200/30 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-slate-50 px-6 py-4 border-b border-blue-200/30">
+            <h3 class="text-lg font-semibold text-gray-800">Información de la Visita</h3>
+        </div>
+        
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="text-red-800 font-medium">Por favor corrige los siguientes errores:</h4>
+                            <ul class="mt-2 text-red-700 text-sm list-disc list-inside">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|capfirst }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Información del Visitante -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="lg:col-span-2">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-user-tag mr-2 text-blue-600"></i>Información del Visitante
+                    </h4>
+                </div>
+
+                <!-- Nombre del Visitante -->
+                <div class="space-y-2">
+                    <label for="{{ form.visitor_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-user mr-2 text-blue-600"></i>{{ form.visitor_name.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.visitor_name }}
+                    {% if form.visitor_name.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.visitor_name.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Empresa del Visitante -->
+                <div class="space-y-2">
+                    <label for="{{ form.visitor_company.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-building mr-2 text-blue-600"></i>{{ form.visitor_company.label }}
+                    </label>
+                    {{ form.visitor_company }}
+                    {% if form.visitor_company.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.visitor_company.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Email del Visitante -->
+                <div class="space-y-2">
+                    <label for="{{ form.visitor_email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-envelope mr-2 text-blue-600"></i>{{ form.visitor_email.label }}
+                    </label>
+                    {{ form.visitor_email }}
+                    {% if form.visitor_email.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.visitor_email.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Teléfono del Visitante -->
+                <div class="space-y-2">
+                    <label for="{{ form.visitor_phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-phone mr-2 text-blue-600"></i>{{ form.visitor_phone.label }}
+                    </label>
+                    {{ form.visitor_phone }}
+                    {% if form.visitor_phone.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.visitor_phone.help_text }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Número de Identificación -->
+                <div class="space-y-2">
+                    <label for="{{ form.visitor_id_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        <i class="fas fa-id-card mr-2 text-blue-600"></i>{{ form.visitor_id_number.label }}
+                    </label>
+                    {{ form.visitor_id_number }}
+                    {% if form.visitor_id_number.help_text %}
+                        <p class="text-sm text-gray-500">{{ form.visitor_id_number.help_text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información de la Visita -->
+            <div class="border-t border-gray-200 pt-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>Información de la Visita
+                </h4>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Inquilino a Visitar -->
+                    <div class="space-y-2">
+                        <label for="{{ form.tenant.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-building mr-2 text-blue-600"></i>{{ form.tenant.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.tenant }}
+                        {% if form.tenant.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.tenant.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tipo de Visita -->
+                    <div class="space-y-2">
+                        <label for="{{ form.visit_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-tag mr-2 text-blue-600"></i>{{ form.visit_type.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.visit_type }}
+                        {% if form.visit_type.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.visit_type.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Fecha Programada -->
+                    <div class="space-y-2">
+                        <label for="{{ form.scheduled_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-calendar mr-2 text-blue-600"></i>{{ form.scheduled_date.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.scheduled_date }}
+                        {% if form.scheduled_date.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.scheduled_date.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Hora Programada -->
+                    <div class="space-y-2">
+                        <label for="{{ form.scheduled_time.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-clock mr-2 text-blue-600"></i>{{ form.scheduled_time.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.scheduled_time }}
+                        {% if form.scheduled_time.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.scheduled_time.help_text }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="border-t border-gray-200 pt-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-info-circle mr-2 text-blue-600"></i>Información Adicional
+                </h4>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Propósito de la Visita -->
+                    <div class="lg:col-span-2 space-y-2">
+                        <label for="{{ form.purpose.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-edit mr-2 text-blue-600"></i>{{ form.purpose.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.purpose.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Persona que Autoriza -->
+                    <div class="space-y-2">
+                        <label for="{{ form.authorized_by.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-user-check mr-2 text-blue-600"></i>{{ form.authorized_by.label }}
+                        </label>
+                        {{ form.authorized_by }}
+                        {% if form.authorized_by.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.authorized_by.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Placas del Vehículo -->
+                    <div class="space-y-2">
+                        <label for="{{ form.vehicle_plates.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-car mr-2 text-blue-600"></i>{{ form.vehicle_plates.label }}
+                        </label>
+                        {{ form.vehicle_plates }}
+                        {% if form.vehicle_plates.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.vehicle_plates.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Artículos que Trae -->
+                    <div class="lg:col-span-2 space-y-2">
+                        <label for="{{ form.items_brought.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-box mr-2 text-blue-600"></i>{{ form.items_brought.label }}
+                        </label>
+                        {{ form.items_brought }}
+                        {% if form.items_brought.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.items_brought.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="lg:col-span-2 space-y-2">
+                        <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-sticky-note mr-2 text-blue-600"></i>{{ form.notes.label }}
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.help_text %}
+                            <p class="text-sm text-gray-500">{{ form.notes.help_text }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'dashboard:visits_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-save mr-2"></i>{{ button_text|default:"Guardar Visita" }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Estilos para los campos del formulario */
+input[type="text"],
+input[type="email"], 
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    @apply w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-300;
+}
+
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.errorlist {
+    @apply mt-1 text-sm text-red-600;
+}
+
+.errorlist li {
+    @apply list-none;
+}
+</style>
+{% endblock %}

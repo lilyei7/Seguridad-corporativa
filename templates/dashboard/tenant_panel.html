@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Inquilino - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header del panel -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Panel de Inquilino</h1>
+                <p class="text-purple-100">Gestión de visitas y accesos a tu local</p>
+                {% if tenant %}
+                    <p class="text-purple-200 text-sm mt-2">Local: {{ tenant.tenant_name }}</p>
+                {% endif %}
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-building text-3xl"></i>
+            </div>
+        </div>
+    </div>
+
+    {% if not tenant %}
+        <!-- Mensaje cuando no se encuentra inquilino -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-yellow-800">Información del Inquilino No Encontrada</h3>
+                    <p class="text-yellow-700">Por favor contacta al administrador para asociar tu usuario con un local.</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Estadísticas de mis visitas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Visitas Pendientes -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Visitas Pendientes</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ pending_visits }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visitas Aprobadas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Visitas Aprobadas</p>
+                        <p class="text-3xl font-bold text-green-600">{{ approved_visits }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visitas Completadas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Visitas Completadas</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ completed_visits }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-double text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Local -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Información de Mi Local</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Nombre del Local</label>
+                        <p class="text-lg text-gray-900">{{ tenant.tenant_name }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Número de Local</label>
+                        <p class="text-lg text-gray-900">{{ tenant.unit_number }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Tipo de Negocio</label>
+                        <p class="text-lg text-gray-900">{{ tenant.get_business_type_display|default:"No especificado" }}</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Contacto</label>
+                        <p class="text-lg text-gray-900">{{ tenant.contact_person }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Teléfono</label>
+                        <p class="text-lg text-gray-900">{{ tenant.contact_phone }}</p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-600">Estado</label>
+                        <span class="inline-flex px-2 py-1 text-sm font-medium rounded-full {% if tenant.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if tenant.is_active %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Visitas de Hoy -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Visitas de Hoy</h3>
+                            <p class="text-sm text-gray-600">{{ todays_visits.count }} visitas programadas</p>
+                        </div>
+                        <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Nueva Visita
+                        </button>
+                    </div>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                    {% if todays_visits %}
+                        {% for visit in todays_visits %}
+                            <div class="p-4 border-b border-gray-100 last:border-b-0">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center
+                                            {% if visit.status == 'pendiente' %}bg-yellow-100{% elif visit.status == 'aprobada' %}bg-blue-100{% elif visit.status == 'en_progreso' %}bg-green-100{% else %}bg-gray-100{% endif %}">
+                                            <i class="fas 
+                                                {% if visit.status == 'pendiente' %}fa-clock text-yellow-600{% elif visit.status == 'aprobada' %}fa-check text-blue-600{% elif visit.status == 'en_progreso' %}fa-play text-green-600{% else %}fa-check-circle text-gray-600{% endif %}"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                                            <p class="text-sm text-gray-600">{{ visit.scheduled_time }}</p>
+                                            {% if visit.purpose %}
+                                                <p class="text-xs text-gray-500">{{ visit.purpose }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if visit.status == 'pendiente' %}bg-yellow-100 text-yellow-800{% elif visit.status == 'aprobada' %}bg-blue-100 text-blue-800{% elif visit.status == 'en_progreso' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-8 text-center">
+                            <i class="fas fa-calendar-times text-gray-400 text-4xl mb-3"></i>
+                            <p class="text-gray-500">No tienes visitas programadas para hoy</p>
+                            <button class="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                Programar Nueva Visita
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historial de Visitas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Historial de Visitas</h3>
+                    <p class="text-sm text-gray-600">Últimas 10 visitas</p>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                    {% if my_visits %}
+                        {% for visit in my_visits %}
+                            <div class="p-4 border-b border-gray-100 last:border-b-0">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                                        <p class="text-sm text-gray-600">{{ visit.scheduled_date|date:"d/m/Y" }} - {{ visit.scheduled_time }}</p>
+                                        {% if visit.purpose %}
+                                            <p class="text-xs text-gray-500">{{ visit.purpose }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if visit.status == 'pendiente' %}bg-yellow-100 text-yellow-800{% elif visit.status == 'aprobada' %}bg-blue-100 text-blue-800{% elif visit.status == 'en_progreso' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-8 text-center">
+                            <i class="fas fa-history text-gray-400 text-4xl mb-3"></i>
+                            <p class="text-gray-500">No tienes historial de visitas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button class="flex items-center justify-center space-x-2 p-4 bg-purple-50 border-2 border-purple-200 rounded-xl hover:bg-purple-100 transition-colors">
+                    <i class="fas fa-user-plus text-purple-600 text-xl"></i>
+                    <span class="font-medium text-purple-900">Nueva Visita</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-colors">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                    <span class="font-medium text-blue-900">Personal Autorizado</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 p-4 bg-green-50 border-2 border-green-200 rounded-xl hover:bg-green-100 transition-colors">
+                    <i class="fas fa-qrcode text-green-600 text-xl"></i>
+                    <span class="font-medium text-green-900">Generar QR</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 p-4 bg-orange-50 border-2 border-orange-200 rounded-xl hover:bg-orange-100 transition-colors">
+                    <i class="fas fa-chart-bar text-orange-600 text-xl"></i>
+                    <span class="font-medium text-orange-900">Ver Reportes</span>
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

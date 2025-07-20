@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Usuario - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center">
+            <a href="{% url 'accounts:users_list' %}" class="text-white hover:text-indigo-200 mr-4">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Crear Nuevo Usuario</h1>
+                <p class="text-indigo-100">Registro de cuenta de acceso al sistema</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario Simplificado -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Mostrar errores generales -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Información Personal -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user text-indigo-600 mr-2"></i>
+                    Información Personal
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.first_name.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.last_name.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.username.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.email.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.password1.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.password2.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rol del Usuario -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user-tag text-indigo-600 mr-2"></i>
+                    Rol del Usuario
+                </h3>
+                <div>
+                    <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.role.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.role }}
+                    {% if form.role.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.role.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Campos específicos para Inquilinos -->
+            <div id="tenant-fields" class="mb-8" style="display: none;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-building text-yellow-600 mr-2"></i>
+                    Información de Negocio
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.tenant_business_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tenant_business_name.label }}
+                        </label>
+                        {{ form.tenant_business_name }}
+                        {% if form.tenant_business_name.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.tenant_business_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.tenant_contact_person.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tenant_contact_person.label }}
+                        </label>
+                        {{ form.tenant_contact_person }}
+                        {% if form.tenant_contact_person.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.tenant_contact_person.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.tenant_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tenant_phone.label }}
+                        </label>
+                        {{ form.tenant_phone }}
+                        {% if form.tenant_phone.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.tenant_phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="{{ form.tenant_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tenant_address.label }}
+                        </label>
+                        {{ form.tenant_address }}
+                        {% if form.tenant_address.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.tenant_address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos para Vigilantes -->
+            <div id="guard-fields" class="mb-8" style="display: none;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-shield-alt text-orange-600 mr-2"></i>
+                    Información de Empleado
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.guard_employee_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.guard_employee_id.label }}
+                        </label>
+                        {{ form.guard_employee_id }}
+                        {% if form.guard_employee_id.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.guard_employee_id.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.guard_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.guard_phone.label }}
+                        </label>
+                        {{ form.guard_phone }}
+                        {% if form.guard_phone.errors %}
+                            <div class="text-red-600 text-sm mt-1">{{ form.guard_phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="{% url 'accounts:users_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Crear Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('{{ form.role.id_for_label }}');
+    const tenantFields = document.getElementById('tenant-fields');
+    const guardFields = document.getElementById('guard-fields');
+    
+    function toggleFields() {
+        const selectedRole = roleSelect.value;
+        
+        // Ocultar todos los campos específicos
+        tenantFields.style.display = 'none';
+        guardFields.style.display = 'none';
+        
+        // Mostrar campos según el rol seleccionado
+        if (selectedRole === 'inquilino') {
+            tenantFields.style.display = 'block';
+        } else if (selectedRole === 'vigilante') {
+            guardFields.style.display = 'block';
+        }
+    }
+    
+    // Ejecutar al cargar y al cambiar
+    toggleFields();
+    roleSelect.addEventListener('change', toggleFields);
+});
+</script>
+{% endblock %}

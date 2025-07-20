@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ checklist.title }} - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header del Checklist -->
+    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                    <h1 class="text-3xl font-bold text-white">{{ checklist.title }}</h1>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ checklist.get_status_display_color }}">
+                        <i class="fas fa-circle mr-1 text-xs"></i>
+                        {{ checklist.get_status_display }}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ checklist.get_priority_display_color }}">
+                        {% if checklist.priority == 'critical' %}
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                        {% elif checklist.priority == 'high' %}
+                            <i class="fas fa-arrow-up mr-1"></i>
+                        {% elif checklist.priority == 'medium' %}
+                            <i class="fas fa-minus mr-1"></i>
+                        {% else %}
+                            <i class="fas fa-arrow-down mr-1"></i>
+                        {% endif %}
+                        {{ checklist.get_priority_display }}
+                    </span>
+                </div>
+                
+                {% if checklist.description %}
+                    <p class="text-indigo-100 mb-4">{{ checklist.description }}</p>
+                {% endif %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-center text-indigo-100">
+                        <i class="fas fa-building mr-2"></i>
+                        <span>{{ checklist.area.name }}</span>
+                    </div>
+                    <div class="flex items-center text-indigo-100">
+                        <i class="fas fa-user mr-2"></i>
+                        <span>
+                            {% if checklist.assigned_to %}
+                                {{ checklist.assigned_to.get_full_name|default:checklist.assigned_to.username }}
+                            {% else %}
+                                Sin asignar
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex items-center text-indigo-100">
+                        <i class="fas fa-calendar mr-2"></i>
+                        <span>{{ checklist.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-end space-y-3">
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-white">{{ checklist.completion_percentage }}%</div>
+                    <div class="text-indigo-100 text-sm">Completado</div>
+                </div>
+                <div class="w-32 bg-indigo-800 rounded-full h-2">
+                    <div class="bg-white h-2 rounded-full" style="width: {{ checklist.completion_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex space-x-3">
+            <a href="{% url 'maintenance:checklists_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver a Lista
+            </a>
+            <a href="{% url 'maintenance:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-tachometer-alt mr-2"></i>
+                Dashboard
+            </a>
+        </div>
+        
+        <div class="flex space-x-3">
+            {% if checklist.assigned_to == request.user or request.user.is_staff %}
+                <button onclick="openAddItemModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Agregar Elemento
+                </button>
+                <a href="{% url 'maintenance:checklist_update' checklist.id %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                    <i class="fas fa-edit mr-2"></i>
+                    Editar Checklist
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Lista de Elementos del Checklist -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-list-check text-indigo-600 mr-2"></i>
+                        Elementos del Checklist
+                        <span class="ml-2 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">{{ checklist.items.count }}</span>
+                    </h3>
+                </div>
+                
+                <div class="p-6">
+                    {% if checklist.items.all %}
+                        <div class="space-y-4">
+                            {% for item in checklist.items.all %}
+                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow {% if item.is_completed %}bg-green-50 border-green-200{% endif %}">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-3 flex-1">
+                                            <div class="flex-shrink-0 mt-1">
+                                                {% if item.is_completed %}
+                                                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-check text-white text-sm"></i>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-1">
+                                                <h4 class="font-medium text-gray-900 {% if item.is_completed %}line-through text-gray-600{% endif %}">
+                                                    {{ item.description }}
+                                                </h4>
+                                                {% if item.notes %}
+                                                    <p class="text-sm text-gray-600 mt-1">{{ item.notes }}</p>
+                                                {% endif %}
+                                                <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                                    <span class="inline-flex items-center">
+                                                        <i class="fas fa-camera mr-1"></i>
+                                                        {{ item.evidences.count }} evidencia{{ item.evidences.count|pluralize:"s" }}
+                                                    </span>
+                                                    {% if item.completed_at %}
+                                                        <span class="inline-flex items-center text-green-600">
+                                                            <i class="fas fa-clock mr-1"></i>
+                                                            Completado {{ item.completed_at|date:"d/m/Y H:i" }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-2 ml-4">
+                                            {% if not item.is_completed and checklist.assigned_to == request.user or request.user.is_staff %}
+                                                <button onclick="toggleItemCompletion({{ item.id }})" class="text-green-600 hover:text-green-900 p-1" title="Marcar como completado">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            {% elif item.is_completed and checklist.assigned_to == request.user or request.user.is_staff %}
+                                                <button onclick="toggleItemCompletion({{ item.id }})" class="text-yellow-600 hover:text-yellow-900 p-1" title="Marcar como pendiente">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            {% endif %}
+                                            
+                                            <button onclick="openEvidenceModal({{ item.id }}, '{{ item.description|escapejs }}')" class="text-indigo-600 hover:text-indigo-900 p-1" title="Subir evidencia">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                            
+                                            {% if item.evidences.count > 0 %}
+                                                <button onclick="viewEvidences({{ item.id }})" class="text-purple-600 hover:text-purple-900 p-1" title="Ver evidencias">
+                                                    <i class="fas fa-images"></i>
+                                                </button>
+                                            {% endif %}
+                                            
+                                            {% if checklist.assigned_to == request.user or request.user.is_staff %}
+                                                <button onclick="editItem({{ item.id }})" class="text-yellow-600 hover:text-yellow-900 p-1" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="deleteItem({{ item.id }})" class="text-red-600 hover:text-red-900 p-1" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-list-check text-gray-300 text-6xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay elementos</h3>
+                            <p class="text-gray-500 mb-6">Este checklist no tiene elementos aún.</p>
+                            {% if checklist.assigned_to == request.user or request.user.is_staff %}
+                                <button onclick="openAddItemModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Agregar Primer Elemento
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="space-y-6">
+            <!-- Estadísticas -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-indigo-600 mr-2"></i>
+                    Estadísticas
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-900">Progreso</span>
+                        <span class="text-sm text-gray-600">{{ checklist.completion_percentage }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ checklist.completion_percentage }}%"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">{{ checklist.completed_items_count }}</div>
+                            <div class="text-sm text-gray-600">Completados</div>
+                        </div>
+                        <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-600">{{ checklist.pending_items_count }}</div>
+                            <div class="text-sm text-gray-600">Pendientes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">{{ checklist.total_evidences_count }}</div>
+                        <div class="text-sm text-gray-600">Total Evidencias</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Checklist -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-gray-600 mr-2"></i>
+                    Información
+                </h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Área:</span>
+                        <span class="text-gray-900">{{ checklist.area.name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Ubicación:</span>
+                        <span class="text-gray-900">{{ checklist.area.location }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Creado por:</span>
+                        <span class="text-gray-900">{{ checklist.created_by.get_full_name|default:checklist.created_by.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Fecha creación:</span>
+                        <span class="text-gray-900">{{ checklist.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% if checklist.completed_at %}
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-600">Completado:</span>
+                            <span class="text-gray-900">{{ checklist.completed_at|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if checklist.notes %}
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h4 class="font-medium text-gray-900 mb-2">Notas:</h4>
+                        <p class="text-sm text-gray-600">{{ checklist.notes }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Evidencias Recientes -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-camera text-purple-600 mr-2"></i>
+                    Evidencias Recientes
+                </h3>
+                
+                {% if recent_evidences %}
+                    <div class="space-y-3">
+                        {% for evidence in recent_evidences %}
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg overflow-hidden">
+                                    {% if evidence.image %}
+                                        <img src="{{ evidence.image.url }}" alt="Evidencia" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            <i class="fas fa-camera text-purple-600"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900">{{ evidence.item.description|truncatechars:30 }}</p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ evidence.uploaded_by.get_full_name|default:evidence.uploaded_by.username }} • 
+                                        {{ evidence.uploaded_at|timesince }} ago
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button onclick="viewAllEvidences()" class="text-purple-600 hover:text-purple-900 text-sm font-medium">
+                            Ver todas las evidencias →
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-camera text-gray-300 text-3xl mb-2"></i>
+                        <p class="text-gray-500 text-sm">No hay evidencias subidas</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Elemento -->
+<div id="addItemModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Agregar Nuevo Elemento</h3>
+            <form id="addItemForm" method="post" action="{% url 'maintenance:item_create' checklist.id %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Descripción *</label>
+                    <textarea name="description" id="description" rows="3" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Describe qué debe verificarse o realizarse..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
+                    <textarea name="notes" id="notes" rows="2" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddItemModal()" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                        Agregar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Subir Evidencia -->
+<div id="evidenceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Subir Evidencia</h3>
+            <p class="text-sm text-gray-600 mb-4">Elemento: <span id="evidenceItemName" class="font-medium"></span></p>
+            
+            <form id="evidenceForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="item_id" id="evidenceItemId">
+                
+                <div class="mb-4">
+                    <label for="evidence_type" class="block text-sm font-medium text-gray-700 mb-2">Tipo de Evidencia *</label>
+                    <select name="evidence_type" id="evidence_type" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Selecciona un tipo</option>
+                        <option value="before">Antes</option>
+                        <option value="after">Después</option>
+                        <option value="problem">Problema</option>
+                        <option value="solution">Solución</option>
+                        <option value="progress">En Progreso</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="evidence_image" class="block text-sm font-medium text-gray-700 mb-2">Imagen *</label>
+                    <input type="file" name="image" id="evidence_image" accept="image/*" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="evidence_description" class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                    <textarea name="description" id="evidence_description" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Describe la evidencia..."></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeEvidenceModal()" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700">
+                        Subir Evidencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para modales
+function openAddItemModal() {
+    document.getElementById('addItemModal').classList.remove('hidden');
+}
+
+function closeAddItemModal() {
+    document.getElementById('addItemModal').classList.add('hidden');
+    document.getElementById('addItemForm').reset();
+}
+
+function openEvidenceModal(itemId, itemName) {
+    document.getElementById('evidenceItemId').value = itemId;
+    document.getElementById('evidenceItemName').textContent = itemName;
+    document.getElementById('evidenceModal').classList.remove('hidden');
+}
+
+function closeEvidenceModal() {
+    document.getElementById('evidenceModal').classList.add('hidden');
+    document.getElementById('evidenceForm').reset();
+}
+
+// Envío de formulario de evidencia
+document.getElementById('evidenceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const itemId = document.getElementById('evidenceItemId').value;
+    
+    fetch(`/maintenance/evidence/create/${itemId}/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Recargar la página para mostrar la nueva evidencia
+        } else {
+            alert('Error al subir la evidencia: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al subir la evidencia');
+    });
+});
+
+// Cambiar estado de elemento
+function toggleItemCompletion(itemId) {
+    fetch(`/maintenance/item/${itemId}/toggle/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Recargar para actualizar el estado
+        } else {
+            alert('Error al cambiar el estado del elemento');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cambiar el estado del elemento');
+    });
+}
+
+// Funciones adicionales
+function viewEvidences(itemId) {
+    // Implementar vista de evidencias
+    alert('Función para ver evidencias del elemento ' + itemId);
+}
+
+function viewAllEvidences() {
+    // Implementar vista de todas las evidencias
+    alert('Función para ver todas las evidencias');
+}
+
+function editItem(itemId) {
+    // Implementar edición de elemento
+    alert('Función para editar elemento ' + itemId);
+}
+
+function deleteItem(itemId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este elemento?')) {
+        fetch(`/maintenance/item/${itemId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar el elemento');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar el elemento');
+        });
+    }
+}
+
+// Cerrar modales al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const addModal = document.getElementById('addItemModal');
+    const evidenceModal = document.getElementById('evidenceModal');
+    
+    if (e.target === addModal) {
+        closeAddItemModal();
+    }
+    if (e.target === evidenceModal) {
+        closeEvidenceModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Vigilancia - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 px-4 py-6">
+    <!-- Header del Dashboard -->
+    <div class="max-w-md mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-gray-600 text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Security Dashboard</h1>
+                    <p class="text-sm text-gray-500">{{ user.get_full_name|default:user.username }}</p>
+                </div>
+            </div>
+            <button class="p-2 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-cog text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="{% url 'dashboard:guard_panel' %}" class="bg-blue-500 text-white p-6 rounded-2xl shadow-sm hover:bg-blue-600 transition-colors">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt text-2xl mb-2"></i>
+                        <div class="font-medium">Start Patrol</div>
+                    </div>
+                </a>
+                <a href="{% url 'dashboard:incident_create' %}" class="bg-gray-100 text-gray-800 p-6 rounded-2xl shadow-sm hover:bg-gray-200 transition-colors">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <div class="font-medium">Report Incident</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Visitor Management -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Visitor Management</h2>
+            <div class="space-y-3">
+                {% for visit in recent_visits|slice:":3" %}
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Visitor: {{ visit.visitor_name }}</div>
+                                <div class="text-sm text-gray-500">
+                                    {% if visit.status == 'pending' %}
+                                        Expected: {{ visit.visit_date|date:"g:i A" }}
+                                    {% elif visit.status == 'approved' %}
+                                        Arrived: {{ visit.visit_date|date:"g:i A" }}
+                                    {% elif visit.status == 'completed' %}
+                                        Departed: {{ visit.visit_date|date:"g:i A" }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            {{ visit.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">
+                    <i class="fas fa-users text-gray-300 text-3xl mb-3"></i>
+                    <p class="text-gray-500">No recent visitors</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Events</h2>
+            <div class="space-y-3">
+                {% for incident in recent_incidents|slice:":3" %}
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 {% if incident.severity == 'critica' %}bg-red-100{% elif incident.severity == 'alta' %}bg-orange-100{% else %}bg-yellow-100{% endif %} rounded-full flex items-center justify-center">
+                                {% if incident.severity == 'critica' %}
+                                    <i class="fas fa-shield-alt text-red-500"></i>
+                                {% elif incident.severity == 'alta' %}
+                                    <i class="fas fa-exclamation-triangle text-orange-500"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle text-yellow-500"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">{{ incident.title|truncatechars:30 }}</div>
+                                <div class="text-sm text-gray-500">{{ incident.location }}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            {{ incident.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-box text-blue-500"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">Package Delivery</div>
+                            <div class="text-sm text-gray-500">Main Entrance</div>
+                        </div>
+                        <div class="text-xs text-gray-400 ml-auto">
+                            30 min ago
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-car text-green-500"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-900">Vehicle Registration</div>
+                            <div class="text-sm text-gray-500">Parking Garage</div>
+                        </div>
+                        <div class="text-xs text-gray-400 ml-auto">
+                            1 hr ago
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
+            <div class="max-w-md mx-auto">
+                <div class="grid grid-cols-4 gap-1">
+                    <a href="{% url 'dashboard:guard_panel' %}" class="text-center py-3 {% if 'guard_panel' in request.resolver_match.url_name %}text-blue-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-map text-xl mb-1"></i>
+                        <div class="text-xs font-medium">Patrol</div>
+                    </a>
+                    <a href="{% url 'dashboard:incidents_list' %}" class="text-center py-3 {% if 'incidents' in request.resolver_match.url_name %}text-blue-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-file-alt text-xl mb-1"></i>
+                        <div class="text-xs font-medium">Reports</div>
+                    </a>
+                    <a href="{% url 'dashboard:visits_list' %}" class="text-center py-3 {% if 'visits' in request.resolver_match.url_name %}text-blue-600{% else %}text-gray-400{% endif %}">
+                        <i class="fas fa-video text-xl mb-1"></i>
+                        <div class="text-xs font-medium">Cameras</div>
+                    </a>
+                    <a href="#" class="text-center py-3 text-gray-400">
+                        <i class="fas fa-comments text-xl mb-1"></i>
+                        <div class="text-xs font-medium">Communicate</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Padding for bottom navigation -->
+        <div class="h-20"></div>
+    </div>
+</div>
+
+<!-- Estilos adicionales para móvil -->
+<style>
+@media (max-width: 768px) {
+    .container {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    body {
+        background-color: #f9fafb;
+    }
+}
+
+/* Ocultar la barra lateral en móvil */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}
+</style>
+{% endblock %}

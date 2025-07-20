@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Turno - Olcha Security{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Mi Turno</h1>
+                <p class="text-blue-100">{{ current_time|date:"d F Y - H:i" }}</p>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-clock text-3xl"></i>
+            </div>
+        </div>
+    </div>
+
+    {% if is_guard %}
+        <!-- Información del turno actual -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Información del Turno</h2>
+            
+            {% if current_shift %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-3">Detalles del Turno</h3>
+                        <div class="space-y-2">
+                            <p><span class="font-medium">Fecha:</span> {{ current_shift.date|date:"d F Y" }}</p>
+                            <p><span class="font-medium">Hora de inicio:</span> {{ current_shift.start_time|time:"H:i" }}</p>
+                            <p><span class="font-medium">Hora de fin:</span> {{ current_shift.end_time|time:"H:i" }}</p>
+                            {% if current_shift.area %}
+                                <p><span class="font-medium">Área asignada:</span> {{ current_shift.area.name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-3">Estado del Turno</h3>
+                        <div class="space-y-2">
+                            {% if current_shift.checked_in %}
+                                <div class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    <span>Turno iniciado: {{ current_shift.check_in_time|time:"H:i" }}</span>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center text-yellow-600">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span>Pendiente de iniciar turno</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if current_shift.checked_out %}
+                                <div class="flex items-center text-blue-600">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    <span>Turno finalizado: {{ current_shift.check_out_time|time:"H:i" }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Acciones del turno -->
+                <div class="mt-6 flex space-x-4">
+                    {% if not current_shift.checked_in %}
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-play mr-2"></i>
+                            Iniciar Turno
+                        </button>
+                    {% elif not current_shift.checked_out %}
+                        <button class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-stop mr-2"></i>
+                            Finalizar Turno
+                        </button>
+                    {% endif %}
+                </div>
+            {% else %}
+                <!-- Sin turno asignado -->
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar-times text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Sin turno asignado</h3>
+                    <p class="text-gray-600">No tienes un turno asignado para hoy.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Acciones rápidas -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="{% url 'dashboard:incident_create' %}" 
+                   class="bg-red-600 hover:bg-red-700 text-white p-4 rounded-lg transition-colors text-center">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p class="font-medium">Reportar Incidente</p>
+                </a>
+                
+                <a href="{% url 'visits:visit_create' %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg transition-colors text-center">
+                    <i class="fas fa-user-plus text-2xl mb-2"></i>
+                    <p class="font-medium">Registrar Visita</p>
+                </a>
+                
+                <a href="{% url 'dashboard:visits_list' %}" 
+                   class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg transition-colors text-center">
+                    <i class="fas fa-list text-2xl mb-2"></i>
+                    <p class="font-medium">Ver Visitas</p>
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <!-- Usuario no es guardia -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="text-center py-8">
+                <div class="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-user text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Acceso Restringido</h3>
+                <p class="text-gray-600">Esta sección está disponible solo para guardias de seguridad.</p>
+                <div class="mt-4">
+                    <a href="{% url 'dashboard:index' %}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center">
+                        <i class="fas fa-home mr-2"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

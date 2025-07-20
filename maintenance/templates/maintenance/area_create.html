@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Área - Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-plus-circle text-primary-600 mr-3"></i>
+                    Crear Nueva Área
+                </h1>
+                <p class="text-gray-600 mt-2">Complete la información para crear una nueva área de mantenimiento</p>
+            </div>
+            <a href="{% url 'maintenance:areas_list' %}" 
+               class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 bg-emerald-50 border-b border-emerald-200">
+            <h2 class="text-xl font-semibold text-emerald-800">
+                <i class="fas fa-building mr-2"></i>
+                Información del Área
+            </h2>
+        </div>
+        
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Nombre -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-tag mr-1 text-emerald-600"></i>
+                        {{ form.name.label }}
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Descripción -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-align-left mr-1 text-emerald-600"></i>
+                        {{ form.description.label }}
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Ubicación -->
+                <div>
+                    <label for="{{ form.location.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt mr-1 text-emerald-600"></i>
+                        {{ form.location.label }}
+                    </label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.location.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Responsable -->
+                <div>
+                    <label for="{{ form.responsible.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user-tie mr-1 text-emerald-600"></i>
+                        {{ form.responsible.label }}
+                    </label>
+                    {{ form.responsible }}
+                    {% if form.responsible.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.responsible.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Área padre -->
+                <div>
+                    <label for="{{ form.parent_area.id_for_label }}" 
+                           class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-sitemap mr-1 text-emerald-600"></i>
+                        {{ form.parent_area.label }}
+                    </label>
+                    {{ form.parent_area }}
+                    {% if form.parent_area.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.parent_area.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Opcional: Seleccione un área padre si esta área es una subdivisión</p>
+                </div>
+
+                <!-- Estado activo -->
+                <div class="flex items-center">
+                    <div class="flex items-center h-5">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" 
+                               class="ml-3 text-sm font-semibold text-gray-700">
+                            <i class="fas fa-toggle-on mr-1 text-emerald-600"></i>
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                    {% if form.is_active.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.is_active.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                <a href="{% url 'maintenance:areas_list' %}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-save mr-2"></i>
+                    Crear Área
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Estilos para los campos del formulario */
+    input[type="text"], input[type="email"], 
+    select, textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    input[type="text"]:focus, input[type="email"]:focus, 
+    select:focus, textarea:focus {
+        outline: none;
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+    
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: #059669;
+    }
+</style>
+{% endblock %}

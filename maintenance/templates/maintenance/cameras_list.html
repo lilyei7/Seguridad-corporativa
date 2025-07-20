@@ -1,0 +1,596 @@
+{% extends 'base.html' %}
+
+{% block title %}Sistema de Cámaras - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Sistema de Monitoreo</h1>
+                <p class="text-purple-100">Control y supervisión de cámaras de seguridad</p>
+            </div>
+            <div class="text-purple-100">
+                <i class="fas fa-video text-5xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Cámaras -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-video text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Cámaras</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.total_cameras }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-play-circle text-green-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Activas</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.active_cameras }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Fuera de Línea</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.offline_cameras }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-tools text-yellow-600"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Mantenimiento</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.maintenance_cameras }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex space-x-3">
+            <a href="{% url 'maintenance:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver al Dashboard
+            </a>
+            <button onclick="refreshAllCameras()" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Actualizar Estado
+            </button>
+        </div>
+        
+        {% if request.user.is_staff %}
+            <div class="flex space-x-3">
+                <button onclick="openAddCameraModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Agregar Cámara
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <form method="GET" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="area" class="block text-sm font-medium text-gray-700 mb-2">Área</label>
+                    <select name="area" id="area" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        <option value="">Todas las áreas</option>
+                        {% for area in areas %}
+                            <option value="{{ area.id }}" {% if request.GET.area == area.id|stringformat:"s" %}selected{% endif %}>
+                                {{ area.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                    <select name="status" id="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        <option value="">Todos los estados</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activa</option>
+                        <option value="offline" {% if request.GET.status == 'offline' %}selected{% endif %}>Fuera de línea</option>
+                        <option value="maintenance" {% if request.GET.status == 'maintenance' %}selected{% endif %}>Mantenimiento</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactiva</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="camera_type" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <select name="camera_type" id="camera_type" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                        <option value="">Todos los tipos</option>
+                        <option value="dome" {% if request.GET.camera_type == 'dome' %}selected{% endif %}>Domo</option>
+                        <option value="bullet" {% if request.GET.camera_type == 'bullet' %}selected{% endif %}>Bala</option>
+                        <option value="ptz" {% if request.GET.camera_type == 'ptz' %}selected{% endif %}>PTZ</option>
+                        <option value="fisheye" {% if request.GET.camera_type == 'fisheye' %}selected{% endif %}>Ojo de Pez</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Grid de Cámaras -->
+    {% if cameras %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for camera in cameras %}
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                    <!-- Vista previa de la cámara -->
+                    <div class="aspect-video bg-gray-900 relative">
+                        {% if camera.status == 'active' %}
+                            {% if camera.stream_url %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <button onclick="openCameraStream('{{ camera.id }}')" class="text-white hover:text-gray-300">
+                                        <i class="fas fa-play-circle text-6xl"></i>
+                                        <p class="mt-2 text-sm">Ver Stream</p>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                    <div class="text-center">
+                                        <i class="fas fa-video-slash text-4xl mb-2"></i>
+                                        <p class="text-sm">Sin URL de Stream</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                <div class="text-center">
+                                    <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                                    <p class="text-sm">Cámara {{ camera.get_status_display }}</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Indicador de estado -->
+                        <div class="absolute top-3 right-3">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ camera.get_status_badge_color }}">
+                                <i class="fas fa-circle mr-1 text-xs"></i>
+                                {{ camera.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Indicador de grabación -->
+                        {% if camera.is_recording and camera.status == 'active' %}
+                            <div class="absolute top-3 left-3">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <div class="w-2 h-2 bg-red-600 rounded-full mr-1 animate-pulse"></div>
+                                    REC
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Información de la cámara -->
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ camera.name }}</h3>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ camera.get_camera_type_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-gray-600">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                                <span>{{ camera.area.name }}</span>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <i class="fas fa-map mr-2 text-gray-400"></i>
+                                <span>{{ camera.location }}</span>
+                            </div>
+                            
+                            {% if camera.ip_address %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-network-wired mr-2 text-gray-400"></i>
+                                    <span>{{ camera.ip_address }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center">
+                                <i class="fas fa-clock mr-2 text-gray-400"></i>
+                                <span>Última verificación: {{ camera.last_check|timesince }} ago</span>
+                            </div>
+                        </div>
+                        
+                        {% if camera.description %}
+                            <p class="text-sm text-gray-600 mt-3">{{ camera.description|truncatechars:80 }}</p>
+                        {% endif %}
+                        
+                        <!-- Botones de acción -->
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex space-x-2">
+                                {% if camera.status == 'active' and camera.stream_url %}
+                                    <button onclick="openCameraStream('{{ camera.id }}')" class="text-purple-600 hover:text-purple-900 p-1" title="Ver en vivo">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                {% endif %}
+                                
+                                <button onclick="checkCameraStatus('{{ camera.id }}')" class="text-blue-600 hover:text-blue-900 p-1" title="Verificar estado">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                
+                                {% if request.user.is_staff %}
+                                    <button onclick="editCamera('{{ camera.id }}')" class="text-yellow-600 hover:text-yellow-900 p-1" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    
+                                    <button onclick="deleteCamera('{{ camera.id }}', '{{ camera.name|escapejs }}')" class="text-red-600 hover:text-red-900 p-1" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="text-xs text-gray-500">
+                                    {% if camera.resolution %}
+                                        {{ camera.resolution }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if is_paginated %}
+            <div class="mt-8 flex justify-center">
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-purple-50 text-sm font-medium text-purple-600">
+                                {{ num }}
+                            </span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-video text-gray-300 text-6xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay cámaras configuradas</h3>
+            <p class="text-gray-500 mb-6">No se encontraron cámaras con los filtros aplicados.</p>
+            {% if request.user.is_staff %}
+                <button onclick="openAddCameraModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    Agregar Primera Cámara
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Ver Stream de Cámara -->
+<div id="streamModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="streamTitle" class="text-lg font-medium text-gray-900">Vista en Vivo</h3>
+            <button onclick="closeStreamModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+            <div id="streamContainer" class="w-full h-full flex items-center justify-center">
+                <div class="text-white text-center">
+                    <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+                    <p>Conectando con la cámara...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-600">
+                <span id="streamInfo"></span>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="toggleFullscreen()" class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">
+                    <i class="fas fa-expand mr-1"></i>
+                    Pantalla Completa
+                </button>
+                <button onclick="closeStreamModal()" class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Cámara -->
+{% if request.user.is_staff %}
+<div id="addCameraModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Agregar Nueva Cámara</h3>
+            <form id="addCameraForm" method="post" action="{% url 'maintenance:camera_create' %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label for="camera_name" class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                        <input type="text" name="name" id="camera_name" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="camera_area" class="block text-sm font-medium text-gray-700 mb-2">Área *</label>
+                        <select name="area" id="camera_area" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <option value="">Selecciona un área</option>
+                            {% for area in areas %}
+                                <option value="{{ area.id }}">{{ area.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="camera_location" class="block text-sm font-medium text-gray-700 mb-2">Ubicación *</label>
+                        <input type="text" name="location" id="camera_location" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                    </div>
+                    
+                    <div>
+                        <label for="camera_type_modal" class="block text-sm font-medium text-gray-700 mb-2">Tipo de Cámara *</label>
+                        <select name="camera_type" id="camera_type_modal" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <option value="">Selecciona un tipo</option>
+                            <option value="dome">Domo</option>
+                            <option value="bullet">Bala</option>
+                            <option value="ptz">PTZ</option>
+                            <option value="fisheye">Ojo de Pez</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="camera_ip" class="block text-sm font-medium text-gray-700 mb-2">Dirección IP</label>
+                        <input type="text" name="ip_address" id="camera_ip" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="192.168.1.100">
+                    </div>
+                    
+                    <div>
+                        <label for="camera_stream_url" class="block text-sm font-medium text-gray-700 mb-2">URL del Stream</label>
+                        <input type="url" name="stream_url" id="camera_stream_url" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="rtsp://192.168.1.100:554/stream">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeAddCameraModal()" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700">
+                        Agregar Cámara
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Funciones para el sistema de cámaras
+function openCameraStream(cameraId) {
+    const modal = document.getElementById('streamModal');
+    const container = document.getElementById('streamContainer');
+    const title = document.getElementById('streamTitle');
+    const info = document.getElementById('streamInfo');
+    
+    // Obtener información de la cámara
+    fetch(`/maintenance/camera/${cameraId}/stream/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                title.textContent = `${data.camera.name} - Vista en Vivo`;
+                info.textContent = `${data.camera.area} • ${data.camera.location}`;
+                
+                if (data.camera.stream_url) {
+                    // Aquí iría la implementación del stream real
+                    container.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center text-white">
+                            <div class="text-center">
+                                <i class="fas fa-video text-6xl mb-4"></i>
+                                <p class="text-lg mb-2">Stream de ${data.camera.name}</p>
+                                <p class="text-sm opacity-75">${data.camera.stream_url}</p>
+                                <p class="text-xs opacity-50 mt-4">Nota: Implementar reproductor de video real</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center text-white">
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                                <p>No hay URL de stream configurada</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="w-full h-full flex items-center justify-center text-white">
+                        <div class="text-center">
+                            <i class="fas fa-times text-4xl mb-4"></i>
+                            <p>Error al conectar con la cámara</p>
+                        </div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            container.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center text-white">
+                    <div class="text-center">
+                        <i class="fas fa-times text-4xl mb-4"></i>
+                        <p>Error de conexión</p>
+                    </div>
+                </div>
+            `;
+        });
+    
+    modal.classList.remove('hidden');
+}
+
+function closeStreamModal() {
+    document.getElementById('streamModal').classList.add('hidden');
+}
+
+function toggleFullscreen() {
+    const modal = document.getElementById('streamModal');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        modal.requestFullscreen();
+    }
+}
+
+function checkCameraStatus(cameraId) {
+    fetch(`/maintenance/camera/${cameraId}/check/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Recargar para mostrar el estado actualizado
+        } else {
+            alert('Error al verificar el estado de la cámara');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al verificar el estado de la cámara');
+    });
+}
+
+function refreshAllCameras() {
+    fetch('/maintenance/cameras/refresh/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al actualizar el estado de las cámaras');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar el estado de las cámaras');
+    });
+}
+
+{% if request.user.is_staff %}
+function openAddCameraModal() {
+    document.getElementById('addCameraModal').classList.remove('hidden');
+}
+
+function closeAddCameraModal() {
+    document.getElementById('addCameraModal').classList.add('hidden');
+    document.getElementById('addCameraForm').reset();
+}
+
+function editCamera(cameraId) {
+    window.location.href = `/maintenance/camera/${cameraId}/edit/`;
+}
+
+function deleteCamera(cameraId, cameraName) {
+    if (confirm(`¿Estás seguro de que deseas eliminar la cámara "${cameraName}"?`)) {
+        fetch(`/maintenance/camera/${cameraId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar la cámara');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar la cámara');
+        });
+    }
+}
+{% endif %}
+
+// Cerrar modales al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const streamModal = document.getElementById('streamModal');
+    {% if request.user.is_staff %}
+    const addCameraModal = document.getElementById('addCameraModal');
+    {% endif %}
+    
+    if (e.target === streamModal) {
+        closeStreamModal();
+    }
+    {% if request.user.is_staff %}
+    if (e.target === addCameraModal) {
+        closeAddCameraModal();
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

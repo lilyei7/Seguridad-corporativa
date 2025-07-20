@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Visita - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Mobile Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:visits_list' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">Registrar Visita</h1>
+                    <p class="text-sm text-gray-500">Información del visitante</p>
+                </div>
+            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user-plus text-blue-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="max-w-md mx-auto px-4 py-6">
+        
+        <!-- Error Messages -->
+        {% if form.errors %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-3 mt-1"></i>
+                    <div>
+                        <h4 class="text-red-800 font-medium">Por favor corrige los siguientes errores:</h4>
+                        <ul class="mt-2 text-red-700 text-sm list-disc list-inside">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|capfirst }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Foto de Identificación -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Foto de Identificación</h3>
+                </div>
+                
+                <div class="p-4">
+                    <div class="text-center">
+                        <!-- Botón para tomar foto -->
+                        <button type="button" onclick="openCamera()" class="camera-button w-full py-4 px-6 rounded-xl text-white font-medium flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-camera mr-3 text-xl"></i>
+                            <span>Tomar Foto de Identificación</span>
+                        </button>
+                        
+                        <!-- Preview de la foto -->
+                        <div id="photo-preview" class="hidden mb-4">
+                            <img id="preview-image" src="" alt="Vista previa" class="max-w-full h-48 object-cover rounded-lg mx-auto border">
+                            <p class="text-sm text-gray-600 mt-2">Foto capturada</p>
+                        </div>
+                        
+                        <!-- Input file oculto -->
+                        {{ form.id_photo }}
+                        
+                        {% if form.id_photo.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.id_photo.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información del Visitante -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Información del Visitante</h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.visitor_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.visitor_name.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.visitor_name }}
+                        {% if form.visitor_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.visitor_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.visitor_id_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.visitor_id_number.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.visitor_id_number }}
+                        {% if form.visitor_id_number.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.visitor_id_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles de la Visita -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Detalles de la Visita</h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.tenant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.tenant.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.tenant }}
+                        {% if form.tenant.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.tenant.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.visit_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.visit_type.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.visit_type }}
+                        {% if form.visit_type.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.visit_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.scheduled_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.scheduled_date.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.scheduled_date }}
+                            {% if form.scheduled_date.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.scheduled_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.scheduled_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.scheduled_time.label }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.scheduled_time }}
+                            {% if form.scheduled_time.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.scheduled_time.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.purpose.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.purpose.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.purpose.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.authorized_by.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.authorized_by.label }}
+                        </label>
+                        {{ form.authorized_by }}
+                        {% if form.authorized_by.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.authorized_by.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas adicionales -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Notas Adicionales</h3>
+                </div>
+                
+                <div class="p-4">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.notes.label }}
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col gap-3 pt-6">
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 px-6 rounded-xl hover:bg-blue-700 transition-colors shadow-sm font-medium flex items-center justify-center">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Registrar Visita
+                </button>
+                
+                <a href="{% url 'dashboard:visits_list' %}" class="w-full bg-gray-100 text-gray-700 py-4 px-6 rounded-xl hover:bg-gray-200 transition-colors font-medium text-center flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bottom padding for mobile navigation if exists -->
+    <div class="h-20"></div>
+</div>
+
+<!-- JavaScript para manejar la cámara -->
+<script>
+function openCamera() {
+    const input = document.getElementById('id_photo_input');
+    
+    // En dispositivos móviles, usar la cámara directamente
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Crear un elemento de video temporal para mostrar la cámara
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Mostrar modal con cámara en vivo
+        showCameraModal(video, canvas, ctx, input);
+    } else {
+        // Fallback: usar input file
+        input.click();
+    }
+}
+
+function showCameraModal(video, canvas, ctx, input) {
+    // Crear modal para la cámara
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4">
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-semibold">Tomar Foto de Identificación</h3>
+            </div>
+            <div class="mb-4">
+                <video id="camera-video" class="w-full rounded-lg" autoplay muted playsinline></video>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="capturePhoto()" class="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-camera mr-2"></i>Capturar
+                </button>
+                <button onclick="closeCamera()" class="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-400">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    const videoElement = modal.querySelector('#camera-video');
+    
+    // Intentar acceder a la cámara
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: 'environment', // Cámara trasera
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        } 
+    })
+    .then(stream => {
+        videoElement.srcObject = stream;
+        window.currentStream = stream;
+        
+        // Función global para capturar foto
+        window.capturePhoto = function() {
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            ctx.drawImage(videoElement, 0, 0);
+            
+            canvas.toBlob(blob => {
+                const file = new File([blob], 'id_photo.jpg', { type: 'image/jpeg' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                
+                handlePhotoCapture(input);
+                closeCamera();
+            }, 'image/jpeg', 0.8);
+        };
+        
+        // Función global para cerrar cámara
+        window.closeCamera = function() {
+            if (window.currentStream) {
+                window.currentStream.getTracks().forEach(track => track.stop());
+            }
+            document.body.removeChild(modal);
+        };
+    })
+    .catch(err => {
+        console.error('Error accediendo a la cámara:', err);
+        closeCamera();
+        // Fallback al input file
+        input.click();
+    });
+}
+
+function handlePhotoCapture(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const preview = document.getElementById('photo-preview');
+            const image = document.getElementById('preview-image');
+            
+            image.src = e.target.result;
+            preview.classList.remove('hidden');
+            
+            // Cambiar el texto del botón
+            const button = preview.previousElementSibling;
+            button.innerHTML = '<i class="fas fa-camera mr-2"></i>Cambiar Foto';
+            button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            button.classList.add('bg-green-600', 'hover:bg-green-700');
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// Auto-rellenar campos cuando sea posible
+document.addEventListener('DOMContentLoaded', function() {
+    // Si hay geolocalización, podríamos usar para sugerir ubicaciones
+    // Por ahora, solo configuramos algunos valores por defecto
+    
+    // Configurar fecha y hora mínimas
+    const dateInput = document.querySelector('input[type="date"]');
+    const timeInput = document.querySelector('input[type="time"]');
+    
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    }
+    
+    // Validación en tiempo real
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    function validateForm() {
+        const photoInput = document.getElementById('id_photo_input');
+        const nameInput = document.querySelector('input[name="visitor_name"]');
+        const idInput = document.querySelector('input[name="visitor_id_number"]');
+        const tenantSelect = document.querySelector('select[name="tenant"]');
+        
+        const isValid = photoInput.files.length > 0 && 
+                       nameInput.value.trim() !== '' && 
+                       idInput.value.trim() !== '' && 
+                       tenantSelect.value !== '';
+        
+        submitButton.disabled = !isValid;
+        if (isValid) {
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+    
+    // Validar al cambiar cualquier campo requerido
+    document.querySelectorAll('input[required], select[required]').forEach(field => {
+        field.addEventListener('input', validateForm);
+        field.addEventListener('change', validateForm);
+    });
+    
+    // Validación inicial
+    validateForm();
+});
+</script>
+
+<style>
+/* Custom form styling */
+input[type="text"], input[type="date"], input[type="time"], select, textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 12px 16px;
+}
+
+button {
+    min-height: 48px;
+}
+
+.form-field-error {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+.errorlist {
+    @apply mt-1 text-sm text-red-600;
+}
+
+.errorlist li {
+    @apply list-none;
+}
+
+/* Camera input styling */
+#id_photo_input {
+    display: none;
+}
+
+/* Estilos adicionales para móviles */
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    input, select, textarea {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .photo-preview {
+        max-height: 200px;
+    }
+}
+
+/* Mejoras para la cámara */
+.camera-button {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    transition: all 0.3s ease;
+}
+
+.camera-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.camera-button:active {
+    transform: translateY(0);
+}
+
+/* Animación para el preview de la foto */
+.photo-preview {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Estilos para campos requeridos */
+.required-field {
+    border-left: 4px solid #ef4444;
+}
+
+.required-field:focus {
+    border-left-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+</style>
+{% endblock %}

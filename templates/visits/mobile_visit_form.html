@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Visita - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Desktop Header -->
+    <div class="desktop-only space-y-6 p-6">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">Registrar Nueva Visita</h1>
+                    <p class="text-blue-100">Complete la información del visitante</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'dashboard:visits_list' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors backdrop-blur-lg border border-white/30">
+                        <i class="fas fa-arrow-left mr-2"></i>Volver a la Lista
+                    </a>
+                    <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-user-plus text-3xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Header -->
+    <div class="mobile-only bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:visits_list' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">Register Visit</h1>
+                    <p class="text-sm text-gray-500">Visitor information</p>
+                </div>
+            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-user-plus text-blue-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="max-w-md mx-auto px-4 py-6 desktop-only:max-w-4xl desktop-only:px-6">
+        
+        <!-- Error Messages -->
+        {% if form.errors %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-3 mt-1"></i>
+                    <div>
+                        <h4 class="text-red-800 font-medium">Please correct the following errors:</h4>
+                        <ul class="mt-2 text-red-700 text-sm list-disc list-inside">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|capfirst }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Información del Visitante -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Visitor Information</h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.visitor_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.visitor_name }}
+                        {% if form.visitor_name.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.visitor_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.visitor_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email
+                            </label>
+                            {{ form.visitor_email }}
+                            {% if form.visitor_email.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.visitor_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.visitor_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Phone
+                            </label>
+                            {{ form.visitor_phone }}
+                            {% if form.visitor_phone.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.visitor_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.company.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Company
+                        </label>
+                        {{ form.company }}
+                        {% if form.company.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.company.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles de la Visita -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Visit Details</h3>
+                </div>
+                
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label for="{{ form.tenant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Visiting
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.tenant }}
+                        {% if form.tenant.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.tenant.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.visit_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Date
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.visit_date }}
+                            {% if form.visit_date.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.visit_date.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.visit_time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Time
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.visit_time }}
+                            {% if form.visit_time.errors %}
+                                <p class="text-red-600 text-sm mt-1">{{ form.visit_time.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.purpose.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Purpose of Visit
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ form.purpose.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas adicionales -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900">Additional Notes</h3>
+                </div>
+                
+                <div class="p-4">
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Special Instructions
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col gap-3 pt-6">
+                <button type="submit" class="w-full bg-blue-600 text-white py-4 px-6 rounded-xl hover:bg-blue-700 transition-colors shadow-sm font-medium flex items-center justify-center">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Register Visit
+                </button>
+                
+                <a href="{% url 'dashboard:visits_list' %}" class="w-full bg-gray-100 text-gray-700 py-4 px-6 rounded-xl hover:bg-gray-200 transition-colors font-medium text-center flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bottom padding for mobile navigation if exists -->
+    <div class="h-20 mobile-only"></div>
+</div>
+
+<style>
+/* Custom form styling */
+input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white;
+}
+
+/* Mobile specific improvements */
+@media (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 12px 16px;
+    }
+    
+    button {
+        min-height: 48px;
+    }
+}
+
+.form-field-error {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+.errorlist {
+    @apply mt-1 text-sm text-red-600;
+}
+
+.errorlist li {
+    @apply list-none;
+}
+</style>
+{% endblock %}

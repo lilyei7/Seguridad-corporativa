@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block login_content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Logo y título -->
+        <div class="text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                <i class="fas fa-shield-alt text-white text-3xl"></i>
+            </div>
+            <h2 class="text-4xl font-bold text-white mb-2">Olcha Tecnología</h2>
+            <p class="text-blue-200 text-lg">En Seguridad</p>
+            <div class="w-20 h-1 bg-gradient-to-r from-blue-400 to-blue-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <!-- Formulario de login -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-6 px-4 py-3 rounded-xl border {% if message.tags == 'error' %}bg-red-500/20 border-red-300/30 text-red-100{% else %}bg-blue-500/20 border-blue-300/30 text-blue-100{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% else %}info-circle{% endif %} mr-3"></i>
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Campo Usuario -->
+                <div class="space-y-2">
+                    <label for="id_username" class="block text-sm font-medium text-blue-100">
+                        <i class="fas fa-user mr-2"></i>Usuario
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               id="id_username" 
+                               name="username" 
+                               required 
+                               autocomplete="username"
+                               class="block w-full px-4 py-4 bg-white/10 border border-white/20 rounded-xl shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 focus:outline-none transition-all duration-300 text-white placeholder-blue-200"
+                               placeholder="Ingresa tu usuario">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-blue-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="space-y-2">
+                    <label for="id_password" class="block text-sm font-medium text-blue-100">
+                        <i class="fas fa-lock mr-2"></i>Contraseña
+                    </label>
+                    <div class="relative">
+                        <input type="password" 
+                               id="id_password" 
+                               name="password" 
+                               required 
+                               autocomplete="current-password"
+                               class="block w-full px-4 py-4 bg-white/10 border border-white/20 rounded-xl shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 focus:outline-none transition-all duration-300 text-white placeholder-blue-200"
+                               placeholder="Ingresa tu contraseña">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-blue-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recordarme -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="remember_me" 
+                               name="remember_me" 
+                               class="h-4 w-4 text-blue-500 focus:ring-blue-400 border-white/20 rounded bg-white/10">
+                        <label for="remember_me" class="ml-3 block text-sm text-blue-100">
+                            Recordarme
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botón de login -->
+                <button type="submit" 
+                        class="group relative w-full flex justify-center py-4 px-4 border border-transparent rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-sign-in-alt text-blue-200 group-hover:text-white transition-colors duration-300"></i>
+                    </span>
+                    <span class="ml-3">Iniciar Sesión</span>
+                </button>
+            </form>
+
+            <!-- Features del sistema -->
+            <div class="mt-8 pt-6 border-t border-white/20">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-blue-300"></i>
+                        </div>
+                        <span class="text-xs text-blue-200">Control de Accesos</span>
+                    </div>
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-building text-blue-300"></i>
+                        </div>
+                        <span class="text-xs text-blue-200">Gestión de Locales</span>
+                    </div>
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user-shield text-blue-300"></i>
+                        </div>
+                        <span class="text-xs text-blue-200">Personal de Seguridad</span>
+                    </div>
+                    <div class="flex flex-col items-center space-y-2">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-blue-300"></i>
+                        </div>
+                        <span class="text-xs text-blue-200">Monitoreo en Tiempo Real</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info adicional -->
+        <div class="text-center text-sm text-blue-300">
+            <p class="mb-2">© 2025 Olcha Tecnología En Seguridad</p>
+            <p class="text-blue-400">Sistema de Control de Accesos</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

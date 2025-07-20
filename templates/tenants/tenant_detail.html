@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tenant.tenant_name }} - Detalles del Inquilino{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'tenants:tenant_list' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">{{ tenant.tenant_name }}</h1>
+                    <p class="text-sm text-gray-500">Detalles del inquilino</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                {% if tenant.is_active %}
+                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Activo</span>
+                {% else %}
+                    <span class="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full">Inactivo</span>
+                {% endif %}
+                <a href="{% url 'tenants:tenant_edit' tenant.id %}" 
+                   class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Información Principal -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Información Básica -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-blue-600"></i>
+                            Información Básica
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Nombre del Inquilino</label>
+                                <p class="text-gray-900 font-medium">{{ tenant.tenant_name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Razón Social</label>
+                                <p class="text-gray-900">{{ tenant.razon_social|default:"No especificado" }}</p>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Representante Legal</label>
+                                <p class="text-gray-900">{{ tenant.representante_legal|default:"No especificado" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-address-book mr-2 text-green-600"></i>
+                            Información de Contacto
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Persona de Contacto</label>
+                                <p class="text-gray-900">{{ tenant.contact_person }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Email de Contacto</label>
+                                <p class="text-gray-900">
+                                    <a href="mailto:{{ tenant.contact_email }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ tenant.contact_email }}
+                                    </a>
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Teléfono de Contacto</label>
+                                <p class="text-gray-900">
+                                    <a href="tel:{{ tenant.contact_phone }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ tenant.contact_phone }}
+                                    </a>
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Teléfono de Oficina</label>
+                                <p class="text-gray-900">
+                                    {% if tenant.telefono_oficina %}
+                                        <a href="tel:{{ tenant.telefono_oficina }}" class="text-blue-600 hover:text-blue-800">
+                                            {{ tenant.telefono_oficina }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-gray-400">No especificado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if tenant.correo_recepcion %}
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Correo de Recepción</label>
+                                <p class="text-gray-900">
+                                    <a href="mailto:{{ tenant.correo_recepcion }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ tenant.correo_recepcion }}
+                                    </a>
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Oficina -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-door-open mr-2 text-purple-600"></i>
+                            Información de Oficina
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Piso</label>
+                                <p class="text-gray-900 font-medium">{{ tenant.piso|default:"No especificado" }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Número de Oficina</label>
+                                <p class="text-gray-900 font-medium">{{ tenant.numero_oficina|default:"No especificado" }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Metros Cuadrados</label>
+                                <p class="text-gray-900 font-medium">{{ tenant.metros_cuadrados|floatformat:2 }} m²</p>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Tipo de Oficina</label>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    {{ tenant.get_tipo_oficina_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Ubicación -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-red-600"></i>
+                            Información de Ubicación
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Dirección</label>
+                                <p class="text-gray-900">{{ tenant.address }}</p>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Ciudad</label>
+                                    <p class="text-gray-900">{{ tenant.city }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Estado</label>
+                                    <p class="text-gray-900">{{ tenant.state }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-500 mb-1">Código Postal</label>
+                                    <p class="text-gray-900">{{ tenant.zip_code }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if tenant.recibo_luz %}
+                <!-- Servicios -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-cog mr-2 text-yellow-600"></i>
+                            Servicios e Información Adicional
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Información del Recibo de Luz</label>
+                            <p class="text-gray-900 whitespace-pre-line">{{ tenant.recibo_luz }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                
+                <!-- Estadísticas Rápidas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900">Estadísticas</h3>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ recent_visits.count }}</div>
+                            <div class="text-sm text-gray-500">Visitas Recientes</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">0</div>
+                            <div class="text-sm text-gray-500">Visitas Este Mes</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">{{ tenant.metros_cuadrados|floatformat:0 }}</div>
+                            <div class="text-sm text-gray-500">Metros Cuadrados</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Sistema -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900">Información del Sistema</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        {% if tenant.assigned_user %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Usuario Asignado</label>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600 text-sm"></i>
+                                </div>
+                                <span class="text-gray-900">{{ tenant.assigned_user.get_full_name|default:tenant.assigned_user.username }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Fecha de Creación</label>
+                            <p class="text-gray-900">{{ tenant.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Última Actualización</label>
+                            <p class="text-gray-900">{{ tenant.updated_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <h3 class="font-medium text-gray-900">Acciones Rápidas</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <a href="{% url 'visits:visit_create' %}?tenant={{ tenant.id }}" 
+                           class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                            <i class="fas fa-plus"></i>
+                            <span>Registrar Visita</span>
+                        </a>
+                        <a href="{% url 'tenants:tenant_edit' tenant.id %}" 
+                           class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Información</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitas Recientes -->
+        {% if recent_visits %}
+        <div class="mt-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-history mr-2 text-gray-600"></i>
+                        Visitas Recientes
+                    </h3>
+                </div>
+                <div class="p-4">
+                    <div class="space-y-3">
+                        {% for visit in recent_visits %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                                    <p class="text-sm text-gray-500">{{ visit.purpose|truncatechars:30 }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-900">{{ visit.scheduled_date|date:"d/m/Y" }}</p>
+                                <p class="text-xs text-gray-500">{{ visit.scheduled_time|time:"H:i" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'dashboard:visits_list' %}?tenant={{ tenant.id }}" 
+                           class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                            Ver todas las visitas →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

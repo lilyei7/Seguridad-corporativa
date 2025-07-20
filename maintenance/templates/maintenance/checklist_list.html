@@ -1,0 +1,620 @@
+{% extends 'base.html' %}
+
+{% block title %}Checklists de Mantenimiento - Olcha Tecnología{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+    .animate-slideInLeft { animation: slideInLeft 0.6s ease-out forwards; }
+    
+    .checklist-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border-left: 4px solid #e5e7eb;
+    }
+    
+    .checklist-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .checklist-card.priority-1 { border-left-color: #ef4444; }
+    .checklist-card.priority-2 { border-left-color: #f97316; }
+    .checklist-card.priority-3 { border-left-color: #3b82f6; }
+    .checklist-card.priority-4 { border-left-color: #6b7280; }
+    
+    .status-badge {
+        padding: 0.375rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .priority-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .search-box {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .search-box:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    
+    .filter-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+        border-color: #3b82f6;
+        background: #3b82f6;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        @apply inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-md hover:shadow-lg;
+    }
+    
+    .card-hover {
+        @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    }
+    
+    .status-badge {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-fadeInUp">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    <i class="fas fa-clipboard-list mr-3 text-indigo-600"></i>
+                    Checklists de Mantenimiento
+                </h1>
+                <p class="text-gray-600">Gestiona todos los checklists del sistema de manera eficiente</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'maintenance:checklist_create' %}" class="btn-primary animate-pulse-hover">
+                    <i class="fas fa-plus mr-2"></i>
+                    Crear Checklist
+                </a>
+                <a href="{% url 'maintenance:dashboard' %}" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 card-hover">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-filter mr-2 text-indigo-600"></i>
+            Filtros de Búsqueda
+        </h3>
+        <form method="GET" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="group">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-2 transition-colors group-focus-within:text-indigo-600">
+                        <i class="fas fa-search mr-1"></i>
+                        Buscar
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               id="search"
+                               value="{{ request.GET.search }}"
+                               placeholder="Título, descripción..."
+                               class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-300">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400 transition-colors group-focus-within:text-indigo-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group">
+                    <label for="area" class="block text-sm font-medium text-gray-700 mb-2 transition-colors group-focus-within:text-indigo-600">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Área
+                    </label>
+                    <select name="area" id="area" class="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-300">
+                        <option value="">Todas las áreas</option>
+                        {% for area in areas %}
+                            <option value="{{ area.id }}" {% if request.GET.area == area.id|stringformat:"s" %}selected{% endif %}>
+                                {{ area.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="group">
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2 transition-colors group-focus-within:text-indigo-600">
+                        <i class="fas fa-flag mr-1"></i>
+                        Estado
+                    </label>
+                    <select name="status" id="status" class="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-300">
+                        <option value="">Todos los estados</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>En Progreso</option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completado</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+
+                <div class="group">
+                    <label for="priority" class="block text-sm font-medium text-gray-700 mb-2 transition-colors group-focus-within:text-indigo-600">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Prioridad
+                    </label>
+                    <select name="priority" id="priority" class="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-300">
+                        <option value="">Todas las prioridades</option>
+                        <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Baja</option>
+                        <option value="medium" {% if request.GET.priority == 'medium' %}selected{% endif %}>Media</option>
+                        <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>Alta</option>
+                        <option value="critical" {% if request.GET.priority == 'critical' %}selected{% endif %}>Crítica</option>
+                    </select>
+                </div>
+
+                <div class="group">
+                    <label for="assigned" class="block text-sm font-medium text-gray-700 mb-2 transition-colors group-focus-within:text-indigo-600">
+                        <i class="fas fa-user mr-1"></i>
+                        Asignado a
+                    </label>
+                    <select name="assigned" id="assigned" class="block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-300">
+                        <option value="">Todos los usuarios</option>
+                        <option value="{{ request.user.id }}" {% if request.GET.assigned == request.user.id|stringformat:"s" %}selected{% endif %}>Mis asignados</option>
+                        {% for user in maintenance_users %}
+                            <option value="{{ user.id }}" {% if request.GET.assigned == user.id|stringformat:"s" %}selected{% endif %}>
+                                {{ user.get_full_name|default:user.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-4">
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-lg text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-filter mr-2"></i>
+                    Aplicar Filtros
+                </button>
+                <a href="{% url 'maintenance:checklists_list' %}" class="inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-md hover:shadow-lg">
+                    <i class="fas fa-times mr-2"></i>
+                    Limpiar Filtros
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Checklists -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+        {% if checklists %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-clipboard-list mr-2"></i>
+                                Checklist
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-map-marker-alt mr-2"></i>
+                                Área
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-user mr-2"></i>
+                                Asignado a
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-flag mr-2"></i>
+                                Estado
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Prioridad
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Progreso
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                <i class="fas fa-calendar mr-2"></i>
+                                Fecha
+                            </th>
+                            <th scope="col" class="relative px-6 py-4">
+                                <span class="sr-only">Acciones</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for checklist in checklists %}
+                            <tr class="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 fade-in-row">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                                            <i class="fas fa-clipboard-list text-indigo-600 text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900">
+                                                <a href="{% url 'maintenance:checklist_detail' checklist.id %}" class="hover:text-indigo-600 transition-colors duration-200">
+                                                    {{ checklist.title }}
+                                                </a>
+                                            </div>
+                                            {% if checklist.description %}
+                                                <div class="text-sm text-gray-500 mt-1">
+                                                    {{ checklist.description|truncatechars:50 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ checklist.area.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ checklist.area.location }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if checklist.assigned_to %}
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full flex items-center justify-center mr-3 shadow-sm">
+                                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ checklist.assigned_to.get_full_name|default:checklist.assigned_to.username }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">{{ checklist.assigned_to.email }}</div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                            <i class="fas fa-user-slash mr-1"></i>
+                                            Sin asignar
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ checklist.get_status_display_color }}">
+                                        <i class="fas fa-circle mr-1 text-xs"></i>
+                                        {{ checklist.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ checklist.get_priority_display_color }}">
+                                        {% if checklist.priority == 'critical' %}
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        {% elif checklist.priority == 'high' %}
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                        {% elif checklist.priority == 'medium' %}
+                                            <i class="fas fa-minus mr-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-arrow-down mr-1"></i>
+                                        {% endif %}
+                                        {{ checklist.get_priority_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-20 bg-gray-200 rounded-full h-3 mr-3 shadow-inner">
+                                            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: {{ checklist.completion_percentage }}%"></div>
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-700">{{ checklist.completion_percentage }}%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                        <div>
+                                            <div class="font-medium">{{ checklist.created_at|date:"d/m/Y" }}</div>
+                                            <div class="text-xs">{{ checklist.created_at|time:"H:i" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <a href="{% url 'maintenance:checklist_detail' checklist.id %}" 
+                                           class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all duration-200 transform hover:scale-110 shadow-sm hover:shadow-md" 
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if checklist.assigned_to == request.user or request.user.is_staff %}
+                                            <a href="{% url 'maintenance:checklist_update' checklist.id %}" 
+                                               class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-all duration-200 transform hover:scale-110 shadow-sm hover:shadow-md" 
+                                               title="Editar checklist">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% if request.user.is_staff %}
+                                            <button type="button" 
+                                                    onclick="confirmDelete('{{ checklist.id }}', '{{ checklist.title }}')" 
+                                                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-all duration-200 transform hover:scale-110 shadow-sm hover:shadow-md" 
+                                                    title="Eliminar checklist">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if is_paginated %}
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Anterior
+                            </a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Siguiente
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Mostrando <span class="font-medium">{{ page_obj.start_index }}</span> a <span class="font-medium">{{ page_obj.end_index }}</span> de <span class="font-medium">{{ page_obj.paginator.count }}</span> resultados
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                                            {{ num }}
+                                        </span>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                            {{ num }}
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-clipboard-list text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay checklists</h3>
+                <p class="text-gray-500 mb-6">No se encontraron checklists con los filtros aplicados.</p>
+                <div class="space-x-3">
+                    <a href="{% url 'maintenance:checklist_create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Checklist
+                    </a>
+                    <a href="{% url 'maintenance:checklists_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Mostrar todos
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 transition-opacity duration-300">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-95" id="modalContent">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 animate-pulse">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mt-4">Eliminar Checklist</h3>
+            <div class="mt-4 px-7 py-3">
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    ¿Estás seguro de que deseas eliminar el checklist "<span id="checklistName" class="font-semibold text-red-600"></span>"? Esta acción no se puede deshacer.
+                </p>
+            </div>
+            <div class="items-center px-4 py-3 space-y-3">
+                <button id="confirmDeleteBtn" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white text-base font-medium rounded-lg w-full shadow-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transform transition-all duration-200 hover:scale-105">
+                    <i class="fas fa-trash mr-2"></i>
+                    Eliminar Checklist
+                </button>
+                <button id="cancelDeleteBtn" class="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-base font-medium rounded-lg w-full shadow-lg hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 transform transition-all duration-200 hover:scale-105">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para confirmar eliminación con animaciones
+function confirmDelete(checklistId, checklistTitle) {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('modalContent');
+    const checklistName = document.getElementById('checklistName');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    
+    checklistName.textContent = checklistTitle;
+    
+    // Mostrar modal con animación
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('bg-opacity-50');
+        modal.classList.add('bg-opacity-75');
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }, 10);
+    
+    confirmBtn.onclick = function() {
+        // Animación de carga en el botón
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
+        confirmBtn.disabled = true;
+        
+        setTimeout(() => {
+            window.location.href = `/maintenance/checklists/${checklistId}/delete/`;
+        }, 1000);
+    };
+    
+    cancelBtn.onclick = function() {
+        closeModal();
+    };
+    
+    // Cerrar modal al hacer clic fuera
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    };
+}
+
+// Función para cerrar modal con animación
+function closeModal() {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modal.classList.remove('bg-opacity-75');
+    modal.classList.add('bg-opacity-50');
+    modalContent.classList.remove('scale-100');
+    modalContent.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        // Resetear botón
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        confirmBtn.innerHTML = '<i class="fas fa-trash mr-2"></i>Eliminar Checklist';
+        confirmBtn.disabled = false;
+    }, 300);
+}
+
+// Animaciones adicionales al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar filas de la tabla con delay escalonado
+    const tableRows = document.querySelectorAll('.fade-in-row');
+    tableRows.forEach((row, index) => {
+        setTimeout(() => {
+            row.classList.add('visible');
+        }, index * 100);
+    });
+    
+    // Animar barras de progreso
+    const progressBars = document.querySelectorAll('.bg-gradient-to-r.from-indigo-600.to-purple-600');
+    progressBars.forEach((bar, index) => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500 + (index * 100));
+    });
+    
+    // Animar badges de estado
+    const badges = document.querySelectorAll('.status-badge');
+    badges.forEach((badge, index) => {
+        badge.style.opacity = '0';
+        badge.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            badge.style.transition = 'all 0.3s ease';
+            badge.style.opacity = '1';
+            badge.style.transform = 'translateY(0)';
+        }, 200 + (index * 50));
+    });
+    
+    // Efecto hover en botones de acción
+    const actionButtons = document.querySelectorAll('[title]');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1) rotate(5deg)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1) rotate(0deg)';
+        });
+    });
+});
+
+// Función para mostrar notificaciones toast
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white transform transition-all duration-300 translate-x-full ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-3"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Cerrar modal con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('deleteModal');
+        if (!modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    }
+});
+</script>
+{% endblock %}

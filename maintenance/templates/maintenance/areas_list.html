@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Áreas - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Gestión de Áreas</h1>
+                <p class="text-yellow-100">Administra las áreas del corporativo</p>
+            </div>
+            <div class="text-yellow-100">
+                <i class="fas fa-building text-5xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex space-x-3">
+            <a href="{% url 'maintenance:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver al Dashboard
+            </a>
+        </div>
+        
+        {% if request.user.is_staff %}
+            <button onclick="openAddAreaModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                <i class="fas fa-plus mr-2"></i>
+                Agregar Área
+            </button>
+        {% endif %}
+    </div>
+
+    <!-- Lista de Áreas -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        {% if areas %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Área
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ubicación
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estadísticas
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Estado
+                            </th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">Acciones</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for area in areas %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-building text-yellow-600"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ area.name }}</div>
+                                            {% if area.description %}
+                                                <div class="text-sm text-gray-500">{{ area.description|truncatechars:50 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ area.location }}</div>
+                                    <div class="text-sm text-gray-500">Creada {{ area.created_at|date:"d/m/Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="grid grid-cols-3 gap-4 text-center">
+                                        <div>
+                                            <div class="text-lg font-semibold text-blue-600">{{ area.checklists_count }}</div>
+                                            <div class="text-xs text-gray-500">Checklists</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-semibold text-purple-600">{{ area.cameras_count }}</div>
+                                            <div class="text-xs text-gray-500">Cámaras</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-lg font-semibold text-green-600">{{ area.active_cameras_count }}</div>
+                                            <div class="text-xs text-gray-500">Activas</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ area.get_status_badge_color }}">
+                                        <i class="fas fa-circle mr-1 text-xs"></i>
+                                        {{ area.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <button onclick="viewAreaDetails('{{ area.id }}')" class="text-indigo-600 hover:text-indigo-900" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if request.user.is_staff %}
+                                            <button onclick="editArea('{{ area.id }}')" class="text-yellow-600 hover:text-yellow-900" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="deleteArea('{{ area.id }}', '{{ area.name|escapejs }}')" class="text-red-600 hover:text-red-900" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-building text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay áreas configuradas</h3>
+                <p class="text-gray-500 mb-6">Crear áreas para organizar el mantenimiento y las cámaras.</p>
+                {% if request.user.is_staff %}
+                    <button onclick="openAddAreaModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Primera Área
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Estadísticas Generales -->
+    {% if areas %}
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-building text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Áreas</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ areas.count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Áreas Activas</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ active_areas_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-clipboard-list text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Checklists</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_checklists_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-indigo-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-video text-indigo-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Cámaras</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_cameras_count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Agregar Área -->
+{% if request.user.is_staff %}
+<div id="addAreaModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Agregar Nueva Área</h3>
+            <form id="addAreaForm" method="post" action="{% url 'maintenance:area_create' %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label for="area_name" class="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
+                        <input type="text" name="name" id="area_name" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" placeholder="Ej: Recepción Principal">
+                    </div>
+                    
+                    <div>
+                        <label for="area_location" class="block text-sm font-medium text-gray-700 mb-2">Ubicación *</label>
+                        <input type="text" name="location" id="area_location" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" placeholder="Ej: Planta Baja, Torre A">
+                    </div>
+                    
+                    <div>
+                        <label for="area_description" class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                        <textarea name="description" id="area_description" rows="3" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm" placeholder="Descripción del área..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeAddAreaModal()" class="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-700">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-md hover:bg-yellow-700">
+                        Agregar Área
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para Ver Detalles del Área -->
+<div id="areaDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="areaDetailsTitle" class="text-lg font-medium text-gray-900">Detalles del Área</h3>
+            <button onclick="closeAreaDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div id="areaDetailsContent">
+            <!-- Contenido se carga dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<script>
+{% if request.user.is_staff %}
+function openAddAreaModal() {
+    document.getElementById('addAreaModal').classList.remove('hidden');
+}
+
+function closeAddAreaModal() {
+    document.getElementById('addAreaModal').classList.add('hidden');
+    document.getElementById('addAreaForm').reset();
+}
+
+function editArea(areaId) {
+    window.location.href = `/maintenance/area/${areaId}/edit/`;
+}
+
+function deleteArea(areaId, areaName) {
+    if (confirm(`¿Estás seguro de que deseas eliminar el área "${areaName}"? Esto también eliminará todos los checklists y cámaras asociados.`)) {
+        fetch(`/maintenance/area/${areaId}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar el área: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar el área');
+        });
+    }
+}
+{% endif %}
+
+function viewAreaDetails(areaId) {
+    const modal = document.getElementById('areaDetailsModal');
+    const title = document.getElementById('areaDetailsTitle');
+    const content = document.getElementById('areaDetailsContent');
+    
+    // Mostrar loading
+    content.innerHTML = `
+        <div class="text-center py-8">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500">Cargando detalles...</p>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    
+    // Cargar detalles del área
+    fetch(`/maintenance/area/${areaId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const area = data.area;
+                title.textContent = `${area.name} - Detalles`;
+                
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Información básica -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-900 mb-3">Información General</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="font-medium text-gray-600">Nombre:</span>
+                                    <p class="text-gray-900">${area.name}</p>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-600">Ubicación:</span>
+                                    <p class="text-gray-900">${area.location}</p>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-600">Creada:</span>
+                                    <p class="text-gray-900">${area.created_at}</p>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-600">Estado:</span>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${area.status_color}">
+                                        ${area.status}
+                                    </span>
+                                </div>
+                            </div>
+                            ${area.description ? `
+                                <div class="mt-3">
+                                    <span class="font-medium text-gray-600">Descripción:</span>
+                                    <p class="text-gray-900 mt-1">${area.description}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Estadísticas -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-600">${area.checklists_count}</div>
+                                <div class="text-sm text-gray-600">Checklists</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-purple-600">${area.cameras_count}</div>
+                                <div class="text-sm text-gray-600">Cámaras</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-green-600">${area.active_cameras_count}</div>
+                                <div class="text-sm text-gray-600">Activas</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Checklists recientes -->
+                        ${area.recent_checklists && area.recent_checklists.length > 0 ? `
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-3">Checklists Recientes</h4>
+                                <div class="space-y-2">
+                                    ${area.recent_checklists.map(checklist => `
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div>
+                                                <p class="font-medium text-gray-900">${checklist.title}</p>
+                                                <p class="text-sm text-gray-600">${checklist.status} • ${checklist.created_at}</p>
+                                            </div>
+                                            <span class="text-sm text-gray-500">${checklist.completion}%</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Cámaras del área -->
+                        ${area.cameras && area.cameras.length > 0 ? `
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-3">Cámaras en el Área</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    ${area.cameras.map(camera => `
+                                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                                <i class="fas fa-video text-purple-600 text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">${camera.name}</p>
+                                                <p class="text-sm text-gray-600">${camera.status}</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-4"></i>
+                        <p class="text-red-600">Error al cargar los detalles del área</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            content.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-times text-4xl text-red-400 mb-4"></i>
+                    <p class="text-red-600">Error de conexión</p>
+                </div>
+            `;
+        });
+}
+
+function closeAreaDetailsModal() {
+    document.getElementById('areaDetailsModal').classList.add('hidden');
+}
+
+// Cerrar modales al hacer clic fuera
+document.addEventListener('click', function(e) {
+    {% if request.user.is_staff %}
+    const addAreaModal = document.getElementById('addAreaModal');
+    {% endif %}
+    const detailsModal = document.getElementById('areaDetailsModal');
+    
+    {% if request.user.is_staff %}
+    if (e.target === addAreaModal) {
+        closeAddAreaModal();
+    }
+    {% endif %}
+    if (e.target === detailsModal) {
+        closeAreaDetailsModal();
+    }
+});
+</script>
+{% endblock %}

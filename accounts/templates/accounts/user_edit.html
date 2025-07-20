@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario - Olcha Tecnología{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center">
+            <a href="{% url 'accounts:user_detail' user.id %}" class="text-white hover:text-indigo-200 mr-4">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Editar Usuario</h1>
+                <p class="text-indigo-100">Modificar información de {{ user.get_full_name|default:user.username }}</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Información Personal -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="border-b border-gray-200 pb-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-user text-indigo-600 mr-2"></i>
+                    Información Personal
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="id_username" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de Usuario
+                    </label>
+                    <input type="text" 
+                           name="username" 
+                           id="id_username"
+                           value="{{ form.username.value|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                           required>
+                    {% if form.username.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Correo Electrónico
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           id="id_email"
+                           value="{{ form.email.value|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                           required>
+                    {% if form.email.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre(s)
+                    </label>
+                    <input type="text" 
+                           name="first_name" 
+                           id="id_first_name"
+                           value="{{ form.first_name.value|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    {% if form.first_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.first_name.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Apellido(s)
+                    </label>
+                    <input type="text" 
+                           name="last_name" 
+                           id="id_last_name"
+                           value="{{ form.last_name.value|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    {% if form.last_name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.last_name.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles y Permisos -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="border-b border-gray-200 pb-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-shield-alt text-indigo-600 mr-2"></i>
+                    Roles y Permisos
+                </h3>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="is_staff" 
+                           id="id_is_staff"
+                           {% if form.is_staff.value %}checked{% endif %}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="id_is_staff" class="ml-2 block text-sm text-gray-900">
+                        Personal del sitio (puede acceder al área administrativa)
+                    </label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="is_superuser" 
+                           id="id_is_superuser"
+                           {% if form.is_superuser.value %}checked{% endif %}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="id_is_superuser" class="ml-2 block text-sm text-gray-900">
+                        Superusuario (todos los permisos)
+                    </label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="is_active" 
+                           id="id_is_active"
+                           {% if form.is_active.value %}checked{% endif %}
+                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                    <label for="id_is_active" class="ml-2 block text-sm text-gray-900">
+                        Usuario activo
+                    </label>
+                </div>
+            </div>
+
+            <!-- Grupos -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Grupos de Usuario
+                </label>
+                <div class="space-y-2">
+                    {% for group in available_groups %}
+                        <div class="flex items-center">
+                            <input type="checkbox" 
+                                   name="groups" 
+                                   value="{{ group.id }}"
+                                   id="group_{{ group.id }}"
+                                   {% if group in user.groups.all %}checked{% endif %}
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="group_{{ group.id }}" class="ml-2 block text-sm text-gray-900">
+                                {% if group.name == 'Vigilantes' %}
+                                    <span class="inline-flex items-center">
+                                        <i class="fas fa-shield-alt text-orange-600 mr-1"></i>
+                                        Vigilantes
+                                    </span>
+                                {% elif group.name == 'Inquilinos' %}
+                                    <span class="inline-flex items-center">
+                                        <i class="fas fa-building text-yellow-600 mr-1"></i>
+                                        Inquilinos
+                                    </span>
+                                {% else %}
+                                    {{ group.name }}
+                                {% endif %}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Asociaciones -->
+        {% if tenant_form or guard_form %}
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="border-b border-gray-200 pb-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-link text-indigo-600 mr-2"></i>
+                    Asociaciones Empresariales
+                </h3>
+            </div>
+
+            <!-- Inquilino -->
+            {% if tenant_form %}
+            <div class="mb-6">
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-building text-yellow-600 mr-2"></i>
+                    Información de Inquilino
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_tenant_business_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nombre del Negocio
+                        </label>
+                        <input type="text" 
+                               name="tenant_business_name" 
+                               id="id_tenant_business_name"
+                               value="{{ tenant_form.business_name.value|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="id_tenant_business_type" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tipo de Negocio
+                        </label>
+                        <select name="tenant_business_type" 
+                                id="id_tenant_business_type"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="retail" {% if tenant_form.business_type.value == 'retail' %}selected{% endif %}>Comercio al por menor</option>
+                            <option value="restaurant" {% if tenant_form.business_type.value == 'restaurant' %}selected{% endif %}>Restaurante</option>
+                            <option value="office" {% if tenant_form.business_type.value == 'office' %}selected{% endif %}>Oficina</option>
+                            <option value="services" {% if tenant_form.business_type.value == 'services' %}selected{% endif %}>Servicios</option>
+                            <option value="other" {% if tenant_form.business_type.value == 'other' %}selected{% endif %}>Otro</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vigilante -->
+            {% if guard_form %}
+            <div>
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-shield-alt text-orange-600 mr-2"></i>
+                    Información de Vigilante
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_guard_employee_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            ID de Empleado
+                        </label>
+                        <input type="text" 
+                               name="guard_employee_id" 
+                               id="id_guard_employee_id"
+                               value="{{ guard_form.employee_id.value|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="id_guard_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Teléfono
+                        </label>
+                        <input type="tel" 
+                               name="guard_phone" 
+                               id="id_guard_phone"
+                               value="{{ guard_form.phone.value|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Cambio de Contraseña -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="border-b border-gray-200 pb-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-key text-indigo-600 mr-2"></i>
+                    Cambiar Contraseña
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">Deja en blanco si no deseas cambiar la contraseña</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="id_password1" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nueva Contraseña
+                    </label>
+                    <input type="password" 
+                           name="password1" 
+                           id="id_password1"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label for="id_password2" class="block text-sm font-medium text-gray-700 mb-2">
+                        Confirmar Contraseña
+                    </label>
+                    <input type="password" 
+                           name="password2" 
+                           id="id_password2"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center">
+                <a href="{% url 'accounts:user_detail' user.id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+
+                <div class="flex space-x-3">
+                    {% if user.is_active %}
+                        <button type="button" 
+                                onclick="toggleUserStatus({{ user.id }}, false)"
+                                class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                            <i class="fas fa-user-slash mr-2"></i>
+                            Desactivar Usuario
+                        </button>
+                    {% else %}
+                        <button type="button" 
+                                onclick="toggleUserStatus({{ user.id }}, true)"
+                                class="inline-flex items-center px-4 py-2 border border-green-300 text-sm font-medium rounded-lg text-green-700 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                            <i class="fas fa-user-check mr-2"></i>
+                            Activar Usuario
+                        </button>
+                    {% endif %}
+
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function toggleUserStatus(userId, newStatus) {
+    const action = newStatus ? 'activar' : 'desactivar';
+    const confirmMessage = `¿Estás seguro de que deseas ${action} este usuario?`;
+    
+    if (confirm(confirmMessage)) {
+        fetch(`/accounts/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `is_active=${newStatus}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo cambiar el estado del usuario'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado del usuario');
+        });
+    }
+}
+</script>
+{% endblock %}

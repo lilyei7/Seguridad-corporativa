@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Ejecutar Servidor Django",
+			"type": "shell",
+			"command": "C:/Users/lilye/OneDrive/Desktop/Seguridad corporativa/.venv/Scripts/python.exe",
+			"args": [
+				"manage.py",
+				"runserver"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
