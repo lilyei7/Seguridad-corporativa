@@ -139,6 +139,11 @@
             border-right: 1px solid rgba(148, 163, 184, 0.1);
         }
 
+        /* Asegurar que el sidebar esté visible en todas las pantallas */
+        .sidebar {
+            display: block;
+        }
+
         .sidebar-link {
             transition: all 0.2s ease;
             border-radius: 12px;
@@ -248,17 +253,22 @@
         /* Sidebar móvil */
         @media (max-width: 768px) {
             .sidebar {
-                position: fixed;
+                position: fixed !important;
                 top: 0;
                 left: 0;
                 bottom: 0;
                 width: 280px;
                 transform: translateX(-100%);
-                z-index: 999;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1000;
+                background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                display: block !important;
+                /* Override lg:block */
             }
 
             .sidebar.mobile-open {
-                transform: translateX(0);
+                transform: translateX(0) !important;
             }
 
             .sidebar-overlay {
@@ -267,20 +277,27 @@
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 998;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 999;
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
             }
 
             .sidebar-overlay.active {
-                opacity: 1;
-                visibility: visible;
+                opacity: 1 !important;
+                visibility: visible !important;
             }
 
             .main-content {
                 padding-bottom: 80px;
+            }
+
+            /* Hide desktop sidebar completely on mobile */
+            .sidebar:not(.mobile-open) {
+                display: block;
             }
         }
 
@@ -378,13 +395,6 @@
                     onclick="toggleSidebar()" 
                     style="touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.1);">
                 <i class="fas fa-bars text-gray-600 text-xl"></i>
-            </button>
-            
-            <!-- Botón de debug temporal (solo visible en móviles) -->
-            <button id="debug-button" class="lg:hidden p-1 ml-2 rounded bg-red-500 text-white text-xs" 
-                    onclick="debugToggle()" 
-                    style="touch-action: manipulation;">
-                DEBUG
             </button>
             
             <div class="flex-1 flex items-center justify-center">
@@ -670,43 +680,42 @@
 
         // Función global para toggle sidebar
         function toggleSidebar() {
-            console.log('toggleSidebar called, current state:', isSidebarOpen);
+            console.log('🔧 toggleSidebar called, current state:', isSidebarOpen);
             
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             
             if (!sidebar || !sidebarOverlay) {
-                console.error('Sidebar elements not found');
+                console.error('❌ Sidebar elements not found - sidebar:', !!sidebar, 'overlay:', !!sidebarOverlay);
                 return;
             }
 
             isSidebarOpen = !isSidebarOpen;
             
+            console.log('📱 Screen width:', window.innerWidth);
+            console.log('🎯 New sidebar state will be:', isSidebarOpen ? 'OPEN' : 'CLOSED');
+            
             if (isSidebarOpen) {
                 sidebar.classList.add('mobile-open');
                 sidebarOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                console.log('Sidebar opened');
+                console.log('✅ Sidebar opened - classes added');
+                console.log('📋 Sidebar classes:', sidebar.className);
+                console.log('📋 Overlay classes:', sidebarOverlay.className);
             } else {
                 sidebar.classList.remove('mobile-open');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
-                console.log('Sidebar closed');
+                console.log('✅ Sidebar closed - classes removed');
             }
-        }
-
-        // Función de debug temporal
-        function debugToggle() {
-            alert('Debug: Toggle function called!');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
             
-            if (sidebar && overlay) {
-                alert('Debug: Elements found! Calling toggleSidebar...');
-                toggleSidebar();
-            } else {
-                alert('Debug: Elements NOT found! sidebar=' + !!sidebar + ', overlay=' + !!overlay);
-            }
+            // Verificar estilos aplicados
+            setTimeout(() => {
+                const computedStyle = window.getComputedStyle(sidebar);
+                console.log('🎨 Sidebar transform:', computedStyle.transform);
+                console.log('🎨 Sidebar z-index:', computedStyle.zIndex);
+                console.log('🎨 Sidebar position:', computedStyle.position);
+            }, 100);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
