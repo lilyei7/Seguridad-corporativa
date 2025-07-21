@@ -104,6 +104,15 @@
                                 <span class="ml-2 text-sm text-gray-700">Vista previa en modo oscuro</span>
                             </label>
                         </div>
+                        
+                        <!-- Botón de vista previa instantánea -->
+                        <div class="mt-4">
+                            <button type="button" onclick="previewCurrentTheme()" 
+                                    class="w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                <i class="fas fa-eye mr-2"></i>
+                                Vista Previa Instantánea
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -245,7 +254,7 @@
                 </button>
                 <div class="space-x-3">
                     <button type="button" onclick="saveConfiguration()" 
-                            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="config-save-btn px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-save mr-2"></i>
                         Guardar Configuración
                     </button>
@@ -511,16 +520,20 @@ function applyThemeChanges(themeName) {
 // Mostrar alertas
 function showAlert(message, type) {
     const alertDiv = document.createElement('div');
-    alertDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    }`;
+    let bgColor = 'bg-green-500';
+    
+    if (type === 'error') bgColor = 'bg-red-500';
+    else if (type === 'info') bgColor = 'bg-blue-500';
+    else if (type === 'warning') bgColor = 'bg-yellow-500';
+    
+    alertDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white ${bgColor} message-alert`;
     alertDiv.textContent = message;
     
     document.body.appendChild(alertDiv);
     
     setTimeout(() => {
         alertDiv.remove();
-    }, 3000);
+    }, 4000);
 }
 
 // Inicialización
@@ -553,6 +566,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Seleccionar tema por defecto
     selectTheme('default');
 });
+
+// Vista previa instantánea del tema actual
+function previewCurrentTheme() {
+    const colors = {
+        primary: document.getElementById('primary-color').value,
+        secondary: document.getElementById('secondary-color').value,
+        accent: document.getElementById('accent-color').value,
+        sidebar: document.getElementById('sidebar-color').value
+    };
+    
+    // Aplicar cambios inmediatamente a toda la página
+    document.documentElement.style.setProperty('--theme-primary', colors.primary);
+    document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
+    document.documentElement.style.setProperty('--theme-accent', colors.accent);
+    document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
+    
+    // Mostrar alerta de vista previa
+    showAlert('Vista previa aplicada. Los cambios son temporales hasta que guardes.', 'info');
+}
 </script>
 
 <style>
