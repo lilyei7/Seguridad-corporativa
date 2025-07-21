@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Inquilino{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.recent-activity {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    transition: background-color 0.3s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8fafc;
+}
+
+.quick-action-btn {
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Bienvenido, {{ tenant.tenant_name }}
+        </h1>
+        <p class="text-gray-600">
+            Oficina {{ tenant.office_number }} - Piso {{ tenant.floor }}
+        </p>
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Visitas del mes -->
+        <div class="stat-card rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-user-friends text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Visitas este mes</p>
+                    <p class="text-2xl font-bold">{{ stats.visits_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Empleados registrados -->
+        <div class="bg-green-500 text-white rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-users text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Empleados</p>
+                    <p class="text-2xl font-bold">{{ stats.employees_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Solicitudes de mantenimiento -->
+        <div class="bg-orange-500 text-white rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-tools text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Mantenimiento</p>
+                    <p class="text-2xl font-bold">{{ stats.maintenance_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Visitas pendientes -->
+        <div class="bg-blue-500 text-white rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Visitas Pendientes</p>
+                    <p class="text-2xl font-bold">{{ stats.pending_visits }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones rápidas -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Acciones Rápidas</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{% url 'tenants:create_visit' %}" class="quick-action-btn bg-blue-100 hover:bg-blue-200 text-blue-700 p-4 rounded-lg text-center">
+                <i class="fas fa-user-plus text-2xl mb-2"></i>
+                <p class="font-medium">Registrar Visita</p>
+            </a>
+            
+            <a href="{% url 'tenants:create_employee' %}" class="quick-action-btn bg-green-100 hover:bg-green-200 text-green-700 p-4 rounded-lg text-center">
+                <i class="fas fa-user-tie text-2xl mb-2"></i>
+                <p class="font-medium">Nuevo Empleado</p>
+            </a>
+            
+            <a href="{% url 'tenants:create_maintenance_request' %}" class="quick-action-btn bg-orange-100 hover:bg-orange-200 text-orange-700 p-4 rounded-lg text-center">
+                <i class="fas fa-wrench text-2xl mb-2"></i>
+                <p class="font-medium">Solicitar Mantenimiento</p>
+            </a>
+            
+            <a href="{% url 'tenants:visits' %}" class="quick-action-btn bg-purple-100 hover:bg-purple-200 text-purple-700 p-4 rounded-lg text-center">
+                <i class="fas fa-list text-2xl mb-2"></i>
+                <p class="font-medium">Ver Mis Visitas</p>
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Visitas recientes -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Visitas Recientes</h2>
+                <a href="{% url 'tenants:visits' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Ver todas
+                </a>
+            </div>
+            
+            <div class="recent-activity">
+                {% for visit in recent_visits %}
+                <div class="activity-item flex items-center p-4 border-b border-gray-100 last:border-b-0">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4 flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                            {{ visit.visitor_name }}
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            {{ visit.visit_date|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                              {% if visit.status == 'pending' %}bg-yellow-100 text-yellow-800
+                              {% elif visit.status == 'approved' %}bg-green-100 text-green-800
+                              {% elif visit.status == 'completed' %}bg-blue-100 text-blue-800
+                              {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ visit.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <i class="fas fa-calendar-times text-3xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-500">No hay visitas registradas</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Solicitudes de mantenimiento -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Mantenimiento</h2>
+                <a href="{% url 'tenants:maintenance_requests' %}" class="text-orange-600 hover:text-orange-800 font-medium">
+                    Ver todas
+                </a>
+            </div>
+            
+            <div class="recent-activity">
+                {% for request in recent_maintenance %}
+                <div class="activity-item flex items-center p-4 border-b border-gray-100 last:border-b-0">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-tools text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4 flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">
+                            {{ request.title }}
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            {{ request.created_at|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                              {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                              {% elif request.status == 'in_progress' %}bg-blue-100 text-blue-800
+                              {% elif request.status == 'completed' %}bg-green-100 text-green-800
+                              {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ request.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <i class="fas fa-wrench text-3xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-500">No hay solicitudes de mantenimiento</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Información de contacto y horarios -->
+    <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Información Importante</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-medium text-gray-900 mb-2">Horarios de Atención</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><i class="fas fa-clock mr-2 text-blue-500"></i>Lunes a Viernes: 8:00 AM - 6:00 PM</li>
+                    <li><i class="fas fa-clock mr-2 text-blue-500"></i>Sábados: 9:00 AM - 2:00 PM</li>
+                    <li><i class="fas fa-clock mr-2 text-blue-500"></i>Domingos: Cerrado</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="font-medium text-gray-900 mb-2">Contacto de Emergencia</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li><i class="fas fa-phone mr-2 text-green-500"></i>Seguridad: (555) 123-4567</li>
+                    <li><i class="fas fa-tools mr-2 text-orange-500"></i>Mantenimiento: (555) 987-6543</li>
+                    <li><i class="fas fa-envelope mr-2 text-blue-500"></i>admin@olchatec.com</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar estadísticas cada 5 minutos
+    setInterval(function() {
+        // Aquí podrías hacer una llamada AJAX para actualizar las estadísticas
+        console.log('Actualizando estadísticas...');
+    }, 300000); // 5 minutos
+    
+    // Añadir efectos hover a las tarjetas
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user_detail.get_full_name|default:user_detail.username }} - Detalles de Usuario{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <a href="{% url 'accounts:users_list' %}" 
+                       class="text-gray-400 hover:text-gray-600 mr-4 transition-colors">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ user_detail.get_full_name|default:user_detail.username }}</h1>
+                        <p class="mt-1 text-sm text-gray-500">Detalles del usuario</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'accounts:user_edit' user_detail.id %}" 
+                       class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-edit mr-2"></i>Editar Usuario
+                    </a>
+                    {% if user_detail.id != request.user.id %}
+                    <button onclick="toggleUserStatus({{ user_detail.id }}, {{ user_detail.is_active|yesno:'true,false' }})" 
+                            class="{% if user_detail.is_active %}bg-red-600 hover:bg-red-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fas fa-{% if user_detail.is_active %}ban{% else %}check{% endif %} mr-2"></i>
+                        {% if user_detail.is_active %}Desactivar{% else %}Activar{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Información Principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Información Básica -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Información Básica</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Nombre de Usuario</label>
+                            <p class="text-sm text-gray-900">{{ user_detail.username }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Email</label>
+                            <p class="text-sm text-gray-900">{{ user_detail.email|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Nombre</label>
+                            <p class="text-sm text-gray-900">{{ user_detail.first_name|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Apellido</label>
+                            <p class="text-sm text-gray-900">{{ user_detail.last_name|default:"No especificado" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Fecha de Registro</label>
+                            <p class="text-sm text-gray-900">{{ user_detail.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Último Acceso</label>
+                            <p class="text-sm text-gray-900">
+                                {% if user_detail.last_login %}
+                                    {{ user_detail.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permisos y Roles -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Permisos y Roles</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Tipo de Usuario</label>
+                            <div class="space-y-2">
+                                {% if user_detail.is_superuser %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                        <i class="fas fa-crown mr-2"></i>Administrador
+                                    </span>
+                                {% endif %}
+                                {% if user_detail.is_staff %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-user-tie mr-2"></i>Staff
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Grupos</label>
+                            <div class="space-y-1">
+                                {% for group in user_groups %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mr-1 mb-1">
+                                        <i class="fas fa-users mr-2"></i>{{ group.name }}
+                                    </span>
+                                {% empty %}
+                                    <p class="text-sm text-gray-500">Sin grupos asignados</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if user_role %}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-500 mb-2">Rol del Sistema</label>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                                <i class="fas fa-id-badge mr-2"></i>{{ user_role.get_role_display }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Información Asociada -->
+                {% if tenant or guard %}
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Información Asociada</h2>
+                    
+                    {% if tenant %}
+                    <div class="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h3 class="text-md font-medium text-purple-900 mb-3">
+                            <i class="fas fa-building mr-2"></i>Información de Inquilino
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-purple-700 mb-1">Nombre del Inquilino</label>
+                                <p class="text-sm text-purple-900">{{ tenant.tenant_name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-purple-700 mb-1">Oficina</label>
+                                <p class="text-sm text-purple-900">{{ tenant.numero_oficina|default:"No especificado" }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-purple-700 mb-1">Contacto</label>
+                                <p class="text-sm text-purple-900">{{ tenant.contact_person }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-purple-700 mb-1">Teléfono</label>
+                                <p class="text-sm text-purple-900">{{ tenant.contact_phone }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'tenants:tenant_detail' tenant.id %}" 
+                               class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                                Ver detalles completos del inquilino <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if guard %}
+                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h3 class="text-md font-medium text-green-900 mb-3">
+                            <i class="fas fa-shield-alt mr-2"></i>Información de Vigilante
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-green-700 mb-1">Nombre Completo</label>
+                                <p class="text-sm text-green-900">{{ guard.first_name }} {{ guard.last_name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-green-700 mb-1">Teléfono</label>
+                                <p class="text-sm text-green-900">{{ guard.phone|default:"No especificado" }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-green-700 mb-1">Turno</label>
+                                <p class="text-sm text-green-900">{{ guard.get_shift_display|default:"No asignado" }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-green-700 mb-1">Estado</label>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if guard.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {% if guard.is_active %}Activo{% else %}Inactivo{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'guards:guard_detail' guard.id %}" 
+                               class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                Ver detalles completos del vigilante <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Panel Lateral -->
+            <div class="space-y-6">
+                <!-- Estado del Usuario -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado del Usuario</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Estado Actual</span>
+                            {% if user_detail.is_active %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>Activo
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    <i class="fas fa-times-circle mr-1"></i>Inactivo
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Puede acceder al admin</span>
+                            {% if user_detail.is_staff %}
+                                <i class="fas fa-check text-green-500"></i>
+                            {% else %}
+                                <i class="fas fa-times text-red-500"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-700">Es superusuario</span>
+                            {% if user_detail.is_superuser %}
+                                <i class="fas fa-check text-green-500"></i>
+                            {% else %}
+                                <i class="fas fa-times text-red-500"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+                    <div class="space-y-3">
+                        <a href="{% url 'accounts:user_edit' user_detail.id %}" 
+                           class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
+                            <i class="fas fa-edit mr-2"></i>Editar Usuario
+                        </a>
+                        
+                        {% if user_detail.id != request.user.id %}
+                        <button onclick="toggleUserStatus({{ user_detail.id }}, {{ user_detail.is_active|yesno:'true,false' }})" 
+                                class="w-full {% if user_detail.is_active %}bg-red-600 hover:bg-red-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-{% if user_detail.is_active %}ban{% else %}check{% endif %} mr-2"></i>
+                            {% if user_detail.is_active %}Desactivar Usuario{% else %}Activar Usuario{% endif %}
+                        </button>
+                        
+                        <button onclick="deleteUser({{ user_detail.id }}, '{{ user_detail.username }}')" 
+                                class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Eliminar Usuario
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'accounts:users_list' %}" 
+                           class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
+                            <i class="fas fa-arrow-left mr-2"></i>Volver a la Lista
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actividad Reciente</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-sign-in-alt text-green-500 mr-3"></i>
+                            <div>
+                                <p class="text-gray-900">Último acceso</p>
+                                <p class="text-gray-500">
+                                    {% if user_detail.last_login %}
+                                        {{ user_detail.last_login|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        Nunca
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-user-plus text-blue-500 mr-3"></i>
+                            <div>
+                                <p class="text-gray-900">Fecha de registro</p>
+                                <p class="text-gray-500">{{ user_detail.date_joined|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// Toggle user status
+function toggleUserStatus(userId, isActive) {
+    const action = isActive ? 'desactivar' : 'activar';
+    
+    if (confirm(`¿Estás seguro de que deseas ${action} este usuario?`)) {
+        fetch(`/accounts/users/${userId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo cambiar el estado del usuario'));
+            }
+        })
+        .catch(error => {
+            alert('Error de conexión');
+        });
+    }
+}
+
+// Delete user
+function deleteUser(userId, username) {
+    if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"?\n\nEsta acción no se puede deshacer.`)) {
+        fetch(`/accounts/users/${userId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '{% url "accounts:users_list" %}';
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo eliminar el usuario'));
+            }
+        })
+        .catch(error => {
+            alert('Error de conexión');
+        });
+    }
+}
+</script>
+{% endblock %}

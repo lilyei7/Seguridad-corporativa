@@ -1,17 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Panel de Inquilino - Olcha Tecnología En Seguridad{% endblock %}
+{% block title %}{{ page_title|default:"Panel de Inquilino" }} - Olcha Tecnología En Seguridad{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Header del panel -->
-    <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold mb-2">Panel de Inquilino</h1>
                 <p class="text-purple-100">Gestión de visitas y accesos a tu local</p>
                 {% if tenant %}
-                    <p class="text-purple-200 text-sm mt-2">Local: {{ tenant.tenant_name }}</p>
+                    <div class="mt-3 space-y-1">
+                        <p class="text-purple-200 text-lg font-medium">{{ tenant.tenant_name }}</p>
+                        {% if tenant.numero_oficina %}
+                            <p class="text-purple-300 text-sm">Oficina: {{ tenant.numero_oficina }}</p>
+                        {% endif %}
+                        {% if tenant.tipo_oficina %}
+                            <p class="text-purple-300 text-sm">Tipo: {{ tenant.get_tipo_oficina_display }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                {% if user_info %}
+                    <p class="text-purple-200 text-sm mt-2">Bienvenido, {{ user_info.full_name }}</p>
                 {% endif %}
             </div>
             <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
@@ -22,24 +33,60 @@
 
     {% if not tenant %}
         <!-- Mensaje cuando no se encuentra inquilino -->
-        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
-                <div>
-                    <h3 class="text-lg font-semibold text-yellow-800">Información del Inquilino No Encontrada</h3>
-                    <p class="text-yellow-700">Por favor contacta al administrador para asociar tu usuario con un local.</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 shadow-sm">
+            <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-yellow-800 mb-2">Información del Local No Encontrada</h3>
+                    <p class="text-yellow-700 mb-4">Tu usuario no está asociado con ningún local en el sistema.</p>
+                    
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <h4 class="font-medium text-gray-800 mb-2">Información de tu cuenta:</h4>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li><strong>Usuario:</strong> {{ user_info.username }}</li>
+                            <li><strong>Nombre:</strong> {{ user_info.full_name }}</li>
+                            <li><strong>Email:</strong> {{ user_info.email|default:"No especificado" }}</li>
+                            <li><strong>Rol:</strong> {{ user_info.role }}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h4 class="font-medium text-blue-800 mb-2">¿Qué puedes hacer?</h4>
+                        <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                            <li>Contacta al administrador del sistema</li>
+                            <li>Verifica que tu email coincida con el del local</li>
+                            <li>Solicita que te asignen al local correspondiente</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
         </div>
     {% else %}
         <!-- Estadísticas de mis visitas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total de Visitas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total de Visitas</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ total_visits }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Todas las visitas</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
             <!-- Visitas Pendientes -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Visitas Pendientes</p>
                         <p class="text-3xl font-bold text-yellow-600">{{ pending_visits }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Por aprobar</p>
                     </div>
                     <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                         <i class="fas fa-clock text-yellow-600 text-xl"></i>
@@ -48,6 +95,33 @@
             </div>
 
             <!-- Visitas Aprobadas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Visitas Aprobadas</p>
+                        <p class="text-3xl font-bold text-green-600">{{ approved_visits }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Listas para recibir</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visitas Completadas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Visitas Completadas</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ completed_visits }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Esta semana: {{ this_week_visits }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-double text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div class="flex items-center justify-between">
                     <div>

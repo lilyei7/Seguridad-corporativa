@@ -30,6 +30,7 @@ urlpatterns = [
     path('guards/', include('guards.urls')),
     path('accounts/', include('accounts.urls')),
     path('maintenance/', include('maintenance.urls')),
+    path('api/', include('accounts.api_urls')),
 ]
 
 # Servir archivos media en desarrollo

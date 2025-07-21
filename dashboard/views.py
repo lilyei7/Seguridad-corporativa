@@ -348,19 +348,38 @@ def guard_panel(request):
 
 @login_required
 def tenant_panel(request):
-    """Panel para inquilinos"""
-    # Verificar que el usuario sea inquilino
-    if not request.user.groups.filter(name='Inquilinos').exists() and not request.user.is_superuser:
-        messages.error(request, 'No tienes permisos para acceder a esta sección.')
-        return redirect('dashboard:admin_panel')
+    """Panel para inquilinos usando el nuevo sistema de roles"""
+    # Verificar que el usuario tenga rol de inquilino
+    user_role = getattr(request.user, 'user_role', None)
+    if not user_role or user_role.role != 'tenant':
+        if not request.user.is_superuser:
+            messages.error(request, 'No tienes permisos para acceder a esta sección de inquilinos.')
+            return redirect('dashboard:index')
     
     try:
-        # Buscar inquilino por email del usuario
-        tenant = Tenant.objects.get(contact_email=request.user.email)
-    except Tenant.DoesNotExist:
-        # Si no existe, buscar por nombre de usuario o crear uno temporal
+        # Buscar inquilino asociado al usuario
+        # Primero intentar por el campo assigned_user
         tenant = None
-        messages.warning(request, 'No se encontró información del inquilino asociada a tu usuario.')
+        if hasattr(request.user, 'tenant_assigned'):
+            tenant = request.user.tenant_assigned
+        elif user_role and user_role.tenant_profile:
+            tenant = user_role.tenant_profile
+        else:
+            # Buscar por email como fallback
+            tenant = Tenant.objects.filter(contact_email=request.user.email).first()
+        
+        if not tenant:
+            # Buscar por otros criterios
+            tenant = Tenant.objects.filter(
+                Q(assigned_user=request.user) | 
+                Q(contact_email=request.user.email) |
+                Q(business_name__icontains=request.user.first_name) |
+                Q(business_name__icontains=request.user.last_name)
+            ).first()
+            
+    except Exception as e:
+        tenant = None
+        messages.warning(request, f'Error al buscar información del inquilino: {str(e)}')
     
     if tenant:
         # Mis visitas
@@ -368,10 +387,12 @@ def tenant_panel(request):
             tenant=tenant
         ).order_by('-created_at')[:10]
         
-        # Estadísticas
+        # Estadísticas detalladas
+        total_visits = Visit.objects.filter(tenant=tenant).count()
         pending_visits = Visit.objects.filter(tenant=tenant, status='pendiente').count()
         approved_visits = Visit.objects.filter(tenant=tenant, status='aprobada').count()
         completed_visits = Visit.objects.filter(tenant=tenant, status='completada').count()
+        cancelled_visits = Visit.objects.filter(tenant=tenant, status='cancelada').count()
         
         # Visitas de hoy
         today = timezone.now().date()
@@ -379,22 +400,75 @@ def tenant_panel(request):
             tenant=tenant,
             scheduled_date=today
         ).order_by('scheduled_time')
+        
+        # Visitas de esta semana
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+        this_week_visits = Visit.objects.filter(
+            tenant=tenant,
+            scheduled_date__range=[week_start, week_end]
+        ).count()
+        
+        # Próximas visitas (próximos 7 días)
+        next_week = today + timedelta(days=7)
+        upcoming_visits = Visit.objects.filter(
+            tenant=tenant,
+            scheduled_date__range=[today, next_week],
+            status__in=['pendiente', 'aprobada']
+        ).order_by('scheduled_date', 'scheduled_time')[:5]
+        
     else:
+        # Usuario sin inquilino asociado - crear datos por defecto
         my_visits = []
+        total_visits = 0
         pending_visits = 0
         approved_visits = 0
         completed_visits = 0
+        cancelled_visits = 0
         todays_visits = []
+        this_week_visits = 0
+        upcoming_visits = []
+        
+        # Mensaje informativo
+        messages.info(request, 
+            'No se encontró un local asociado a tu usuario. '
+            'Si eres inquilino, contacta al administrador para que configure tu perfil.'
+        )
+    
+    # Información adicional del usuario
+    user_info = {
+        'username': request.user.username,
+        'full_name': request.user.get_full_name() or request.user.username,
+        'email': request.user.email,
+        'role': user_role.get_role_display() if user_role else 'Sin rol asignado',
+        'is_active': user_role.is_active if user_role else True,
+        'date_joined': request.user.date_joined,
+    }
     
     context = {
         'tenant': tenant,
+        'user_info': user_info,
         'my_visits': my_visits,
+        'total_visits': total_visits,
         'pending_visits': pending_visits,
         'approved_visits': approved_visits,
         'completed_visits': completed_visits,
+        'cancelled_visits': cancelled_visits,
         'todays_visits': todays_visits,
-        'user_type': 'tenant'
+        'this_week_visits': this_week_visits,
+        'upcoming_visits': upcoming_visits,
+        'user_type': 'tenant',
+        'page_title': f'Panel de Inquilino - {user_info["full_name"]}',
     }
+    
+    # Detectar si es dispositivo móvil
+    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    is_mobile = any(device in user_agent for device in ['mobile', 'android', 'iphone', 'ipad', 'tablet'])
+    
+    # Usar template móvil si es necesario
+    if is_mobile or request.GET.get('mobile') == '1':
+        return render(request, 'dashboard/mobile_tenant_panel.html', context)
+    
     return render(request, 'dashboard/tenant_panel.html', context)
 
 

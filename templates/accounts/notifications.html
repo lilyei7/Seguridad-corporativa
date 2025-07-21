@@ -1,0 +1,607 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notificaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+.notification-item {
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notification-unread {
+    background-color: #eff6ff;
+    border-left: 4px solid #3b82f6;
+}
+
+.notification-read {
+    background-color: #ffffff;
+    border-left: 4px solid #e5e7eb;
+}
+
+.notification-priority-urgent {
+    border-left-color: #ef4444 !important;
+}
+
+.notification-priority-high {
+    border-left-color: #f97316 !important;
+}
+
+.notification-priority-medium {
+    border-left-color: #3b82f6 !important;
+}
+
+.notification-priority-low {
+    border-left-color: #10b981 !important;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.notification-maintenance {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.notification-incident {
+    background-color: #ef4444;
+    color: white;
+}
+
+.notification-visit {
+    background-color: #10b981;
+    color: white;
+}
+
+.notification-system {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.notification-general {
+    background-color: #6b7280;
+    color: white;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.filter-badge.active {
+    background-color: #1d4ed8;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Notificaciones</h1>
+            <p class="text-gray-600">Gestiona todas tus notificaciones y alertas del sistema</p>
+        </div>
+        
+        {% if user.user_role.role == 'admin' %}
+        <div class="mt-4 md:mt-0">
+            <button id="send-notification-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                Enviar Notificación
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="stats-card rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-bell text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Total</p>
+                    <p class="text-2xl font-bold">{{ total_notifications }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-red-500 text-white rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Sin Leer</p>
+                    <p class="text-2xl font-bold">{{ unread_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-green-500 text-white rounded-lg p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium opacity-90">Leídas</p>
+                    <p class="text-2xl font-bold">{{ total_notifications|add:"-"|add:unread_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="flex flex-wrap items-center gap-4 mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Filtros</h3>
+            
+            {% if current_type or current_read or current_priority %}
+            <a href="{% url 'accounts:notifications' %}" class="text-sm text-red-600 hover:text-red-800">
+                <i class="fas fa-times mr-1"></i>
+                Limpiar filtros
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Filtro por tipo -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <select id="type-filter" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todos los tipos</option>
+                    {% for type_choice in notification_types %}
+                    <option value="{{ type_choice.0 }}" {% if current_type == type_choice.0 %}selected{% endif %}>
+                        {{ type_choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Filtro por estado -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select id="read-filter" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todas</option>
+                    <option value="false" {% if current_read == 'false' %}selected{% endif %}>Sin leer</option>
+                    <option value="true" {% if current_read == 'true' %}selected{% endif %}>Leídas</option>
+                </select>
+            </div>
+            
+            <!-- Filtro por prioridad -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                <select id="priority-filter" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todas las prioridades</option>
+                    {% for priority_choice in priority_choices %}
+                    <option value="{{ priority_choice.0 }}" {% if current_priority == priority_choice.0 %}selected{% endif %}>
+                        {{ priority_choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones masivas -->
+    {% if notifications %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <label class="flex items-center">
+                    <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Seleccionar todas</span>
+                </label>
+                <span id="selected-count" class="text-sm text-gray-500">0 seleccionadas</span>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button id="mark-selected-read" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50" disabled>
+                    <i class="fas fa-check mr-2"></i>
+                    Marcar como leídas
+                </button>
+                <button id="delete-selected" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50" disabled>
+                    <i class="fas fa-trash mr-2"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Lista de notificaciones -->
+    <div class="space-y-4">
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}notification-unread{% else %}notification-read{% endif %} notification-priority-{{ notification.priority }} bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer" 
+             data-id="{{ notification.id }}" data-url="{{ notification.url }}">
+            <div class="flex items-start space-x-4">
+                <!-- Checkbox -->
+                <input type="checkbox" class="notification-checkbox mt-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500" value="{{ notification.id }}">
+                
+                <!-- Icono -->
+                <div class="notification-icon notification-{{ notification.notification_type }}">
+                    {% if notification.notification_type == 'maintenance_request' %}
+                        <i class="fas fa-tools"></i>
+                    {% elif notification.notification_type == 'incident_report' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif notification.notification_type == 'visit_notification' %}
+                        <i class="fas fa-user-friends"></i>
+                    {% elif notification.notification_type == 'system_alert' %}
+                        <i class="fas fa-cog"></i>
+                    {% else %}
+                        <i class="fas fa-bell"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Contenido -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                {{ notification.title }}
+                                {% if not notification.is_read %}
+                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Nueva
+                                </span>
+                                {% endif %}
+                            </h3>
+                            <p class="text-gray-600 mb-3">{{ notification.message }}</p>
+                            
+                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                <span>
+                                    <i class="fas fa-clock mr-1"></i>
+                                    {{ notification.created_at|timesince }} ago
+                                </span>
+                                
+                                <span class="filter-badge">
+                                    {{ notification.get_notification_type_display }}
+                                </span>
+                                
+                                <span class="filter-badge {% if notification.priority == 'urgent' %}bg-red-500{% elif notification.priority == 'high' %}bg-orange-500{% elif notification.priority == 'medium' %}bg-blue-500{% else %}bg-green-500{% endif %}">
+                                    {{ notification.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Acciones -->
+                        <div class="flex items-center space-x-2">
+                            {% if not notification.is_read %}
+                            <button class="mark-read-btn text-blue-600 hover:text-blue-800 p-2" data-id="{{ notification.id }}" title="Marcar como leída">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                            
+                            <button class="delete-btn text-red-600 hover:text-red-800 p-2" data-id="{{ notification.id }}" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12">
+            <i class="fas fa-bell-slash text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay notificaciones</h3>
+            <p class="text-gray-500">Cuando recibas notificaciones, aparecerán aquí.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginación -->
+    {% if notifications.has_other_pages %}
+    <div class="mt-8 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if notifications.has_previous %}
+            <a href="?page={{ notifications.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_read %}&read={{ current_read }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}" 
+               class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 text-gray-700">
+                Página {{ notifications.number }} de {{ notifications.paginator.num_pages }}
+            </span>
+            
+            {% if notifications.has_next %}
+            <a href="?page={{ notifications.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_read %}&read={{ current_read }}{% endif %}{% if current_priority %}&priority={{ current_priority }}{% endif %}" 
+               class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para enviar notificación masiva (solo admins) -->
+{% if user.user_role.role == 'admin' %}
+<div id="send-notification-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Enviar Notificación Masiva</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="send-notification-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input type="text" id="notification-title" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mensaje</label>
+                        <textarea id="notification-message" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                        <select id="notification-type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            {% for type_choice in notification_types %}
+                            <option value="{{ type_choice.0 }}">{{ type_choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                        <select id="notification-priority" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            {% for priority_choice in priority_choices %}
+                            <option value="{{ priority_choice.0 }}">{{ priority_choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Destinatarios</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" value="admin" class="recipient-role rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Administradores</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="tenant" class="recipient-role rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Inquilinos</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="guard" class="recipient-role rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Vigilantes</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="maintenance" class="recipient-role rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Mantenimiento</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancel-send" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Enviar Notificación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros
+    const typeFilter = document.getElementById('type-filter');
+    const readFilter = document.getElementById('read-filter');
+    const priorityFilter = document.getElementById('priority-filter');
+    
+    function applyFilters() {
+        const params = new URLSearchParams();
+        
+        if (typeFilter.value) params.set('type', typeFilter.value);
+        if (readFilter.value) params.set('read', readFilter.value);
+        if (priorityFilter.value) params.set('priority', priorityFilter.value);
+        
+        window.location.search = params.toString();
+    }
+    
+    typeFilter.addEventListener('change', applyFilters);
+    readFilter.addEventListener('change', applyFilters);
+    priorityFilter.addEventListener('change', applyFilters);
+    
+    // Selección masiva
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.notification-checkbox');
+    const selectedCount = document.getElementById('selected-count');
+    const markSelectedRead = document.getElementById('mark-selected-read');
+    const deleteSelected = document.getElementById('delete-selected');
+    
+    function updateSelection() {
+        const selectedBoxes = document.querySelectorAll('.notification-checkbox:checked');
+        const count = selectedBoxes.length;
+        
+        selectedCount.textContent = `${count} seleccionadas`;
+        markSelectedRead.disabled = count === 0;
+        deleteSelected.disabled = count === 0;
+        
+        selectAll.indeterminate = count > 0 && count < checkboxes.length;
+        selectAll.checked = count === checkboxes.length;
+    }
+    
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSelection();
+    });
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelection);
+    });
+    
+    // Marcar como leída individualmente
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.dataset.id;
+            markAsRead(id);
+        });
+    });
+    
+    // Eliminar individualmente
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = this.dataset.id;
+            if (confirm('¿Estás seguro de que quieres eliminar esta notificación?')) {
+                deleteNotification(id);
+            }
+        });
+    });
+    
+    // Click en notificación
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (e.target.type === 'checkbox' || e.target.closest('button')) return;
+            
+            const id = this.dataset.id;
+            const url = this.dataset.url;
+            
+            markAsRead(id);
+            
+            if (url) {
+                window.location.href = url;
+            }
+        });
+    });
+    
+    // Funciones de API
+    async function markAsRead(id) {
+        try {
+            const response = await fetch(`/api/notifications/${id}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+            
+            if (response.ok) {
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    async function deleteNotification(id) {
+        try {
+            const response = await fetch(`/api/notifications/${id}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            });
+            
+            if (response.ok) {
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    // Modal para enviar notificación (solo admins)
+    {% if user.user_role.role == 'admin' %}
+    const sendNotificationBtn = document.getElementById('send-notification-btn');
+    const sendNotificationModal = document.getElementById('send-notification-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelSend = document.getElementById('cancel-send');
+    const sendNotificationForm = document.getElementById('send-notification-form');
+    
+    sendNotificationBtn.addEventListener('click', () => {
+        sendNotificationModal.classList.remove('hidden');
+    });
+    
+    closeModal.addEventListener('click', () => {
+        sendNotificationModal.classList.add('hidden');
+    });
+    
+    cancelSend.addEventListener('click', () => {
+        sendNotificationModal.classList.add('hidden');
+    });
+    
+    sendNotificationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById('notification-title').value;
+        const message = document.getElementById('notification-message').value;
+        const type = document.getElementById('notification-type').value;
+        const priority = document.getElementById('notification-priority').value;
+        const recipientRoles = Array.from(document.querySelectorAll('.recipient-role:checked')).map(cb => cb.value);
+        
+        try {
+            const response = await fetch('/api/notifications/send-bulk/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({
+                    title,
+                    message,
+                    type,
+                    priority,
+                    recipient_roles: recipientRoles
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(data.message);
+                sendNotificationModal.classList.add('hidden');
+                sendNotificationForm.reset();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al enviar la notificación');
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

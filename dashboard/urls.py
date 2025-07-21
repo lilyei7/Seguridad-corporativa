@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, config_views
+from . import views, config_views, api_views
 from .theme_css_view import theme_css
 
 app_name = 'dashboard'
@@ -10,6 +10,7 @@ urlpatterns = [
     path('guard/', views.guard_panel, name='guard_panel'),
     path('guard/mobile/', views.guard_panel, {'mobile': '1'}, name='mobile_guard_panel'),
     path('tenant/', views.tenant_panel, name='tenant_panel'),
+    path('tenant/dashboard/', views.tenant_panel, name='tenant_dashboard'),
     path('visits/', views.visits_list, name='visits_list'),
     path('tenants/', views.tenants_list, name='tenants_list'),
     path('guards/', views.guards_list, name='guards_list'),
@@ -23,6 +24,9 @@ urlpatterns = [
     path('incidents/<int:incident_id>/edit/', views.incident_edit, name='incident_edit'),
     # URLs adicionales faltantes
     path('my-shift/', views.my_shift, name='my_shift'),
+    
+    # API endpoints
+    path('api/system-config/', api_views.system_config_api, name='system_config_api'),
     
     # URLs para configuración del sistema
     path('config/', config_views.SystemConfigurationView.as_view(), name='system_configuration'),
