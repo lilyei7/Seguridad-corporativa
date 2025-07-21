@@ -107,14 +107,35 @@
             --theme-sidebar: {{ active_theme_colors.sidebar|default:"#1e293b" }};
         }
         
-        /* Aplicar variables a elementos principales */
-        .sidebar {
+        /* Aplicar variables a elementos principales con alta especificidad */
+        body .sidebar,
+        #sidebar.sidebar,
+        body #sidebar {
             background-color: var(--theme-sidebar) !important;
+            border-color: var(--theme-sidebar) !important;
         }
         
-        .sidebar-link.active,
-        .sidebar-link:hover {
+        body .sidebar-link,
+        body #sidebar .sidebar-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        body .sidebar-link:hover,
+        body #sidebar .sidebar-link:hover {
             background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+        
+        body .sidebar-link.active,
+        body #sidebar .sidebar-link.active {
+            background-color: var(--theme-primary) !important;
+            color: white !important;
+        }
+        
+        /* Asegurar que los colores del sidebar sean aplicados forzosamente */
+        .sidebar[style*="background-color"] {
+            background-color: var(--theme-sidebar) !important;
         }
     </style>
     
@@ -141,7 +162,71 @@
             document.documentElement.style.setProperty('--theme-secondary', config.secondary);
             document.documentElement.style.setProperty('--theme-accent', config.accent);
             document.documentElement.style.setProperty('--theme-sidebar', config.sidebar);
+            
+            // Aplicar específicamente al sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.style.backgroundColor = config.sidebar;
+                sidebar.style.background = config.sidebar;
+            }
+            
+            // Aplicar a enlaces del sidebar
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.style.color = 'rgba(255, 255, 255, 0.8)';
+                
+                if (link.classList.contains('active')) {
+                    link.style.backgroundColor = config.primary;
+                    link.style.color = 'white';
+                }
+            });
         }
+        
+        // Función para actualizar tema dinámicamente
+        window.updateSidebarTheme = function(colors) {
+            document.documentElement.style.setProperty('--theme-primary', colors.primary);
+            document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
+            document.documentElement.style.setProperty('--theme-accent', colors.accent);
+            document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
+            
+            // Forzar aplicación inmediata al sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                // Remover clases de Tailwind que puedan interferir
+                sidebar.classList.remove('bg-gray-900', 'bg-slate-800', 'bg-blue-900', 'bg-green-900', 'bg-purple-900', 'bg-orange-900', 'bg-red-900', 'bg-indigo-900', 'bg-teal-900', 'bg-pink-900');
+                
+                // Aplicar color directamente
+                sidebar.style.backgroundColor = colors.sidebar + ' !important';
+                sidebar.style.setProperty('background-color', colors.sidebar, 'important');
+                
+                // También aplicar a la clase
+                sidebar.style.cssText += `background-color: ${colors.sidebar} !important;`;
+            }
+            
+            // Forzar aplicación a todos los enlaces del sidebar
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                if (link.classList.contains('active')) {
+                    link.style.setProperty('background-color', colors.primary, 'important');
+                    link.style.setProperty('color', 'white', 'important');
+                }
+            });
+        };
+        
+        // Función para ejecutar al cargar la página
+        window.forceThemeOnLoad = function() {
+            const themeColors = window.currentThemeConfig;
+            if (themeColors && themeColors.sidebar) {
+                setTimeout(() => {
+                    window.updateSidebarTheme(themeColors);
+                }, 50);
+                
+                // Segundo intento por si acaso
+                setTimeout(() => {
+                    window.updateSidebarTheme(themeColors);
+                }, 200);
+            }
+        };
         window.themeConfig = {
             colors: {
                 primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
@@ -155,66 +240,23 @@
         };
     </script>
     
-    <!-- Aplicar tema dinámico -->
-    <style id="dynamic-theme">
-        :root {
-            --color-primary: {{ active_theme_colors.primary|default:"#0ea5e9" }};
-            --color-secondary: {{ active_theme_colors.secondary|default:"#0284c7" }};
-            --color-accent: {{ active_theme_colors.accent|default:"#0369a1" }};
-            --color-sidebar: {{ active_theme_colors.sidebar|default:"#1e293b" }};
-        }
+    <!-- Script para ejecutar tema al cargar -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.forceThemeOnLoad) {
+                window.forceThemeOnLoad();
+            }
+        });
         
-        /* Aplicar colores del tema al sidebar */
-        .sidebar {
-            background-color: var(--color-sidebar) !important;
-        }
-        
-        /* Aplicar colores primarios a elementos */
-        .bg-primary-custom {
-            background-color: var(--color-primary);
-        }
-        
-        .bg-secondary-custom {
-            background-color: var(--color-secondary);
-        }
-        
-        .bg-accent-custom {
-            background-color: var(--color-accent);
-        }
-        
-        .text-primary-custom {
-            color: var(--color-primary);
-        }
-        
-        .border-primary-custom {
-            border-color: var(--color-primary);
-        }
-        
-        /* Modo oscuro */
-        {% if is_dark_mode %}
-        .dark-mode {
-            background-color: #1a1a1a;
-            color: #e5e5e5;
-        }
-        
-        .dark-mode .bg-white {
-            background-color: #2d2d2d !important;
-            color: #e5e5e5 !important;
-        }
-        
-        .dark-mode .text-gray-900 {
-            color: #e5e5e5 !important;
-        }
-        
-        .dark-mode .border-gray-200 {
-            border-color: #404040 !important;
-        }
-        
-        .dark-mode .bg-gray-50 {
-            background-color: #262626 !important;
-        }
-        {% endif %}
-    </style>
+        // También ejecutar cuando la página esté completamente cargada
+        window.addEventListener('load', function() {
+            if (window.forceThemeOnLoad) {
+                window.forceThemeOnLoad();
+            }
+        });
+    </script>
+    
+
     
     <!-- Estilos personalizados -->
     <style>
@@ -504,6 +546,50 @@
             }
         }
     </style>
+    
+    <!-- CSS específico para aplicar temas al sidebar -->
+    <style id="sidebar-theme-styles">
+        /* Forzar aplicación de tema al sidebar */
+        #sidebar.sidebar,
+        aside.sidebar {
+            background-color: var(--theme-sidebar) !important;
+            background: var(--theme-sidebar) !important;
+        }
+        
+        /* Enlaces del sidebar */
+        .sidebar-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+        
+        .sidebar-link.active {
+            background-color: var(--theme-primary) !important;
+            color: white !important;
+        }
+        
+        /* Iconos del sidebar */
+        .sidebar-link i {
+            color: inherit !important;
+        }
+        
+        /* Header/logo del sidebar */
+        .sidebar .logo,
+        .sidebar h1,
+        .sidebar h2 {
+            color: white !important;
+        }
+        
+        /* Títulos de sección */
+        .sidebar .section-title,
+        .sidebar .text-xs {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    </style>
 </head>
 
 <body class="h-full bg-gray-50 font-inter">
@@ -537,7 +623,7 @@
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block">
+        <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
             <div class="h-full px-3 py-6 overflow-y-auto flex flex-col">
                 <!-- Logo -->
                 <div class="flex items-center justify-center mb-8 px-4">

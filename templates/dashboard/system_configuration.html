@@ -271,63 +271,86 @@
 
 <!-- JavaScript para funcionalidad de configuración -->
 <script>
-// Datos de temas predefinidos
-const themeData = {
-    'default': { primary: '#0ea5e9', secondary: '#0284c7', accent: '#0369a1', sidebar: '#1e293b' },
-    'green': { primary: '#10b981', secondary: '#059669', accent: '#047857', sidebar: '#064e3b' },
-    'purple': { primary: '#8b5cf6', secondary: '#7c3aed', accent: '#6d28d9', sidebar: '#581c87' },
-    'orange': { primary: '#f97316', secondary: '#ea580c', accent: '#c2410c', sidebar: '#9a3412' },
-    'red': { primary: '#ef4444', secondary: '#dc2626', accent: '#b91c1c', sidebar: '#991b1b' },
-    'indigo': { primary: '#6366f1', secondary: '#4f46e5', accent: '#4338ca', sidebar: '#312e81' },
-    'teal': { primary: '#14b8a6', secondary: '#0d9488', accent: '#0f766e', sidebar: '#134e4a' },
-    'pink': { primary: '#ec4899', secondary: '#db2777', accent: '#be185d', sidebar: '#9d174d' }
-};
+// Evitar redeclaración
+if (typeof SystemConfig === 'undefined') {
+    window.SystemConfig = {};
+}
 
-let currentTheme = 'default';
-let isDarkMode = false;
+// Datos de temas predefinidos
+if (typeof window.themeData === 'undefined') {
+    window.themeData = {
+        'default': { primary: '#0ea5e9', secondary: '#0284c7', accent: '#0369a1', sidebar: '#1e293b' },
+        'green': { primary: '#10b981', secondary: '#059669', accent: '#047857', sidebar: '#064e3b' },
+        'purple': { primary: '#8b5cf6', secondary: '#7c3aed', accent: '#6d28d9', sidebar: '#581c87' },
+        'orange': { primary: '#f97316', secondary: '#ea580c', accent: '#c2410c', sidebar: '#9a3412' },
+        'red': { primary: '#ef4444', secondary: '#dc2626', accent: '#b91c1c', sidebar: '#991b1b' },
+        'indigo': { primary: '#6366f1', secondary: '#4f46e5', accent: '#4338ca', sidebar: '#312e81' },
+        'teal': { primary: '#14b8a6', secondary: '#0d9488', accent: '#0f766e', sidebar: '#134e4a' },
+        'pink': { primary: '#ec4899', secondary: '#db2777', accent: '#be185d', sidebar: '#9d174d' }
+    };
+}
+
+// Variables globales
+if (typeof window.currentTheme === 'undefined') {
+    window.currentTheme = 'default';
+}
+if (typeof window.isDarkMode === 'undefined') {
+    window.isDarkMode = false;
+}
 
 // Mostrar/ocultar tabs
-function showTab(tabName) {
-    // Ocultar todos los contenidos
-    document.querySelectorAll('.config-content').forEach(content => {
-        content.classList.add('hidden');
-    });
-    
-    // Remover clase activa de todos los tabs
-    document.querySelectorAll('.config-tab').forEach(tab => {
-        tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
-        tab.classList.add('border-transparent', 'text-gray-500');
-    });
-    
-    // Mostrar contenido activo
-    document.getElementById(`${tabName}-content`).classList.remove('hidden');
-    
-    // Marcar tab como activo
-    const activeTab = document.getElementById(`${tabName}-tab`);
-    activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
-    activeTab.classList.remove('border-transparent', 'text-gray-500');
+if (typeof window.showTab === 'undefined') {
+    window.showTab = function(tabName) {
+        // Ocultar todos los contenidos
+        document.querySelectorAll('.config-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+        
+        // Remover clase activa de todos los tabs
+        document.querySelectorAll('.config-tab').forEach(tab => {
+            tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+            tab.classList.add('border-transparent', 'text-gray-500');
+        });
+        
+        // Mostrar contenido activo
+        document.getElementById(`${tabName}-content`).classList.remove('hidden');
+        
+        // Marcar tab como activo
+        const activeTab = document.getElementById(`${tabName}-tab`);
+        activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+    };
 }
 
 // Seleccionar tema
-function selectTheme(theme) {
-    currentTheme = theme;
-    
-    // Actualizar colores en los controles
-    const colors = themeData[theme];
-    document.getElementById('primary-color').value = colors.primary;
-    document.getElementById('primary-color-hex').value = colors.primary;
-    document.getElementById('secondary-color').value = colors.secondary;
-    document.getElementById('secondary-color-hex').value = colors.secondary;
-    document.getElementById('accent-color').value = colors.accent;
-    document.getElementById('accent-color-hex').value = colors.accent;
-    document.getElementById('sidebar-color').value = colors.sidebar;
-    document.getElementById('sidebar-color-hex').value = colors.sidebar;
+if (typeof window.selectTheme === 'undefined') {
+    window.selectTheme = function(theme) {
+        window.currentTheme = theme;
+        
+        // Actualizar colores en los controles
+        const themeColors = window.themeData[theme];
+    document.getElementById('primary-color').value = themeColors.primary;
+    document.getElementById('primary-color-hex').value = themeColors.primary;
+    document.getElementById('secondary-color').value = themeColors.secondary;
+    document.getElementById('secondary-color-hex').value = themeColors.secondary;
+    document.getElementById('accent-color').value = themeColors.accent;
+    document.getElementById('accent-color-hex').value = themeColors.accent;
+    document.getElementById('sidebar-color').value = themeColors.sidebar;
+    document.getElementById('sidebar-color-hex').value = themeColors.sidebar;
     
     // Actualizar vista previa
     updatePreview();
     
     // Aplicar cambios inmediatamente a la página actual
-    applyThemeChanges(theme);
+    if (window.updateSidebarTheme) {
+        window.updateSidebarTheme(themeColors);
+    }
+    
+    // También aplicar directamente
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.style.setProperty('background-color', themeColors.sidebar, 'important');
+    }
     
     // Marcar tarjeta como seleccionada
     document.querySelectorAll('.theme-card').forEach(card => {
@@ -341,22 +364,25 @@ function selectTheme(theme) {
     
     // Actualizar tema en el select del usuario
     document.getElementById('user-theme').value = theme;
+    };
 }
 
 // Actualizar vista previa
-function updatePreview() {
-    const colors = {
-        primary: document.getElementById('primary-color').value,
-        secondary: document.getElementById('secondary-color').value,
-        accent: document.getElementById('accent-color').value,
-        sidebar: document.getElementById('sidebar-color').value
+if (typeof window.updatePreview === 'undefined') {
+    window.updatePreview = function() {
+        const previewColors = {
+            primary: document.getElementById('primary-color').value,
+            secondary: document.getElementById('secondary-color').value,
+            accent: document.getElementById('accent-color').value,
+            sidebar: document.getElementById('sidebar-color').value
+        };
+        
+        const sidebar = document.getElementById('preview-sidebar');
+        const header = document.getElementById('preview-header');
+        
+        sidebar.style.backgroundColor = previewColors.sidebar;
+        header.style.background = `linear-gradient(135deg, ${previewColors.primary}, ${previewColors.secondary})`;
     };
-    
-    const sidebar = document.getElementById('preview-sidebar');
-    const header = document.getElementById('preview-header');
-    
-    sidebar.style.backgroundColor = colors.sidebar;
-    header.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
 }
 
 // Toggle modo oscuro en vista previa
@@ -484,56 +510,105 @@ function applyConfiguration() {
 }
 
 // Función para aplicar cambios de tema inmediatamente
-function applyThemeChanges(themeName) {
-    if (!themeName) themeName = currentTheme;
+if (typeof window.applyThemeChanges === 'undefined') {
+    window.applyThemeChanges = function(themeName) {
+        if (!themeName) themeName = window.currentTheme;
+        
+        const themeColors = window.themeData[themeName] || window.themeData['default'];
+        
+        // Actualizar variables CSS
+        document.documentElement.style.setProperty('--theme-primary', themeColors.primary);
+        document.documentElement.style.setProperty('--theme-secondary', themeColors.secondary);
+        document.documentElement.style.setProperty('--theme-accent', themeColors.accent);
+        document.documentElement.style.setProperty('--theme-sidebar', themeColors.sidebar);
+        
+        // Aplicar específicamente al sidebar
+        const sidebars = document.querySelectorAll('.sidebar, #sidebar, nav.sidebar, aside.sidebar');
+        sidebars.forEach(sidebar => {
+            sidebar.style.backgroundColor = themeColors.sidebar;
+        });
     
-    const colors = themeData[themeName] || themeData['default'];
+    // Aplicar a enlaces del sidebar
+    const sidebarLinks = document.querySelectorAll('.sidebar-link, .sidebar a, .nav-link');
+    sidebarLinks.forEach(link => {
+        link.style.color = 'rgba(255, 255, 255, 0.8)';
+        
+        // Eventos hover
+        link.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            this.style.color = 'white';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.backgroundColor = 'transparent';
+                this.style.color = 'rgba(255, 255, 255, 0.8)';
+            }
+        });
+        
+        // Enlaces activos
+        if (link.classList.contains('active')) {
+            link.style.backgroundColor = themeColors.primary;
+            link.style.color = 'white';
+        }
+    });
     
-    // Actualizar variables CSS
-    document.documentElement.style.setProperty('--theme-primary', colors.primary);
-    document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
-    document.documentElement.style.setProperty('--theme-accent', colors.accent);
-    document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
-    
-    // Aplicar a elementos específicos
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-        sidebar.style.backgroundColor = colors.sidebar;
-    }
-    
-    const adminHeaders = document.querySelectorAll('.admin-header');
+    // Aplicar a headers con gradiente
+    const adminHeaders = document.querySelectorAll('.admin-header, .bg-gradient-to-r');
     adminHeaders.forEach(header => {
-        header.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+        header.style.background = `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`;
     });
     
-    const primaryButtons = document.querySelectorAll('.btn-primary, .bg-blue-600, .bg-blue-500');
+    // Aplicar a botones primarios
+    const primaryButtons = document.querySelectorAll('.btn-primary, .bg-blue-600, .bg-blue-500, button.bg-blue-600, button.bg-blue-500');
     primaryButtons.forEach(btn => {
-        btn.style.backgroundColor = colors.primary;
+        btn.style.backgroundColor = themeColors.primary;
+        btn.style.borderColor = themeColors.primary;
+        
+        btn.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = themeColors.secondary;
+            this.style.borderColor = themeColors.secondary;
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = themeColors.primary;
+            this.style.borderColor = themeColors.primary;
+        });
     });
     
+    // Aplicar a textos primarios
     const primaryTexts = document.querySelectorAll('.text-blue-600, .text-blue-500');
     primaryTexts.forEach(text => {
-        text.style.color = colors.primary;
+        text.style.color = themeColors.primary;
     });
+    
+    // Aplicar a bordes
+    const primaryBorders = document.querySelectorAll('.border-blue-500, .border-blue-600');
+    primaryBorders.forEach(border => {
+        border.style.borderColor = themeColors.primary;
+    });
+    };
 }
 
 // Mostrar alertas
-function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    let bgColor = 'bg-green-500';
-    
-    if (type === 'error') bgColor = 'bg-red-500';
-    else if (type === 'info') bgColor = 'bg-blue-500';
-    else if (type === 'warning') bgColor = 'bg-yellow-500';
-    
-    alertDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white ${bgColor} message-alert`;
-    alertDiv.textContent = message;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 4000);
+if (typeof window.showAlert === 'undefined') {
+    window.showAlert = function(message, type) {
+        const alertDiv = document.createElement('div');
+        let bgColor = 'bg-green-500';
+        
+        if (type === 'error') bgColor = 'bg-red-500';
+        else if (type === 'info') bgColor = 'bg-blue-500';
+        else if (type === 'warning') bgColor = 'bg-yellow-500';
+        
+        alertDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white ${bgColor} message-alert`;
+        alertDiv.textContent = message;
+        
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 4000);
+    };
 }
 
 // Inicialización
@@ -564,26 +639,42 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Seleccionar tema por defecto
-    selectTheme('default');
+    if (window.selectTheme) {
+        window.selectTheme('default');
+    }
 });
 
 // Vista previa instantánea del tema actual
-function previewCurrentTheme() {
-    const colors = {
-        primary: document.getElementById('primary-color').value,
-        secondary: document.getElementById('secondary-color').value,
-        accent: document.getElementById('accent-color').value,
-        sidebar: document.getElementById('sidebar-color').value
+if (typeof window.previewCurrentTheme === 'undefined') {
+    window.previewCurrentTheme = function() {
+        const currentColors = {
+            primary: document.getElementById('primary-color').value,
+            secondary: document.getElementById('secondary-color').value,
+            accent: document.getElementById('accent-color').value,
+            sidebar: document.getElementById('sidebar-color').value
+        };
+        
+        // Usar la función global para actualizar el sidebar
+        if (window.updateSidebarTheme) {
+            window.updateSidebarTheme(currentColors);
+        }
+        
+        // Aplicar cambios inmediatamente a toda la página
+        document.documentElement.style.setProperty('--theme-primary', currentColors.primary);
+        document.documentElement.style.setProperty('--theme-secondary', currentColors.secondary);
+        document.documentElement.style.setProperty('--theme-accent', currentColors.accent);
+        document.documentElement.style.setProperty('--theme-sidebar', currentColors.sidebar);
+        
+        // Forzar aplicación al sidebar específicamente
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.style.setProperty('background-color', currentColors.sidebar, 'important');
+            sidebar.style.setProperty('background', currentColors.sidebar, 'important');
+        }
+        
+        // Mostrar alerta de vista previa
+        showAlert('Vista previa aplicada. Los cambios son temporales hasta que guardes.', 'info');
     };
-    
-    // Aplicar cambios inmediatamente a toda la página
-    document.documentElement.style.setProperty('--theme-primary', colors.primary);
-    document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
-    document.documentElement.style.setProperty('--theme-accent', colors.accent);
-    document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
-    
-    // Mostrar alerta de vista previa
-    showAlert('Vista previa aplicada. Los cambios son temporales hasta que guardes.', 'info');
 }
 </script>
 

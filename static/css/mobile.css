@@ -404,3 +404,45 @@
         100% { transform: scale(1) rotate(0deg); }
     }
 }
+
+/* Estilos para sidebar con soporte de temas */
+.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+    transition: background-color 0.3s ease !important;
+}
+
+#sidebar.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+}
+
+.sidebar-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s ease !important;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.sidebar-link.active {
+    background-color: var(--theme-primary, #0ea5e9) !important;
+    color: white !important;
+}
+
+/* Asegurar especificidad alta para el sidebar */
+body #sidebar.sidebar,
+html body #sidebar.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+}
+
+body #sidebar .sidebar-link,
+html body #sidebar .sidebar-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+body #sidebar .sidebar-link.active,
+html body #sidebar .sidebar-link.active {
+    background-color: var(--theme-primary, #0ea5e9) !important;
+    color: white !important;
+}
