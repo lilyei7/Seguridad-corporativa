@@ -238,6 +238,11 @@
             companyName: '{{ system_config.company_name|default:"Corporativo Aqua Administración" }}',
             logoUrl: {% if system_config.company_logo %}'{{ system_config.company_logo.url }}'{% else %}null{% endif %}
         };
+        
+        // Debugging: Log de configuración inicial
+        console.log('🎯 Configuración inicial del tema:', window.themeConfig);
+        console.log('📊 Logo URL inicial:', window.themeConfig.logoUrl);
+        console.log('🏢 Nombre empresa inicial:', window.themeConfig.companyName);
     </script>
     
     <!-- Script para ejecutar tema al cargar -->
@@ -249,24 +254,33 @@
             
             // Función para actualizar la información de la empresa
             window.updateCompanyInfo = function() {
+                console.log('🏢 Actualizando información de la empresa...');
+                console.log('📋 Configuración actual:', window.themeConfig);
+                
                 const companyNameEl = document.getElementById('sidebar-company-name');
-                const logoEl = document.getElementById('sidebar-logo');
-                const defaultIconEl = document.getElementById('sidebar-default-icon');
                 const logoContainer = document.getElementById('sidebar-logo-container');
                 
+                // Actualizar nombre de la empresa
                 if (companyNameEl && window.themeConfig.companyName) {
+                    console.log('📝 Actualizando nombre de empresa:', window.themeConfig.companyName);
                     companyNameEl.textContent = window.themeConfig.companyName;
                 }
                 
+                // Actualizar logo
                 if (logoContainer) {
+                    console.log('🖼️ Actualizando logo, URL:', window.themeConfig.logoUrl);
+                    
                     if (window.themeConfig.logoUrl) {
                         // Mostrar logo real sin fondo
                         logoContainer.innerHTML = `
                             <img id="sidebar-logo" 
                                  src="${window.themeConfig.logoUrl}" 
                                  alt="Logo" 
-                                 class="w-16 h-16 object-contain mx-auto">
+                                 class="w-16 h-16 object-contain mx-auto"
+                                 onload="console.log('✅ Logo cargado exitosamente')"
+                                 onerror="console.error('❌ Error cargando logo:', this.src)">
                         `;
+                        console.log('✅ Logo HTML actualizado');
                     } else {
                         // Mostrar icono por defecto con fondo
                         logoContainer.innerHTML = `
@@ -274,12 +288,43 @@
                                 <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
                             </div>
                         `;
+                        console.log('🛡️ Icono por defecto mostrado');
+                    }
+                } else {
+                    console.error('❌ Contenedor de logo no encontrado');
+                }
+                
+                // También actualizar logo en header móvil
+                const mobileLogoContainer = document.querySelector('.mobile-header img, .mobile-header .w-8.h-8');
+                if (mobileLogoContainer && window.themeConfig.logoUrl) {
+                    if (mobileLogoContainer.tagName === 'IMG') {
+                        mobileLogoContainer.src = window.themeConfig.logoUrl;
+                        console.log('📱 Logo móvil actualizado');
                     }
                 }
             };
             
             // Llamar la función al cargar
             window.updateCompanyInfo();
+            
+            // Verificador de persistencia del logo
+            window.checkLogoConsistency = function() {
+                const logoImg = document.getElementById('sidebar-logo');
+                const logoContainer = document.getElementById('sidebar-logo-container');
+                
+                if (window.themeConfig.logoUrl) {
+                    if (!logoImg) {
+                        console.warn('⚠️ Logo debería estar presente pero no se encontró, restaurando...');
+                        window.updateCompanyInfo();
+                    } else if (logoImg.src !== window.themeConfig.logoUrl) {
+                        console.warn('⚠️ URL del logo no coincide, corrigiendo...');
+                        logoImg.src = window.themeConfig.logoUrl;
+                    }
+                }
+            };
+            
+            // Verificar consistencia cada 5 segundos
+            setInterval(window.checkLogoConsistency, 5000);
         });
         
         // También ejecutar cuando la página esté completamente cargada
@@ -294,13 +339,27 @@
         
         // Función para recargar configuración vía AJAX (para uso futuro)
         window.reloadSystemConfig = function() {
+            console.log('🔄 Recargando configuración del sistema...');
+            
             fetch('/dashboard/api/system-config/')
-                .then(response => response.json())
+                .then(response => {
+                    console.log('📡 Respuesta recibida:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('📦 Datos recibidos:', data);
+                    
                     if (data.success) {
+                        // Actualizar configuración global
                         window.themeConfig.companyName = data.company_name;
                         window.themeConfig.logoUrl = data.logo_url;
                         window.themeConfig.colors = data.colors;
+                        
+                        console.log('🎨 Nueva configuración:', {
+                            companyName: data.company_name,
+                            logoUrl: data.logo_url,
+                            colors: data.colors
+                        });
                         
                         // Actualizar elementos
                         window.updateCompanyInfo();
@@ -318,11 +377,108 @@
                             notification.style.opacity = '0';
                             setTimeout(() => notification.remove(), 300);
                         }, 3000);
+                    } else {
+                        console.error('❌ Error en la respuesta:', data);
                     }
                 })
                 .catch(error => {
                     console.error('❌ Error al recargar configuración:', error);
+                    
+                    // Mostrar notificación de error
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all';
+                    notification.innerHTML = '<i class="fas fa-times mr-2"></i>Error al actualizar configuración';
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
                 });
+        };
+        
+        // Función de debug avanzada para el logo
+        window.debugLogo = function() {
+            console.log('🔍 INICIANDO DEBUG AVANZADO DEL LOGO');
+            console.log('=' * 50);
+            
+            // 1. Estado actual del DOM
+            const logoContainer = document.getElementById('sidebar-logo-container');
+            const logoImg = document.getElementById('sidebar-logo');
+            const defaultIcon = document.getElementById('sidebar-default-icon');
+            
+            console.log('📋 ESTADO DEL DOM:');
+            console.log('  logoContainer:', !!logoContainer);
+            console.log('  logoImg:', !!logoImg);
+            console.log('  defaultIcon:', !!defaultIcon);
+            
+            if (logoContainer) {
+                console.log('  logoContainer.innerHTML:', logoContainer.innerHTML);
+            }
+            
+            if (logoImg) {
+                console.log('  logoImg.src:', logoImg.src);
+                console.log('  logoImg.complete:', logoImg.complete);
+                console.log('  logoImg.naturalWidth:', logoImg.naturalWidth);
+                console.log('  logoImg.naturalHeight:', logoImg.naturalHeight);
+                console.log('  logoImg.style.display:', logoImg.style.display);
+                console.log('  logoImg.classList:', logoImg.classList.toString());
+            }
+            
+            // 2. Configuración de tema
+            console.log('📊 CONFIGURACIÓN DE TEMA:');
+            console.log('  window.themeConfig:', window.themeConfig);
+            
+            // 3. Probar carga directa del logo
+            if (window.themeConfig && window.themeConfig.logoUrl) {
+                console.log('🔬 PROBANDO CARGA DIRECTA:');
+                const testImg = new Image();
+                testImg.onload = function() {
+                    console.log('  ✅ Imagen carga correctamente:', this.src);
+                    console.log('  📐 Dimensiones:', this.naturalWidth + 'x' + this.naturalHeight);
+                };
+                testImg.onerror = function() {
+                    console.log('  ❌ Error cargando imagen:', this.src);
+                };
+                testImg.src = window.themeConfig.logoUrl;
+            }
+            
+            // 4. Verificar APIs
+            console.log('🔌 PROBANDO API:');
+            fetch('/dashboard/api/system-config/')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('  ✅ API responde:', data);
+                    if (data.logo_url !== window.themeConfig.logoUrl) {
+                        console.warn('  ⚠️ URL del logo no coincide:');
+                        console.log('    API:', data.logo_url);
+                        console.log('    Local:', window.themeConfig.logoUrl);
+                    }
+                })
+                .catch(error => {
+                    console.error('  ❌ Error en API:', error);
+                });
+            
+            // 5. Información del navegador
+            console.log('🌐 INFORMACIÓN DEL NAVEGADOR:');
+            console.log('  userAgent:', navigator.userAgent);
+            console.log('  localStorage disponible:', !!window.localStorage);
+            console.log('  sessionStorage disponible:', !!window.sessionStorage);
+            
+            // 6. Mostrar reporte visual
+            const report = `
+📋 REPORTE DE DEBUG:
+- Logo Container: ${!!logoContainer ? '✅' : '❌'}
+- Logo Image: ${!!logoImg ? '✅' : '❌'} 
+- Logo URL: ${window.themeConfig?.logoUrl || 'No configurado'}
+- Imagen carga: ${logoImg?.complete ? '✅' : '❌'}
+- Dimensiones: ${logoImg?.naturalWidth || 0}x${logoImg?.naturalHeight || 0}
+
+Ver consola para detalles completos.
+            `;
+            
+            alert(report);
+            console.log('🔍 DEBUG COMPLETADO - Ver información arriba');
         };
     </script>
     
@@ -737,14 +893,22 @@
                     <!-- Logo arriba -->
                     <div id="sidebar-logo-container" class="mb-4">
                         {% if system_config.company_logo %}
+                            <!-- DEBUG: Logo configurado -->
                             <img id="sidebar-logo" 
                                  src="{{ system_config.company_logo.url }}" 
                                  alt="{{ system_config.company_name|default:'Logo' }}" 
-                                 class="w-16 h-16 object-contain mx-auto">
+                                 class="w-16 h-16 object-contain mx-auto"
+                                 data-original-src="{{ system_config.company_logo.url }}"
+                                 onload="console.log('✅ Logo cargado:', this.src)"
+                                 onerror="console.error('❌ Error cargando logo:', this.src)">
+                            <!-- DEBUG: Información del logo -->
+                            <div class="hidden">Logo DB: {{ system_config.company_logo.name }}</div>
                         {% else %}
+                            <!-- DEBUG: Sin logo configurado -->
                             <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mx-auto">
                                 <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
                             </div>
+                            <div class="hidden">Sin logo configurado</div>
                         {% endif %}
                     </div>
                     
@@ -845,6 +1009,11 @@
                                         class="inline-flex items-center px-2 py-1 bg-green-800 hover:bg-green-700 rounded text-xs text-white transition-colors">
                                     <i class="fas fa-sync-alt mr-1"></i>
                                     Recargar Logo
+                                </button>
+                                <button onclick="window.debugLogo()" 
+                                        class="inline-flex items-center px-2 py-1 bg-blue-800 hover:bg-blue-700 rounded text-xs text-white transition-colors">
+                                    <i class="fas fa-bug mr-1"></i>
+                                    Debug Logo
                                 </button>
                             </div>
                         </div>
