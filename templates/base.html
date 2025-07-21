@@ -252,19 +252,28 @@
                 const companyNameEl = document.getElementById('sidebar-company-name');
                 const logoEl = document.getElementById('sidebar-logo');
                 const defaultIconEl = document.getElementById('sidebar-default-icon');
+                const logoContainer = document.getElementById('sidebar-logo-container');
                 
                 if (companyNameEl && window.themeConfig.companyName) {
                     companyNameEl.textContent = window.themeConfig.companyName;
                 }
                 
-                if (logoEl && defaultIconEl) {
+                if (logoContainer) {
                     if (window.themeConfig.logoUrl) {
-                        logoEl.src = window.themeConfig.logoUrl;
-                        logoEl.style.display = 'block';
-                        defaultIconEl.style.display = 'none';
+                        // Mostrar logo real sin fondo
+                        logoContainer.innerHTML = `
+                            <img id="sidebar-logo" 
+                                 src="${window.themeConfig.logoUrl}" 
+                                 alt="Logo" 
+                                 class="w-16 h-16 object-contain mx-auto">
+                        `;
                     } else {
-                        logoEl.style.display = 'none';
-                        defaultIconEl.style.display = 'block';
+                        // Mostrar icono por defecto con fondo
+                        logoContainer.innerHTML = `
+                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mx-auto">
+                                <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
+                            </div>
+                        `;
                     }
                 }
             };
@@ -298,6 +307,17 @@
                         window.updateSidebarTheme(data.colors);
                         
                         console.log('✅ Configuración del sistema actualizada');
+                        
+                        // Mostrar notificación visual
+                        const notification = document.createElement('div');
+                        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all';
+                        notification.innerHTML = '<i class="fas fa-check mr-2"></i>¡Logo y configuración actualizados!';
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => notification.remove(), 300);
+                        }, 3000);
                     }
                 })
                 .catch(error => {
@@ -639,6 +659,29 @@
         .sidebar .text-xs {
             color: rgba(255, 255, 255, 0.6) !important;
         }
+        
+        /* Estilos específicos para el logo */
+        #sidebar-logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Asegurar que el logo se vea bien contra el fondo oscuro */
+        #sidebar-logo {
+            background: transparent !important;
+            border-radius: 8px;
+        }
+        
+        /* Mejorar la presentación del texto del company name */
+        #sidebar-company-name {
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+        
+        #sidebar-company-subtitle {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -655,11 +698,15 @@
             
             <div class="flex-1 flex items-center justify-center">
                 <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                    <div class="flex items-center justify-center">
                         {% if system_config.company_logo %}
-                            <img src="{{ system_config.company_logo.url }}" alt="{{ system_config.company_name|default:'Logo' }}" class="w-6 h-6 object-contain rounded">
+                            <img src="{{ system_config.company_logo.url }}" 
+                                 alt="{{ system_config.company_name|default:'Logo' }}" 
+                                 class="w-8 h-8 object-contain">
                         {% else %}
-                            <i class="fas fa-shield-alt text-white text-sm"></i>
+                            <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-white text-sm"></i>
+                            </div>
                         {% endif %}
                     </div>
                     <h1 class="text-lg font-bold text-gray-900">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h1>
@@ -686,19 +733,25 @@
         <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
             <div class="h-full px-3 py-6 overflow-y-auto flex flex-col">
                 <!-- Logo -->
-                <div class="flex items-center justify-center mb-8 px-4">
-                    <div class="flex items-center space-x-3">
-                        <div id="sidebar-logo-container" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                            {% if system_config.company_logo %}
-                                <img id="sidebar-logo" src="{{ system_config.company_logo.url }}" alt="{{ system_config.company_name|default:'Logo' }}" class="w-8 h-8 object-contain rounded-lg">
-                            {% else %}
-                                <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-xl"></i>
-                            {% endif %}
-                        </div>
-                        <div class="text-white">
-                            <h2 id="sidebar-company-name" class="text-lg font-bold">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h2>
-                            <p id="sidebar-company-subtitle" class="text-xs text-gray-300">{{ system_config.company_subtitle|default:'Administración Corporativa' }}</p>
-                        </div>
+                <div class="flex flex-col items-center justify-center mb-8 px-4">
+                    <!-- Logo arriba -->
+                    <div id="sidebar-logo-container" class="mb-4">
+                        {% if system_config.company_logo %}
+                            <img id="sidebar-logo" 
+                                 src="{{ system_config.company_logo.url }}" 
+                                 alt="{{ system_config.company_name|default:'Logo' }}" 
+                                 class="w-16 h-16 object-contain mx-auto">
+                        {% else %}
+                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mx-auto">
+                                <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Texto abajo del logo -->
+                    <div class="text-white text-center">
+                        <h2 id="sidebar-company-name" class="text-lg font-bold leading-tight">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h2>
+                        <p id="sidebar-company-subtitle" class="text-xs text-gray-300 mt-1">{{ system_config.company_subtitle|default:'Administración Corporativa' }}</p>
                     </div>
                 </div>
 
@@ -782,12 +835,17 @@
                                 <div><strong>Email:</strong> {{ user.email|default:"No especificado" }}</div>
                                 <div><strong>Registrado:</strong> {{ user.date_joined|date:"d/m/Y H:i" }}</div>
                             </div>
-                            <div class="mt-2">
+                            <div class="mt-2 space-y-2">
                                 <a href="{% url 'accounts:debug_user_info' %}" 
                                    class="inline-flex items-center px-2 py-1 bg-indigo-800 hover:bg-indigo-700 rounded text-xs text-white transition-colors">
                                     <i class="fas fa-bug mr-1"></i>
                                     Ver Info Completa
                                 </a>
+                                <button onclick="window.reloadSystemConfig()" 
+                                        class="inline-flex items-center px-2 py-1 bg-green-800 hover:bg-green-700 rounded text-xs text-white transition-colors">
+                                    <i class="fas fa-sync-alt mr-1"></i>
+                                    Recargar Logo
+                                </button>
                             </div>
                         </div>
                     </div>
