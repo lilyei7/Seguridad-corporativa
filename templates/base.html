@@ -889,7 +889,7 @@ Ver consola para detalles completos.
         <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
             <div class="h-full px-3 py-6 overflow-y-auto flex flex-col">
                 <!-- Logo -->
-                <div class="flex flex-col items-center justify-center mb-8 px-4">
+                <div class="flex flex-col items-start justify-start mb-8 px-4">
                     <!-- Logo arriba -->
                     <div id="sidebar-logo-container" class="mb-4">
                         {% if system_config.company_logo %}
@@ -897,7 +897,7 @@ Ver consola para detalles completos.
                             <img id="sidebar-logo" 
                                  src="{{ system_config.company_logo.url }}" 
                                  alt="{{ system_config.company_name|default:'Logo' }}" 
-                                 class="w-16 h-16 object-contain mx-auto"
+                                 class="w-16 h-16 object-contain"
                                  data-original-src="{{ system_config.company_logo.url }}"
                                  onload="console.log('✅ Logo cargado:', this.src)"
                                  onerror="console.error('❌ Error cargando logo:', this.src)">
@@ -905,7 +905,7 @@ Ver consola para detalles completos.
                             <div class="hidden">Logo DB: {{ system_config.company_logo.name }}</div>
                         {% else %}
                             <!-- DEBUG: Sin logo configurado -->
-                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mx-auto">
+                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
                             </div>
                             <div class="hidden">Sin logo configurado</div>
@@ -913,7 +913,7 @@ Ver consola para detalles completos.
                     </div>
                     
                     <!-- Texto abajo del logo -->
-                    <div class="text-white text-center">
+                    <div class="text-white text-left">
                         <h2 id="sidebar-company-name" class="text-lg font-bold leading-tight">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h2>
                         <p id="sidebar-company-subtitle" class="text-xs text-gray-300 mt-1">{{ system_config.company_subtitle|default:'Administración Corporativa' }}</p>
                     </div>
