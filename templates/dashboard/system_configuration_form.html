@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form.instance.pk|yesno:"Editar,Crear Nueva" }} Configuración - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">
+                    {% if form.instance.pk %}
+                        Editar Configuración del Sistema
+                    {% else %}
+                        Nueva Configuración del Sistema
+                    {% endif %}
+                </h1>
+                <p class="text-blue-100">Personaliza la apariencia y configuración general</p>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-{{ form.instance.pk|yesno:'edit,plus' }} text-3xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <form method="post" enctype="multipart/form-data" class="space-y-6 p-6">
+            {% csrf_token %}
+            
+            <!-- Información de la Empresa -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-building mr-2 text-blue-600"></i>
+                    Información de la Empresa
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.company_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.company_name.label }}
+                        </label>
+                        {{ form.company_name }}
+                        {% if form.company_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.company_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.theme.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.theme.label }}
+                        </label>
+                        {{ form.theme }}
+                        {% if form.theme.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.theme.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Archivos -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-image mr-2 text-blue-600"></i>
+                    Logos e Iconos
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.company_logo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.company_logo.label }}
+                        </label>
+                        {{ form.company_logo }}
+                        {% if form.company_logo.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.company_logo.help_text }}</p>
+                        {% endif %}
+                        {% if form.company_logo.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.company_logo.errors.0 }}</p>
+                        {% endif %}
+                        
+                        <!-- Vista previa del logo actual -->
+                        {% if form.instance.company_logo %}
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Logo actual:</p>
+                                <img src="{{ form.instance.company_logo.url }}" alt="Logo actual" 
+                                     class="h-16 w-auto border border-gray-300 rounded">
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.favicon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.favicon.label }}
+                        </label>
+                        {{ form.favicon }}
+                        {% if form.favicon.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ form.favicon.help_text }}</p>
+                        {% endif %}
+                        {% if form.favicon.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.favicon.errors.0 }}</p>
+                        {% endif %}
+                        
+                        <!-- Vista previa del favicon actual -->
+                        {% if form.instance.favicon %}
+                            <div class="mt-3">
+                                <p class="text-sm text-gray-600 mb-2">Favicon actual:</p>
+                                <img src="{{ form.instance.favicon.url }}" alt="Favicon actual" 
+                                     class="h-8 w-8 border border-gray-300 rounded">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración de Modo -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-moon mr-2 text-blue-600"></i>
+                    Configuración de Modo
+                </h3>
+                
+                <div class="flex items-center">
+                    {{ form.dark_mode }}
+                    <label for="{{ form.dark_mode.id_for_label }}" class="ml-3 text-sm text-gray-700">
+                        {{ form.dark_mode.label }}
+                    </label>
+                </div>
+                {% if form.dark_mode.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.dark_mode.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Colores Personalizados -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                    <i class="fas fa-palette mr-2 text-blue-600"></i>
+                    Colores Personalizados
+                </h3>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                        <label for="{{ form.primary_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.primary_color.label }}
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            {{ form.primary_color }}
+                            <span class="text-sm text-gray-500">{{ form.primary_color.value|default:"#0ea5e9" }}</span>
+                        </div>
+                        {% if form.primary_color.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.primary_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.primary_color.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.primary_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.secondary_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.secondary_color.label }}
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            {{ form.secondary_color }}
+                            <span class="text-sm text-gray-500">{{ form.secondary_color.value|default:"#0284c7" }}</span>
+                        </div>
+                        {% if form.secondary_color.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.secondary_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.secondary_color.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.secondary_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.accent_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.accent_color.label }}
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            {{ form.accent_color }}
+                            <span class="text-sm text-gray-500">{{ form.accent_color.value|default:"#0369a1" }}</span>
+                        </div>
+                        {% if form.accent_color.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.accent_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.accent_color.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.accent_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.sidebar_color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.sidebar_color.label }}
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            {{ form.sidebar_color }}
+                            <span class="text-sm text-gray-500">{{ form.sidebar_color.value|default:"#1e293b" }}</span>
+                        </div>
+                        {% if form.sidebar_color.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.sidebar_color.help_text }}</p>
+                        {% endif %}
+                        {% if form.sidebar_color.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.sidebar_color.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex justify-between pt-6 border-t border-gray-200">
+                <a href="{% url 'dashboard:system_configuration' %}" 
+                   class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver
+                </a>
+                
+                <div class="space-x-3">
+                    <button type="button" onclick="previewChanges()" 
+                            class="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-300 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-eye mr-2"></i>
+                        Vista Previa
+                    </button>
+                    
+                    <button type="submit" 
+                            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-save mr-2"></i>
+                        {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Configuración
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript para vista previa -->
+<script>
+function previewChanges() {
+    // Obtener valores del formulario
+    const companyName = document.getElementById('{{ form.company_name.id_for_label }}').value;
+    const theme = document.getElementById('{{ form.theme.id_for_label }}').value;
+    const darkMode = document.getElementById('{{ form.dark_mode.id_for_label }}').checked;
+    const primaryColor = document.getElementById('{{ form.primary_color.id_for_label }}').value;
+    const secondaryColor = document.getElementById('{{ form.secondary_color.id_for_label }}').value;
+    const accentColor = document.getElementById('{{ form.accent_color.id_for_label }}').value;
+    const sidebarColor = document.getElementById('{{ form.sidebar_color.id_for_label }}').value;
+    
+    // Mostrar modal de vista previa (implementar según necesidad)
+    alert(`Vista previa:\nEmpresa: ${companyName}\nTema: ${theme}\nModo Oscuro: ${darkMode ? 'Sí' : 'No'}\nColores: P:${primaryColor}, S:${secondaryColor}, A:${accentColor}, Sidebar:${sidebarColor}`);
+}
+
+// Actualizar el texto del color cuando cambie el selector
+document.addEventListener('DOMContentLoaded', function() {
+    const colorInputs = ['{{ form.primary_color.id_for_label }}', '{{ form.secondary_color.id_for_label }}', '{{ form.accent_color.id_for_label }}', '{{ form.sidebar_color.id_for_label }}'];
+    
+    colorInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        const span = input.nextElementSibling;
+        
+        if (input && span) {
+            input.addEventListener('input', function() {
+                span.textContent = this.value;
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -11,7 +11,7 @@ from django.contrib.auth.models import Group
 from tenants.models import Tenant
 from guards.models import Guard, Shift
 from visits.models import Visit, VisitLog
-from .models import SecurityIncident, SecurityCheckpoint
+from .models import SecurityIncident, SecurityCheckpoint, SystemThemeConfiguration, UserThemePreference
 from .forms import SecurityIncidentForm, IncidentStatusForm
 
 
@@ -281,7 +281,10 @@ def admin_panel(request):
         'upcoming_visits': upcoming_visits,
         'guards_on_duty': guards_on_duty,
         'today': today,
-        'user_type': 'admin'
+        'user_type': 'admin',
+        # Datos para configuración de sistema
+        'theme_choices': SystemThemeConfiguration.THEME_CHOICES,
+        'active_config': SystemThemeConfiguration.get_active_config(),
     }
     
     return render(request, 'dashboard/admin_panel.html', context)

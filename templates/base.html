@@ -95,6 +95,83 @@
         }
     </script>
     
+    <!-- Variables de tema dinámicas -->
+    <script>
+        // Configuración de tema dinámico
+        window.themeConfig = {
+            colors: {
+                primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
+                secondary: '{{ active_theme_colors.secondary|default:"#0284c7" }}',
+                accent: '{{ active_theme_colors.accent|default:"#0369a1" }}',
+                sidebar: '{{ active_theme_colors.sidebar|default:"#1e293b" }}'
+            },
+            darkMode: {% if is_dark_mode %}true{% else %}false{% endif %},
+            companyName: '{{ system_config.company_name|default:"Olcha Tecnología En Seguridad" }}',
+            logoUrl: {% if system_config.company_logo %}'{{ system_config.company_logo.url }}'{% else %}null{% endif %}
+        };
+    </script>
+    
+    <!-- Aplicar tema dinámico -->
+    <style id="dynamic-theme">
+        :root {
+            --color-primary: {{ active_theme_colors.primary|default:"#0ea5e9" }};
+            --color-secondary: {{ active_theme_colors.secondary|default:"#0284c7" }};
+            --color-accent: {{ active_theme_colors.accent|default:"#0369a1" }};
+            --color-sidebar: {{ active_theme_colors.sidebar|default:"#1e293b" }};
+        }
+        
+        /* Aplicar colores del tema al sidebar */
+        .sidebar {
+            background-color: var(--color-sidebar) !important;
+        }
+        
+        /* Aplicar colores primarios a elementos */
+        .bg-primary-custom {
+            background-color: var(--color-primary);
+        }
+        
+        .bg-secondary-custom {
+            background-color: var(--color-secondary);
+        }
+        
+        .bg-accent-custom {
+            background-color: var(--color-accent);
+        }
+        
+        .text-primary-custom {
+            color: var(--color-primary);
+        }
+        
+        .border-primary-custom {
+            border-color: var(--color-primary);
+        }
+        
+        /* Modo oscuro */
+        {% if is_dark_mode %}
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d2d2d !important;
+            color: #e5e5e5 !important;
+        }
+        
+        .dark-mode .text-gray-900 {
+            color: #e5e5e5 !important;
+        }
+        
+        .dark-mode .border-gray-200 {
+            border-color: #404040 !important;
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #262626 !important;
+        }
+        {% endif %}
+    </style>
+    
     <!-- Estilos personalizados -->
     <style>
         /* Reset y configuración base */
@@ -550,8 +627,13 @@
                     <nav class="space-y-1">
                         <a href="{% url 'dashboard:admin_panel' %}" 
                            class="sidebar-link {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                            <span>Panel Admin</span>
+                        </a>
+                        <a href="{% url 'dashboard:system_configuration' %}" 
+                           class="sidebar-link {% if 'system_configuration' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="fas fa-cog w-5 text-center mr-3"></i>
-                            <span>Administración</span>
+                            <span>Configuración</span>
                         </a>
                     </nav>
                 </div>
@@ -636,6 +718,12 @@
                 
                 <a href="{% url 'dashboard:admin_panel' %}" 
                    class="mobile-nav-item touch-feedback {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-tachometer-alt"></i>
+                    <span class="mobile-nav-text">Panel</span>
+                </a>
+                
+                <a href="{% url 'dashboard:system_configuration' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'system_configuration' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="mobile-nav-icon fas fa-cog"></i>
                     <span class="mobile-nav-text">Config</span>
                 </a>

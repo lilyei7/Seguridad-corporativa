@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, config_views
 
 app_name = 'dashboard'
 
@@ -22,4 +22,16 @@ urlpatterns = [
     path('incidents/<int:incident_id>/edit/', views.incident_edit, name='incident_edit'),
     # URLs adicionales faltantes
     path('my-shift/', views.my_shift, name='my_shift'),
+    
+    # URLs para configuración del sistema
+    path('config/', config_views.SystemConfigurationView.as_view(), name='system_configuration'),
+    path('config/create/', config_views.CreateSystemConfigurationView.as_view(), name='create_system_configuration'),
+    path('config/<int:pk>/edit/', config_views.UpdateSystemConfigurationView.as_view(), name='edit_system_configuration'),
+    path('config/<int:pk>/activate/', config_views.activate_configuration, name='activate_configuration'),
+    path('config/preview-theme/', config_views.preview_theme, name='preview_theme'),
+    path('config/theme-data/', config_views.get_current_theme_data, name='get_current_theme_data'),
+    
+    # URLs para preferencias de usuario
+    path('preferences/', config_views.update_user_preferences, name='user_preferences'),
+    path('preferences/toggle-dark-mode/', config_views.toggle_dark_mode, name='toggle_dark_mode'),
 ]

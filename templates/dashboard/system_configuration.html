@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración del Sistema - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Configuración del Sistema</h1>
+                <p class="text-blue-100">Personaliza la apariencia y configuración general</p>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-cog text-3xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación de tabs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button onclick="showTab('themes')" id="themes-tab" class="config-tab active border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+                    <i class="fas fa-palette mr-2"></i>
+                    Temas y Colores
+                </button>
+                <button onclick="showTab('branding')" id="branding-tab" class="config-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-building mr-2"></i>
+                    Marca y Logo
+                </button>
+                <button onclick="showTab('preferences')" id="preferences-tab" class="config-tab border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-user-cog mr-2"></i>
+                    Mis Preferencias
+                </button>
+            </nav>
+        </div>
+
+        <!-- Contenido de tabs -->
+        <div class="p-6">
+            <!-- Tab: Temas y Colores -->
+            <div id="themes-content" class="config-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Temas Predefinidos -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Temas Predefinidos</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for theme_key, theme_name in active_config.THEME_CHOICES %}
+                            <div class="theme-card border-2 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md" 
+                                 data-theme="{{ theme_key }}" onclick="selectTheme('{{ theme_key }}')">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="font-medium text-gray-900">{{ theme_name }}</span>
+                                    <div class="theme-colors flex space-x-1">
+                                        <!-- Los colores se llenarán dinámicamente -->
+                                    </div>
+                                </div>
+                                <div class="theme-preview h-16 rounded border border-gray-200 bg-gradient-to-r"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Vista Previa -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Vista Previa</h3>
+                        <div id="theme-preview" class="border border-gray-200 rounded-lg overflow-hidden">
+                            <!-- Miniatura del sidebar -->
+                            <div class="flex h-64">
+                                <div id="preview-sidebar" class="w-16 flex flex-col items-center py-4 space-y-3">
+                                    <div class="w-8 h-8 bg-white/20 rounded"></div>
+                                    <div class="w-8 h-1 bg-white/40 rounded"></div>
+                                    <div class="w-8 h-1 bg-white/40 rounded"></div>
+                                    <div class="w-8 h-1 bg-white/40 rounded"></div>
+                                </div>
+                                <div class="flex-1 bg-gray-50 p-4">
+                                    <!-- Header preview -->
+                                    <div id="preview-header" class="rounded-lg p-3 mb-4">
+                                        <div class="h-4 bg-white/80 rounded w-1/3 mb-2"></div>
+                                        <div class="h-2 bg-white/60 rounded w-1/2"></div>
+                                    </div>
+                                    <!-- Content preview -->
+                                    <div class="space-y-2">
+                                        <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                                        <div class="h-3 bg-gray-300 rounded w-1/2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controles de modo oscuro -->
+                        <div class="mt-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="dark-mode-preview" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" onchange="toggleDarkModePreview()">
+                                <span class="ml-2 text-sm text-gray-700">Vista previa en modo oscuro</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colores Personalizados -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Colores Personalizados</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="color-control">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Color Primario</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="color" id="primary-color" value="#0ea5e9" class="h-10 w-16 border border-gray-300 rounded cursor-pointer">
+                                <input type="text" id="primary-color-hex" value="#0ea5e9" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div class="color-control">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Color Secundario</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="color" id="secondary-color" value="#0284c7" class="h-10 w-16 border border-gray-300 rounded cursor-pointer">
+                                <input type="text" id="secondary-color-hex" value="#0284c7" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div class="color-control">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Color de Acento</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="color" id="accent-color" value="#0369a1" class="h-10 w-16 border border-gray-300 rounded cursor-pointer">
+                                <input type="text" id="accent-color-hex" value="#0369a1" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div class="color-control">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Color Sidebar</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="color" id="sidebar-color" value="#1e293b" class="h-10 w-16 border border-gray-300 rounded cursor-pointer">
+                                <input type="text" id="sidebar-color-hex" value="#1e293b" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Marca y Logo -->
+            <div id="branding-content" class="config-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Información de la Empresa</h3>
+                        <form id="branding-form" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Empresa</label>
+                                    <input type="text" id="company-name" value="{{ active_config.company_name|default:'Olcha Tecnología En Seguridad' }}" 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Logo de la Empresa</label>
+                                    <input type="file" id="company-logo" accept="image/*" 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="text-xs text-gray-500 mt-1">Formatos: PNG, JPG. Tamaño máximo: 2MB</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+                                    <input type="file" id="favicon" accept="image/*" 
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="text-xs text-gray-500 mt-1">Formato: ICO, PNG. Tamaño: 16x16 o 32x32 píxeles</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Vista Previa del Logo</h3>
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Logo Principal</h4>
+                                <div id="logo-preview" class="w-48 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                                    {% if active_config.company_logo %}
+                                        <img src="{{ active_config.company_logo.url }}" alt="Logo" class="max-w-full max-h-full object-contain">
+                                    {% else %}
+                                        <span class="text-gray-400 text-sm">Sin logo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Favicon</h4>
+                                <div id="favicon-preview" class="w-8 h-8 border border-gray-300 rounded flex items-center justify-center bg-gray-50">
+                                    {% if active_config.favicon %}
+                                        <img src="{{ active_config.favicon.url }}" alt="Favicon" class="w-full h-full object-contain">
+                                    {% else %}
+                                        <span class="text-gray-400 text-xs">16x16</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Mis Preferencias -->
+            <div id="preferences-content" class="config-content hidden">
+                <div class="max-w-2xl">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Preferencias Personales</h3>
+                    <div class="space-y-6">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900">Modo Oscuro</h4>
+                                    <p class="text-sm text-gray-500">Activar tema oscuro para tu cuenta</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="user-dark-mode" class="sr-only peer" 
+                                           {% if user_preference.dark_mode %}checked{% endif %}>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tema Preferido</label>
+                            <select id="user-theme" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Usar tema del sistema</option>
+                                {% for theme_key, theme_name in active_config.THEME_CHOICES %}
+                                <option value="{{ theme_key }}" {% if user_preference.preferred_theme == theme_key %}selected{% endif %}>
+                                    {{ theme_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Si seleccionas un tema, anulará el tema general del sistema</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="border-t border-gray-200 px-6 py-4">
+            <div class="flex justify-between">
+                <button type="button" onclick="resetToDefaults()" 
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-undo mr-2"></i>
+                    Restaurar Predeterminados
+                </button>
+                <div class="space-x-3">
+                    <button type="button" onclick="saveConfiguration()" 
+                            class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Configuración
+                    </button>
+                    <button type="button" onclick="applyConfiguration()" 
+                            class="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-check mr-2"></i>
+                        Aplicar Ahora
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidad de configuración -->
+<script>
+// Datos de temas predefinidos
+const themeData = {
+    'default': { primary: '#0ea5e9', secondary: '#0284c7', accent: '#0369a1', sidebar: '#1e293b' },
+    'green': { primary: '#10b981', secondary: '#059669', accent: '#047857', sidebar: '#064e3b' },
+    'purple': { primary: '#8b5cf6', secondary: '#7c3aed', accent: '#6d28d9', sidebar: '#581c87' },
+    'orange': { primary: '#f97316', secondary: '#ea580c', accent: '#c2410c', sidebar: '#9a3412' },
+    'red': { primary: '#ef4444', secondary: '#dc2626', accent: '#b91c1c', sidebar: '#991b1b' },
+    'indigo': { primary: '#6366f1', secondary: '#4f46e5', accent: '#4338ca', sidebar: '#312e81' },
+    'teal': { primary: '#14b8a6', secondary: '#0d9488', accent: '#0f766e', sidebar: '#134e4a' },
+    'pink': { primary: '#ec4899', secondary: '#db2777', accent: '#be185d', sidebar: '#9d174d' }
+};
+
+let currentTheme = 'default';
+let isDarkMode = false;
+
+// Mostrar/ocultar tabs
+function showTab(tabName) {
+    // Ocultar todos los contenidos
+    document.querySelectorAll('.config-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remover clase activa de todos los tabs
+    document.querySelectorAll('.config-tab').forEach(tab => {
+        tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Mostrar contenido activo
+    document.getElementById(`${tabName}-content`).classList.remove('hidden');
+    
+    // Marcar tab como activo
+    const activeTab = document.getElementById(`${tabName}-tab`);
+    activeTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+}
+
+// Seleccionar tema
+function selectTheme(theme) {
+    currentTheme = theme;
+    
+    // Actualizar colores en los controles
+    const colors = themeData[theme];
+    document.getElementById('primary-color').value = colors.primary;
+    document.getElementById('primary-color-hex').value = colors.primary;
+    document.getElementById('secondary-color').value = colors.secondary;
+    document.getElementById('secondary-color-hex').value = colors.secondary;
+    document.getElementById('accent-color').value = colors.accent;
+    document.getElementById('accent-color-hex').value = colors.accent;
+    document.getElementById('sidebar-color').value = colors.sidebar;
+    document.getElementById('sidebar-color-hex').value = colors.sidebar;
+    
+    // Actualizar vista previa
+    updatePreview();
+    
+    // Marcar tarjeta como seleccionada
+    document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.remove('border-blue-500', 'bg-blue-50');
+        card.classList.add('border-gray-200');
+    });
+    
+    const selectedCard = document.querySelector(`[data-theme="${theme}"]`);
+    selectedCard.classList.add('border-blue-500', 'bg-blue-50');
+    selectedCard.classList.remove('border-gray-200');
+}
+
+// Actualizar vista previa
+function updatePreview() {
+    const colors = {
+        primary: document.getElementById('primary-color').value,
+        secondary: document.getElementById('secondary-color').value,
+        accent: document.getElementById('accent-color').value,
+        sidebar: document.getElementById('sidebar-color').value
+    };
+    
+    const sidebar = document.getElementById('preview-sidebar');
+    const header = document.getElementById('preview-header');
+    
+    sidebar.style.backgroundColor = colors.sidebar;
+    header.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+}
+
+// Toggle modo oscuro en vista previa
+function toggleDarkModePreview() {
+    isDarkMode = document.getElementById('dark-mode-preview').checked;
+    const preview = document.getElementById('theme-preview');
+    
+    if (isDarkMode) {
+        preview.classList.add('dark-preview');
+    } else {
+        preview.classList.remove('dark-preview');
+    }
+}
+
+// Sincronizar selectores de color
+function syncColorInputs(colorName) {
+    const colorPicker = document.getElementById(`${colorName}-color`);
+    const hexInput = document.getElementById(`${colorName}-color-hex`);
+    
+    colorPicker.addEventListener('input', () => {
+        hexInput.value = colorPicker.value;
+        updatePreview();
+    });
+    
+    hexInput.addEventListener('input', () => {
+        if (/^#[0-9A-F]{6}$/i.test(hexInput.value)) {
+            colorPicker.value = hexInput.value;
+            updatePreview();
+        }
+    });
+}
+
+// Guardar configuración
+function saveConfiguration() {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('company_name', document.getElementById('company-name').value);
+    formData.append('theme', currentTheme);
+    formData.append('dark_mode', isDarkMode);
+    formData.append('primary_color', document.getElementById('primary-color').value);
+    formData.append('secondary_color', document.getElementById('secondary-color').value);
+    formData.append('accent_color', document.getElementById('accent-color').value);
+    formData.append('sidebar_color', document.getElementById('sidebar-color').value);
+    
+    // Añadir archivos si se seleccionaron
+    const logoFile = document.getElementById('company-logo').files[0];
+    const faviconFile = document.getElementById('favicon').files[0];
+    
+    if (logoFile) formData.append('company_logo', logoFile);
+    if (faviconFile) formData.append('favicon', faviconFile);
+    
+    fetch('{% url "dashboard:create_system_configuration" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Configuración guardada exitosamente', 'success');
+        } else {
+            showAlert('Error al guardar la configuración', 'error');
+        }
+    })
+    .catch(error => {
+        showAlert('Error de conexión', 'error');
+    });
+}
+
+// Aplicar configuración inmediatamente
+function applyConfiguration() {
+    // Guardar preferencias de usuario
+    const userDarkMode = document.getElementById('user-dark-mode').checked;
+    const userTheme = document.getElementById('user-theme').value;
+    
+    fetch('{% url "dashboard:toggle_dark_mode" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            dark_mode: userDarkMode,
+            preferred_theme: userTheme
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Configuración aplicada. Recargando página...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    });
+}
+
+// Mostrar alertas
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    // Sincronizar selectores de color
+    ['primary', 'secondary', 'accent', 'sidebar'].forEach(syncColorInputs);
+    
+    // Inicializar vista previa
+    updatePreview();
+    
+    // Inicializar tarjetas de tema con colores
+    Object.keys(themeData).forEach(theme => {
+        const card = document.querySelector(`[data-theme="${theme}"]`);
+        const colorsContainer = card.querySelector('.theme-colors');
+        const preview = card.querySelector('.theme-preview');
+        const colors = themeData[theme];
+        
+        // Añadir puntos de color
+        Object.values(colors).forEach(color => {
+            const dot = document.createElement('div');
+            dot.className = 'w-3 h-3 rounded-full border border-white';
+            dot.style.backgroundColor = color;
+            colorsContainer.appendChild(dot);
+        });
+        
+        // Configurar gradiente de vista previa
+        preview.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+    });
+    
+    // Seleccionar tema por defecto
+    selectTheme('default');
+});
+</script>
+
+<style>
+.dark-preview {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.theme-card.selected {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.config-tab.active {
+    border-bottom-color: #3b82f6;
+    color: #3b82f6;
+}
+</style>
+{% endblock %}
