@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views, config_views
+from .theme_css_view import theme_css
 
 app_name = 'dashboard'
 
@@ -35,4 +36,7 @@ urlpatterns = [
     # URLs para preferencias de usuario
     path('preferences/', config_views.update_user_preferences, name='user_preferences'),
     path('preferences/toggle-dark-mode/', config_views.toggle_dark_mode, name='toggle_dark_mode'),
+    
+    # CSS dinámico para temas
+    path('theme.css', theme_css, name='theme_css'),
 ]

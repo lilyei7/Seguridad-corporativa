@@ -317,15 +317,21 @@ function selectTheme(theme) {
     // Actualizar vista previa
     updatePreview();
     
+    // Aplicar cambios inmediatamente a la página actual
+    applyThemeChanges(theme);
+    
     // Marcar tarjeta como seleccionada
     document.querySelectorAll('.theme-card').forEach(card => {
-        card.classList.remove('border-blue-500', 'bg-blue-50');
+        card.classList.remove('border-blue-500', 'bg-blue-50', 'selected');
         card.classList.add('border-gray-200');
     });
     
     const selectedCard = document.querySelector(`[data-theme="${theme}"]`);
-    selectedCard.classList.add('border-blue-500', 'bg-blue-50');
+    selectedCard.classList.add('border-blue-500', 'bg-blue-50', 'selected');
     selectedCard.classList.remove('border-gray-200');
+    
+    // Actualizar tema en el select del usuario
+    document.getElementById('user-theme').value = theme;
 }
 
 // Actualizar vista previa
@@ -441,10 +447,23 @@ function applyConfiguration() {
     })
     .then(response => {
         if (response.ok) {
-            showAlert('Configuración aplicada. Recargando página...', 'success');
+            showAlert('Configuración aplicada. Aplicando cambios...', 'success');
+            
+            // Recargar el CSS de tema dinámicamente
+            const themeLink = document.querySelector('link[href*="theme.css"]');
+            if (themeLink) {
+                const newLink = themeLink.cloneNode();
+                newLink.href = themeLink.href + '?v=' + new Date().getTime();
+                themeLink.parentNode.insertBefore(newLink, themeLink.nextSibling);
+                themeLink.remove();
+            }
+            
+            // Aplicar cambios visuales inmediatos
+            applyThemeChanges(userTheme);
+            
             setTimeout(() => {
-                window.location.reload();
-            }, 1500);
+                showAlert('¡Tema aplicado exitosamente!', 'success');
+            }, 1000);
         } else {
             throw new Error('Error al aplicar configuración');
         }
@@ -452,6 +471,40 @@ function applyConfiguration() {
     .catch(error => {
         console.error('Error:', error);
         showAlert('Error al aplicar configuración: ' + error.message, 'error');
+    });
+}
+
+// Función para aplicar cambios de tema inmediatamente
+function applyThemeChanges(themeName) {
+    if (!themeName) themeName = currentTheme;
+    
+    const colors = themeData[themeName] || themeData['default'];
+    
+    // Actualizar variables CSS
+    document.documentElement.style.setProperty('--theme-primary', colors.primary);
+    document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
+    document.documentElement.style.setProperty('--theme-accent', colors.accent);
+    document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
+    
+    // Aplicar a elementos específicos
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.style.backgroundColor = colors.sidebar;
+    }
+    
+    const adminHeaders = document.querySelectorAll('.admin-header');
+    adminHeaders.forEach(header => {
+        header.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`;
+    });
+    
+    const primaryButtons = document.querySelectorAll('.btn-primary, .bg-blue-600, .bg-blue-500');
+    primaryButtons.forEach(btn => {
+        btn.style.backgroundColor = colors.primary;
+    });
+    
+    const primaryTexts = document.querySelectorAll('.text-blue-600, .text-blue-500');
+    primaryTexts.forEach(text => {
+        text.style.color = colors.primary;
     });
 }
 

@@ -95,9 +95,53 @@
         }
     </script>
     
+    <!-- CSS Dinámico para Temas -->
+    <link rel="stylesheet" href="{% url 'dashboard:theme_css' %}">
+    
+    <style>
+        /* Variables CSS por defecto para temas */
+        :root {
+            --theme-primary: {{ active_theme_colors.primary|default:"#0ea5e9" }};
+            --theme-secondary: {{ active_theme_colors.secondary|default:"#0284c7" }};
+            --theme-accent: {{ active_theme_colors.accent|default:"#0369a1" }};
+            --theme-sidebar: {{ active_theme_colors.sidebar|default:"#1e293b" }};
+        }
+        
+        /* Aplicar variables a elementos principales */
+        .sidebar {
+            background-color: var(--theme-sidebar) !important;
+        }
+        
+        .sidebar-link.active,
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+    
     <!-- Variables de tema dinámicas -->
     <script>
         // Configuración de tema dinámico
+        window.currentThemeConfig = {
+            primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
+            secondary: '{{ active_theme_colors.secondary|default:"#0284c7" }}',
+            accent: '{{ active_theme_colors.accent|default:"#0369a1" }}',
+            sidebar: '{{ active_theme_colors.sidebar|default:"#1e293b" }}'
+        };
+        
+        // Aplicar tema al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            applyCurrentTheme();
+        });
+        
+        function applyCurrentTheme() {
+            const config = window.currentThemeConfig;
+            
+            // Actualizar variables CSS
+            document.documentElement.style.setProperty('--theme-primary', config.primary);
+            document.documentElement.style.setProperty('--theme-secondary', config.secondary);
+            document.documentElement.style.setProperty('--theme-accent', config.accent);
+            document.documentElement.style.setProperty('--theme-sidebar', config.sidebar);
+        }
         window.themeConfig = {
             colors: {
                 primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
