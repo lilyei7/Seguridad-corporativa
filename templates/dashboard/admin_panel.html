@@ -73,7 +73,7 @@
     </div>
 
     <!-- Panel de navegación rápida -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Gestión de Inquilinos -->
         <a href="{% url 'dashboard:tenants_list' %}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
             <div class="flex items-center space-x-4">
@@ -96,6 +96,19 @@
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900">Personal de Seguridad</h3>
                     <p class="text-sm text-gray-600">Vigilantes y turnos</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Configuración del Sistema -->
+        <a href="{% url 'dashboard:system_configuration' %}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-cog text-indigo-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Configuración del Sistema</h3>
+                    <p class="text-sm text-gray-600">Temas, colores y personalización</p>
                 </div>
             </div>
         </a>

@@ -3,6 +3,15 @@
 {% block title %}Configuración del Sistema - Olcha Tecnología En Seguridad{% endblock %}
 
 {% block content %}
+<!-- Mensajes de Django -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white {{ message.tags|default:'info' }} bg-green-500 message-alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
 <div class="space-y-6">
     <!-- Header -->
     <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
@@ -384,23 +393,31 @@ function saveConfiguration() {
     if (logoFile) formData.append('company_logo', logoFile);
     if (faviconFile) formData.append('favicon', faviconFile);
     
-    fetch('{% url "dashboard:create_system_configuration" %}', {
+    // Crear nueva configuración
+    fetch('/dashboard/config/save/', {
         method: 'POST',
         body: formData,
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('Configuración guardada exitosamente', 'success');
+    .then(response => {
+        if (response.ok) {
+            return response.text(); // Django retorna HTML en el form, no JSON
         } else {
-            showAlert('Error al guardar la configuración', 'error');
+            throw new Error('Error en la respuesta del servidor');
         }
     })
+    .then(data => {
+        showAlert('Configuración guardada exitosamente', 'success');
+        // Recargar la página después de un momento
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    })
     .catch(error => {
-        showAlert('Error de conexión', 'error');
+        console.error('Error:', error);
+        showAlert('Error al guardar la configuración: ' + error.message, 'error');
     });
 }
 
@@ -410,26 +427,31 @@ function applyConfiguration() {
     const userDarkMode = document.getElementById('user-dark-mode').checked;
     const userTheme = document.getElementById('user-theme').value;
     
-    fetch('{% url "dashboard:toggle_dark_mode" %}', {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('dark_mode', userDarkMode);
+    formData.append('preferred_theme', userTheme);
+    
+    fetch('/dashboard/preferences/', {
         method: 'POST',
+        body: formData,
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({
-            dark_mode: userDarkMode,
-            preferred_theme: userTheme
-        })
+        }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+    .then(response => {
+        if (response.ok) {
             showAlert('Configuración aplicada. Recargando página...', 'success');
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
+        } else {
+            throw new Error('Error al aplicar configuración');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error al aplicar configuración: ' + error.message, 'error');
     });
 }
 
@@ -494,5 +516,33 @@ document.addEventListener('DOMContentLoaded', function() {
     border-bottom-color: #3b82f6;
     color: #3b82f6;
 }
+
+.message-alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
 </style>
+
+<script>
+// Ocultar mensajes después de 3 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.message-alert');
+        alerts.forEach(alert => {
+            alert.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => alert.remove(), 300);
+        });
+    }, 3000);
+});
+</script>
 {% endblock %}

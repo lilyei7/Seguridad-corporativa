@@ -26,6 +26,7 @@ urlpatterns = [
     # URLs para configuración del sistema
     path('config/', config_views.SystemConfigurationView.as_view(), name='system_configuration'),
     path('config/create/', config_views.CreateSystemConfigurationView.as_view(), name='create_system_configuration'),
+    path('config/save/', config_views.save_system_configuration, name='save_system_configuration'),
     path('config/<int:pk>/edit/', config_views.UpdateSystemConfigurationView.as_view(), name='edit_system_configuration'),
     path('config/<int:pk>/activate/', config_views.activate_configuration, name='activate_configuration'),
     path('config/preview-theme/', config_views.preview_theme, name='preview_theme'),

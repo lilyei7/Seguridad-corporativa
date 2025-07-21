@@ -53,8 +53,13 @@ class CreateSystemConfigurationView(LoginRequiredMixin, UserPassesTestMixin, Cre
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
+        response = super().form_valid(form)
+        
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Configuración creada exitosamente.'})
+        
         messages.success(self.request, 'Configuración creada exitosamente.')
-        return super().form_valid(form)
+        return response
 
 
 class UpdateSystemConfigurationView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -68,8 +73,13 @@ class UpdateSystemConfigurationView(LoginRequiredMixin, UserPassesTestMixin, Upd
         return is_admin_or_superuser(self.request.user)
     
     def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Configuración actualizada exitosamente.'})
+        
         messages.success(self.request, 'Configuración actualizada exitosamente.')
-        return super().form_valid(form)
+        return response
 
 
 @login_required
@@ -102,20 +112,24 @@ def update_user_preferences(request):
     )
     
     if request.method == 'POST':
-        form = UserThemePreferenceForm(request.POST, instance=user_preference)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Preferencias actualizadas exitosamente.')
-            
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True, 
-                    'message': 'Preferencias actualizadas',
-                    'dark_mode': user_preference.dark_mode,
-                    'theme': user_preference.preferred_theme
-                })
-            
-            return redirect('dashboard:system_configuration')
+        # Manejar los campos del formulario
+        dark_mode = request.POST.get('dark_mode') == 'on' or request.POST.get('dark_mode') == 'true'
+        preferred_theme = request.POST.get('preferred_theme', '')
+        
+        user_preference.dark_mode = dark_mode
+        user_preference.preferred_theme = preferred_theme
+        user_preference.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True, 
+                'message': 'Preferencias actualizadas',
+                'dark_mode': user_preference.dark_mode,
+                'theme': user_preference.preferred_theme
+            })
+        
+        messages.success(request, 'Preferencias actualizadas exitosamente.')
+        return redirect('dashboard:system_configuration')
     else:
         form = UserThemePreferenceForm(instance=user_preference)
     
@@ -198,3 +212,44 @@ def get_current_theme_data(request):
         })
     
     return JsonResponse({'success': False, 'message': 'No hay configuración activa'})
+
+
+@login_required
+@user_passes_test(is_admin_or_superuser)
+def save_system_configuration(request):
+    """Vista simple para guardar configuración del sistema"""
+    if request.method == 'POST':
+        try:
+            # Crear nueva configuración
+            config = SystemThemeConfiguration()
+            config.company_name = request.POST.get('company_name', 'Olcha Tecnología En Seguridad')
+            config.theme = request.POST.get('theme', 'default')
+            config.dark_mode = request.POST.get('dark_mode') == 'true'
+            config.primary_color = request.POST.get('primary_color', '#0ea5e9')
+            config.secondary_color = request.POST.get('secondary_color', '#0284c7')
+            config.accent_color = request.POST.get('accent_color', '#0369a1')
+            config.sidebar_color = request.POST.get('sidebar_color', '#1e293b')
+            config.created_by = request.user
+            
+            # Manejar archivos
+            if 'company_logo' in request.FILES:
+                config.company_logo = request.FILES['company_logo']
+            if 'favicon' in request.FILES:
+                config.favicon = request.FILES['favicon']
+            
+            config.save()
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Configuración guardada exitosamente'})
+            
+            messages.success(request, 'Configuración guardada exitosamente.')
+            return redirect('dashboard:system_configuration')
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': f'Error: {str(e)}'})
+            
+            messages.error(request, f'Error al guardar: {str(e)}')
+            return redirect('dashboard:system_configuration')
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
