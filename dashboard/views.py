@@ -78,7 +78,7 @@ def dashboard_index(request):
             context.update({
                 'user_role': 'tenant',
                 'my_visits': Visit.objects.filter(
-                    tenant__user=request.user
+                    tenant__assigned_user=request.user
                 ).order_by('-created_at')[:5],
             })
         

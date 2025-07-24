@@ -817,9 +817,14 @@ Ver consola para detalles completos.
         }
 
         /* Overlay para sidebar del usuario */
+        #user-sidebar-overlay {
+            pointer-events: none;
+        }
+        
         #user-sidebar-overlay.active {
             opacity: 1 !important;
             visibility: visible !important;
+            pointer-events: auto !important;
         }
 
         /* Mejoras específicas para móvil */
@@ -1513,7 +1518,7 @@ Ver consola para detalles completos.
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         <!-- Overlay para sidebar del usuario -->
-        <div id="user-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 visibility-hidden transition-all duration-300 ease-out"></div>
+        <div id="user-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 visibility-hidden pointer-events-none transition-all duration-300 ease-out"></div>
 
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
@@ -2206,15 +2211,35 @@ Ver consola para detalles completos.
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing mobile menu...');
             
+            // === RESET INICIAL DE OVERLAYS ===
+            // Asegurar que todos los overlays estén cerrados al cargar la página
+            const userOverlay = document.getElementById('user-sidebar-overlay');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            if (userOverlay) {
+                userOverlay.classList.remove('active');
+                userOverlay.style.pointerEvents = 'none';
+                console.log('✅ User overlay reset al cargar página');
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.remove('active');
+                console.log('✅ Sidebar overlay reset al cargar página');
+            }
+            
+            // Asegurar que body scroll esté habilitado
+            document.body.style.overflow = '';
+            console.log('✅ Body scroll restaurado al cargar página');
+            
             // Elementos
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
             
             console.log('Elements found:', {
                 mobileMenuButton: !!mobileMenuButton,
                 sidebar: !!sidebar,
-                sidebarOverlay: !!sidebarOverlay
+                sidebarOverlay: !!sidebarOverlay,
+                userOverlay: !!userOverlay
             });
 
             // Event listeners adicionales para el botón de menú
@@ -2333,6 +2358,7 @@ Ver consola para detalles completos.
                 // Mostrar overlay
                 if (userOverlay) {
                     userOverlay.classList.add('active');
+                    userOverlay.style.pointerEvents = 'auto';
                 }
                 
                 // Bloquear scroll del body
@@ -2345,9 +2371,13 @@ Ver consola para detalles completos.
             window.closeUserDropdown = function closeUserDropdown() {
                 userDropdown.classList.remove('user-dropdown-show');
                 
-                // Ocultar overlay
+                // Ocultar overlay completamente
                 if (userOverlay) {
                     userOverlay.classList.remove('active');
+                    // Forzar reset del pointer-events
+                    setTimeout(() => {
+                        userOverlay.style.pointerEvents = 'none';
+                    }, 300); // Después de la transición
                 }
                 
                 // Restaurar scroll del body
@@ -2355,6 +2385,56 @@ Ver consola para detalles completos.
                 
                 isUserDropdownOpen = false;
                 console.log('👤 Sidebar del usuario cerrado');
+            }
+
+            // === FUNCIÓN DE DEBUG PARA OVERLAYS ===
+            window.debugOverlays = function() {
+                const userOverlay = document.getElementById('user-sidebar-overlay');
+                const sidebarOverlay = document.getElementById('sidebar-overlay');
+                
+                console.log('🔍 Estado de overlays:');
+                if (userOverlay) {
+                    console.log('  👤 User overlay:', {
+                        classes: userOverlay.className,
+                        opacity: getComputedStyle(userOverlay).opacity,
+                        visibility: getComputedStyle(userOverlay).visibility,
+                        pointerEvents: getComputedStyle(userOverlay).pointerEvents,
+                        zIndex: getComputedStyle(userOverlay).zIndex
+                    });
+                }
+                if (sidebarOverlay) {
+                    console.log('  📱 Sidebar overlay:', {
+                        classes: sidebarOverlay.className,
+                        opacity: getComputedStyle(sidebarOverlay).opacity,
+                        visibility: getComputedStyle(sidebarOverlay).visibility,
+                        pointerEvents: getComputedStyle(sidebarOverlay).pointerEvents
+                    });
+                }
+                console.log('  🚫 Body overflow:', document.body.style.overflow);
+                console.log('  🎯 States:', {
+                    isUserDropdownOpen,
+                    isSidebarOpen
+                });
+            }
+
+            // Función para forzar reset de overlays
+            window.forceResetOverlays = function() {
+                const userOverlay = document.getElementById('user-sidebar-overlay');
+                const sidebarOverlay = document.getElementById('sidebar-overlay');
+                
+                if (userOverlay) {
+                    userOverlay.classList.remove('active');
+                    userOverlay.style.pointerEvents = 'none';
+                }
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove('active');
+                }
+                
+                document.body.style.overflow = '';
+                isUserDropdownOpen = false;
+                isSidebarOpen = false;
+                
+                console.log('🔧 Overlays forzados a reset');
             }
 
             // === FUNCIÓN PARA CAMBIAR TEMA ===
