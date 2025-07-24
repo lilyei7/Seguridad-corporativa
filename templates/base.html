@@ -2213,12 +2213,12 @@ Ver consola para detalles completos.
             
             // === RESET INICIAL DE OVERLAYS ===
             // Asegurar que todos los overlays estén cerrados al cargar la página
-            const userOverlay = document.getElementById('user-sidebar-overlay');
+            const userSidebarOverlay = document.getElementById('user-sidebar-overlay');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             
-            if (userOverlay) {
-                userOverlay.classList.remove('active');
-                userOverlay.style.pointerEvents = 'none';
+            if (userSidebarOverlay) {
+                userSidebarOverlay.classList.remove('active');
+                userSidebarOverlay.style.pointerEvents = 'none';
                 console.log('✅ User overlay reset al cargar página');
             }
             
@@ -2239,7 +2239,7 @@ Ver consola para detalles completos.
                 mobileMenuButton: !!mobileMenuButton,
                 sidebar: !!sidebar,
                 sidebarOverlay: !!sidebarOverlay,
-                userOverlay: !!userOverlay
+                userSidebarOverlay: !!userSidebarOverlay
             });
 
             // Event listeners adicionales para el botón de menú
@@ -2435,6 +2435,24 @@ Ver consola para detalles completos.
                 isSidebarOpen = false;
                 
                 console.log('🔧 Overlays forzados a reset');
+            }
+
+            // Función de debug completo del sistema
+            window.debugSystem = function() {
+                console.log('🔍 === DEBUG COMPLETO DEL SISTEMA ===');
+                debugOverlays();
+                
+                console.log('📱 Elementos del DOM:');
+                console.log('  - sidebar:', !!document.getElementById('sidebar'));
+                console.log('  - mobile-menu-button:', !!document.getElementById('mobile-menu-button'));
+                console.log('  - mobile-user-btn:', !!document.getElementById('mobile-user-btn'));
+                console.log('  - mobile-user-dropdown:', !!document.getElementById('mobile-user-dropdown'));
+                console.log('  - user-sidebar-overlay:', !!document.getElementById('user-sidebar-overlay'));
+                
+                console.log('🌐 URL y protocolo:');
+                console.log('  - URL:', window.location.href);
+                console.log('  - Protocolo:', window.location.protocol);
+                console.log('  - Host:', window.location.host);
             }
 
             // === FUNCIÓN PARA CAMBIAR TEMA ===
@@ -3365,6 +3383,16 @@ Ver consola para detalles completos.
                 console.error('❌ No se encontró el dropdown');
             }
         };
+        
+        // Mensaje de confirmación al final
+        console.log('🎉 === SISTEMA COMPLETAMENTE CARGADO ===');
+        console.log('🔧 Funciones de debug disponibles:');
+        console.log('   - debugOverlays()');
+        console.log('   - forceResetOverlays()');
+        console.log('   - debugSystem()');
+        console.log('   - debugNotifications()');
+        console.log('   - forceOpenDropdown()');
+        console.log('🚀 ¡Todo listo para usar!');
     </script>
     
     {% block extra_js %}{% endblock %}
