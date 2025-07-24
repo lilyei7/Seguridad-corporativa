@@ -501,6 +501,49 @@ Ver consola para detalles completos.
             font-feature-settings: "cv01", "cv03", "cv04", "cv11";
             letter-spacing: -0.01em;
             overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        
+        /* Prevenir salto de scroll en elementos interactivos */
+        a[href="#"], button[type="button"], .prevent-scroll {
+            scroll-behavior: auto;
+        }
+        
+        /* Evitar scroll automático en formularios */
+        input, textarea, select {
+            scroll-margin-top: 100px;
+            scroll-margin-bottom: 50px;
+        }
+        
+        /* Focus sin scroll automático */
+        *:focus {
+            scroll-margin-top: 80px;
+        }
+        
+        /* Específico para textareas que causan problemas de scroll */
+        textarea {
+            resize: vertical;
+            scroll-margin-top: 120px;
+        }
+        
+        /* Prevenir scroll en botones y enlaces específicos */
+        button[type="submit"], 
+        input[type="submit"],
+        .btn,
+        .no-scroll-on-click {
+            scroll-margin: 0;
+        }
+        
+        /* Suavizar transiciones de formularios */
+        form {
+            scroll-behavior: smooth;
+        }
+        
+        /* Elementos que no deben causar scroll */
+        .dropdown-toggle,
+        .sidebar-toggle,
+        .notification-btn {
+            scroll-margin: 0 !important;
         }
         
         h1, h2, h3, h4, h5, h6 {
@@ -1369,7 +1412,7 @@ Ver consola para detalles completos.
             <div class="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                 <!-- Componente de notificaciones universal -->
                 <div class="relative">
-                    <button id="mobile-notifications-btn" class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button id="mobile-notifications-btn" data-no-scroll class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                         <i id="mobile-notification-bell" class="fas fa-bell text-xl"></i>
                         <span id="mobile-notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse hidden">
                             <span id="mobile-notification-count">0</span>
@@ -1405,7 +1448,7 @@ Ver consola para detalles completos.
                 
                 <!-- Dropdown del usuario -->
                 <div class="relative">
-                    <button id="mobile-user-btn" class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors">
+                    <button id="mobile-user-btn" data-no-scroll class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors">
                         <i class="fas fa-user text-primary-600 text-sm"></i>
                     </button>
                     
@@ -1471,7 +1514,7 @@ Ver consola para detalles completos.
                             </a>
                             
                             <!-- Ayuda -->
-                            <a href="#" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
+                            <a href="#" onclick="event.preventDefault(); alert('Próximamente: Sistema de ayuda y soporte');" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
                                 <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-question-circle text-green-600 text-lg"></i>
                                 </div>
@@ -1485,7 +1528,7 @@ Ver consola para detalles completos.
                             <div class="my-6 border-t border-gray-200"></div>
                             
                             <!-- Cambiar Tema -->
-                            <button onclick="toggleDarkMode()" class="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors text-left mb-2">
+                            <button onclick="event.preventDefault(); toggleDarkMode();" data-no-scroll class="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors text-left mb-2">
                                 <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                     <i class="fas fa-moon text-purple-600 text-lg" id="theme-icon"></i>
                                 </div>
@@ -1754,11 +1797,11 @@ Ver consola para detalles completos.
                             </h3>
                         </div>
                         <nav class="space-y-1">
-                            <a href="#" class="sidebar-link">
+                            <a href="#" onclick="event.preventDefault(); alert('Próximamente: Reportes de incidentes');" class="sidebar-link">
                                 <i class="fas fa-exclamation-triangle w-5 text-center mr-3"></i>
                                 <span>Reportes de Incidentes</span>
                             </a>
-                            <a href="#" class="sidebar-link">
+                            <a href="#" onclick="event.preventDefault(); alert('Próximamente: Crear nuevo reporte');" class="sidebar-link">
                                 <i class="fas fa-plus-circle w-5 text-center mr-3"></i>
                                 <span>Nuevo Reporte</span>
                             </a>
@@ -1780,7 +1823,7 @@ Ver consola para detalles completos.
                                 <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
                                 <span>Panel de Inquilino</span>
                             </a>
-                            <a href="#" 
+                            <a href="#" onclick="event.preventDefault(); alert('Próximamente: Información detallada del local');"
                                class="sidebar-link">
                                 <i class="fas fa-building w-5 text-center mr-3"></i>
                                 <span>Información del Local</span>
@@ -2503,8 +2546,8 @@ Ver consola para detalles completos.
                                 </div>
                             </div>
                             <div class="flex justify-end space-x-3 mt-6">
-                                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
-                                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Cambiar</button>
+                                <button type="button" onclick="closePasswordModal()" data-no-scroll class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                                <button type="submit" data-no-scroll class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Cambiar</button>
                             </div>
                         </form>
                     </div>
@@ -3393,6 +3436,114 @@ Ver consola para detalles completos.
         console.log('   - debugNotifications()');
         console.log('   - forceOpenDropdown()');
         console.log('🚀 ¡Todo listo para usar!');
+        
+        // === PREVENCIÓN DE SCROLL AUTOMÁTICO MEJORADO ===
+        let preserveScrollPosition = false;
+        let lastScrollPosition = 0;
+        
+        // Función para preservar la posición de scroll
+        function saveScrollPosition() {
+            lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            preserveScrollPosition = true;
+        }
+        
+        // Función para restaurar la posición de scroll
+        function restoreScrollPosition() {
+            if (preserveScrollPosition) {
+                window.scrollTo({
+                    top: lastScrollPosition,
+                    behavior: 'instant'
+                });
+                preserveScrollPosition = false;
+            }
+        }
+        
+        // Prevenir scroll en enlaces vacíos
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a[href="#"]');
+            if (target) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🚫 Prevención de scroll en enlace vacío');
+                return false;
+            }
+        });
+        
+        // Prevenir scroll en botones que no necesitan foco
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('button[type="button"]') || e.target.closest('button[type="button"]')) {
+                saveScrollPosition();
+                // No hacer scroll automático para botones tipo button
+                setTimeout(() => {
+                    if (document.activeElement === e.target || e.target.closest('button') === document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                    restoreScrollPosition();
+                }, 0);
+            }
+        });
+        
+        // Mejorar el manejo de formularios y campos de texto
+        document.addEventListener('focusin', function(e) {
+            if (e.target.matches('input, textarea, select')) {
+                console.log('🎯 Focus en campo:', e.target.type || e.target.tagName);
+                
+                // Guardar posición actual
+                saveScrollPosition();
+                
+                // Para textareas, evitar el scroll automático
+                if (e.target.tagName.toLowerCase() === 'textarea') {
+                    setTimeout(() => {
+                        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                        if (Math.abs(currentScroll - lastScrollPosition) > 50) {
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 100);
+                }
+            }
+        });
+        
+        // Prevenir scroll en envío de formularios
+        document.addEventListener('submit', function(e) {
+            console.log('📝 Envío de formulario detectado');
+            saveScrollPosition();
+            
+            // Si hay errores, mantener la posición
+            setTimeout(() => {
+                if (preserveScrollPosition) {
+                    restoreScrollPosition();
+                }
+            }, 500);
+        });
+        
+        // Prevenir scroll en clicks de botones de envío
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('button[type="submit"], input[type="submit"]') || 
+                e.target.closest('button[type="submit"], input[type="submit"]')) {
+                console.log('📤 Click en botón de envío');
+                saveScrollPosition();
+            }
+        });
+        
+        // Manejar clicks en elementos interactivos
+        document.addEventListener('click', function(e) {
+            // Prevenir scroll en elementos con data-no-scroll
+            if (e.target.hasAttribute('data-no-scroll') || e.target.closest('[data-no-scroll]')) {
+                e.preventDefault();
+                saveScrollPosition();
+                setTimeout(restoreScrollPosition, 10);
+            }
+        });
+        
+        // Evitar scroll automático en cambios de hash
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        console.log('✅ Sistema de prevención de scroll automático mejorado activado');
     </script>
     
     {% block extra_js %}{% endblock %}

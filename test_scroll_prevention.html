@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Prevención de Scroll</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* === PREVENCIÓN DE SCROLL === */
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+        
+        body {
+            overflow-x: hidden;
+        }
+        
+        /* Prevenir scroll automático en formularios */
+        input, textarea, select {
+            scroll-margin-top: 120px;
+            scroll-margin-bottom: 50px;
+        }
+        
+        /* Focus sin scroll automático */
+        *:focus {
+            scroll-margin-top: 80px;
+        }
+        
+        /* Específico para textareas que causan problemas de scroll */
+        textarea {
+            resize: vertical;
+            scroll-margin-top: 120px;
+        }
+        
+        /* Prevenir scroll en botones y enlaces específicos */
+        button[type="submit"], 
+        input[type="submit"],
+        .btn,
+        .no-scroll-on-click {
+            scroll-margin: 0;
+        }
+        
+        /* Elementos que no deben causar scroll */
+        .dropdown-toggle,
+        .sidebar-toggle,
+        .notification-btn {
+            scroll-margin: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold text-center mb-8">Test de Prevención de Scroll</h1>
+        
+        <!-- Contenido para crear scroll -->
+        <div class="mb-8">
+            <div class="bg-blue-100 p-4 rounded mb-4">
+                <h2 class="text-xl font-semibold mb-2">Sección 1</h2>
+                <p>Este es contenido para crear scroll en la página. Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+            </div>
+            
+            <div class="bg-green-100 p-4 rounded mb-4" style="height: 300px;">
+                <h2 class="text-xl font-semibold mb-2">Sección 2 - Alta</h2>
+                <p>Sección con altura para generar scroll.</p>
+            </div>
+            
+            <div class="bg-yellow-100 p-4 rounded mb-4" style="height: 300px;">
+                <h2 class="text-xl font-semibold mb-2">Sección 3 - Alta</h2>
+                <p>Otra sección con altura para generar scroll.</p>
+            </div>
+        </div>
+        
+        <!-- Formulario de prueba -->
+        <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+            <h2 class="text-2xl font-bold mb-6">Formulario de Prueba</h2>
+            
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Campo de texto</label>
+                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Escribe algo aquí">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Textarea (posible problema de scroll)</label>
+                    <textarea rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Escribe un texto largo aquí. Cuando hagas click aquí, la página NO debería saltar al top."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option>Opción 1</option>
+                        <option>Opción 2</option>
+                        <option>Opción 3</option>
+                    </select>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button type="button" data-no-scroll class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                        Botón Normal (No debe hacer scroll)
+                    </button>
+                    
+                    <button type="submit" data-no-scroll class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        Enviar (No debe hacer scroll)
+                    </button>
+                    
+                    <a href="#" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 inline-block">
+                        Enlace # (No debe hacer scroll)
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Más contenido para crear scroll -->
+        <div class="mt-8">
+            <div class="bg-purple-100 p-4 rounded mb-4" style="height: 300px;">
+                <h2 class="text-xl font-semibold mb-2">Sección 4 - Después del formulario</h2>
+                <p>Contenido adicional después del formulario.</p>
+            </div>
+            
+            <div class="bg-pink-100 p-4 rounded mb-4" style="height: 300px;">
+                <h2 class="text-xl font-semibold mb-2">Sección 5 - Final</h2>
+                <p>Última sección de la página.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === PREVENCIÓN DE SCROLL AUTOMÁTICO MEJORADO ===
+        let preserveScrollPosition = false;
+        let lastScrollPosition = 0;
+        
+        // Función para preservar la posición de scroll
+        function saveScrollPosition() {
+            lastScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            preserveScrollPosition = true;
+            console.log('📍 Posición guardada:', lastScrollPosition);
+        }
+        
+        // Función para restaurar la posición de scroll
+        function restoreScrollPosition() {
+            if (preserveScrollPosition) {
+                window.scrollTo({
+                    top: lastScrollPosition,
+                    behavior: 'instant'
+                });
+                preserveScrollPosition = false;
+                console.log('🔄 Posición restaurada:', lastScrollPosition);
+            }
+        }
+        
+        // Prevenir scroll en enlaces vacíos
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a[href="#"]');
+            if (target) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🚫 Prevención de scroll en enlace vacío');
+                return false;
+            }
+        });
+        
+        // Prevenir scroll en botones que no necesitan foco
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('button[type="button"]') || e.target.closest('button[type="button"]')) {
+                saveScrollPosition();
+                // No hacer scroll automático para botones tipo button
+                setTimeout(() => {
+                    if (document.activeElement === e.target || e.target.closest('button') === document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                    restoreScrollPosition();
+                }, 0);
+            }
+        });
+        
+        // Mejorar el manejo de formularios y campos de texto
+        document.addEventListener('focusin', function(e) {
+            if (e.target.matches('input, textarea, select')) {
+                console.log('🎯 Focus en campo:', e.target.type || e.target.tagName);
+                
+                // Guardar posición actual
+                saveScrollPosition();
+                
+                // Para textareas, evitar el scroll automático
+                if (e.target.tagName.toLowerCase() === 'textarea') {
+                    setTimeout(() => {
+                        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+                        if (Math.abs(currentScroll - lastScrollPosition) > 50) {
+                            console.log('🔧 Restaurando scroll para textarea');
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 100);
+                }
+            }
+        });
+        
+        // Prevenir scroll en envío de formularios
+        document.addEventListener('submit', function(e) {
+            console.log('📝 Envío de formulario detectado');
+            e.preventDefault(); // Para esta demo
+            saveScrollPosition();
+            
+            // Simular procesamiento
+            alert('Formulario enviado! (Demo - no hay scroll)');
+            
+            // Restaurar posición
+            setTimeout(() => {
+                if (preserveScrollPosition) {
+                    restoreScrollPosition();
+                }
+            }, 100);
+        });
+        
+        // Prevenir scroll en clicks de botones de envío
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('button[type="submit"], input[type="submit"]') || 
+                e.target.closest('button[type="submit"], input[type="submit"]')) {
+                console.log('📤 Click en botón de envío');
+                saveScrollPosition();
+            }
+        });
+        
+        // Manejar clicks en elementos interactivos
+        document.addEventListener('click', function(e) {
+            // Prevenir scroll en elementos con data-no-scroll
+            if (e.target.hasAttribute('data-no-scroll') || e.target.closest('[data-no-scroll]')) {
+                console.log('🎯 Click en elemento data-no-scroll');
+                saveScrollPosition();
+                setTimeout(restoreScrollPosition, 10);
+            }
+        });
+        
+        // Evitar scroll automático en cambios de hash
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        console.log('✅ Sistema de prevención de scroll automático mejorado activado');
+        
+        // Indicador visual de posición de scroll
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            console.log('📏 Scroll actual:', scrolled);
+        });
+    </script>
+</body>
+</html>
