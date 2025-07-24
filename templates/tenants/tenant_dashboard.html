@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel del Inquilino - {{ tenant.tenant_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-900">Panel del Inquilino</h1>
+                <p class="text-sm text-gray-500">{{ tenant.tenant_name }} - Oficina {{ tenant.numero_oficina }}</p>
+            </div>
+            <div class="text-sm text-gray-500">
+                {{ "now"|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Avisos importantes -->
+    {% if announcements %}
+    <div class="px-6 py-4 bg-blue-50 border-b border-blue-200">
+        <h2 class="text-lg font-semibold text-blue-900 mb-3">
+            <i class="fas fa-bullhorn mr-2"></i>Avisos Importantes
+        </h2>
+        <div class="space-y-2">
+            {% for announcement in announcements %}
+            <div class="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                <div class="flex-shrink-0">
+                    {% if announcement.priority == 'urgente' %}
+                        <i class="fas fa-exclamation-triangle text-red-500"></i>
+                    {% elif announcement.priority == 'alta' %}
+                        <i class="fas fa-exclamation-circle text-orange-500"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-medium text-gray-900">{{ announcement.title }}</h3>
+                    <p class="text-sm text-gray-600">{{ announcement.content|truncatewords:20 }}</p>
+                    <p class="text-xs text-gray-400">{{ announcement.created_at|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="mt-3">
+            <a href="{% url 'dashboard:index' %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Ver dashboard principal →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Accesos rápidos -->
+    <div class="px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-rocket mr-2"></i>Accesos Rápidos
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <a href="{% url 'visits:register' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-user-plus text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Registrar Visita</h3>
+                    <p class="text-xs text-gray-500 mt-1">Nueva visita</p>
+                </div>
+            </a>
+
+            <a href="{% url 'maintenance:dashboard' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-tools text-orange-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Mantenimiento</h3>
+                    <p class="text-xs text-gray-500 mt-1">Acceder al dashboard</p>
+                </div>
+            </a>
+
+            <a href="{% url 'maintenance:checklists_list' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-clipboard-list text-purple-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Checklists</h3>
+                    <p class="text-xs text-gray-500 mt-1">Ver lista</p>
+                </div>
+            </a>
+
+            <a href="{% url 'tenants:electricity_bills' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bolt text-yellow-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Recibos de Luz</h3>
+                    <p class="text-xs text-gray-500 mt-1">Ver consumo</p>
+                </div>
+            </a>
+
+            <a href="{% url 'tenants:access_history' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-history text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Historial</h3>
+                    <p class="text-xs text-gray-500 mt-1">Accesos</p>
+                </div>
+            </a>
+
+            <a href="{% url 'dashboard:index' %}" class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-bullhorn text-red-600 text-xl"></i>
+                    </div>
+                    <h3 class="font-medium text-gray-900 text-sm">Dashboard</h3>
+                    <p class="text-xs text-gray-500 mt-1">Ir al inicio</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-chart-bar mr-2"></i>Resumen
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_visits }}</p>
+                        <p class="text-sm text-gray-500">Total Visitas</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.pending_visits }}</p>
+                        <p class="text-sm text-gray-500">Visitas Pendientes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-orange-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.pending_incidents }}</p>
+                        <p class="text-sm text-gray-500">Incidencias Activas</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bell text-red-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.unread_notifications }}</p>
+                        <p class="text-sm text-gray-500">Notificaciones</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal en dos columnas -->
+    <div class="px-6 py-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Visitas recientes -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-users mr-2 text-blue-600"></i>Visitas Recientes
+                        </h3>
+                        <a href="{% url 'visits:visit_list' %}" class="text-blue-600 hover:text-blue-800 text-sm">
+                            Ver todas
+                        </a>
+                    </div>
+                    {% if recent_visits %}
+                        <div class="space-y-3">
+                            {% for visit in recent_visits %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">{{ visit.visitor_name }}</h4>
+                                    <p class="text-sm text-gray-500">{{ visit.purpose|truncatewords:10 }}</p>
+                                    <p class="text-xs text-gray-400">{{ visit.created_at|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-2 py-1 text-xs rounded-full
+                                        {% if visit.status == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                        {% elif visit.status == 'aprobada' %}bg-green-100 text-green-800
+                                        {% elif visit.status == 'rechazada' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-8">No hay visitas recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Incidencias recientes -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-tools mr-2 text-orange-600"></i>Incidencias Recientes
+                        </h3>
+                        <a href="{% url 'tenants:maintenance_requests' %}" class="text-orange-600 hover:text-orange-800 text-sm">
+                            Ver todas
+                        </a>
+                    </div>
+                    {% if recent_incidents %}
+                        <div class="space-y-3">
+                            {% for incident in recent_incidents %}
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ incident.subject }}</h4>
+                                        <p class="text-sm text-gray-500">{{ incident.category }}</p>
+                                        <p class="text-xs text-gray-400">{{ incident.created_at|date:"d/m/Y H:i" }}</p>
+                                    </div>
+                                    <div class="ml-2">
+                                        <span class="px-2 py-1 text-xs rounded-full {{ incident.get_urgency_color }}">
+                                            Urgencia {{ incident.urgency_level }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="px-2 py-1 text-xs rounded-full
+                                        {% if incident.status == 'reportada' %}bg-blue-100 text-blue-800
+                                        {% elif incident.status == 'en_proceso' %}bg-yellow-100 text-yellow-800
+                                        {% elif incident.status == 'completada' %}bg-green-100 text-green-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ incident.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-8">No hay incidencias recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Gastos de mantenimiento -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-dollar-sign mr-2 text-green-600"></i>Gastos Recientes
+                        </h3>
+                        <a href="{% url 'tenants:expenses' %}" class="text-green-600 hover:text-green-800 text-sm">
+                            Ver todos
+                        </a>
+                    </div>
+                    {% if recent_expenses %}
+                        <div class="space-y-3">
+                            {% for expense in recent_expenses %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">{{ expense.category|capfirst }}</h4>
+                                    <p class="text-sm text-gray-500">{{ expense.description|truncatewords:8 }}</p>
+                                    <p class="text-xs text-gray-400">{{ expense.service_date|date:"d/m/Y" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-green-600">${{ expense.amount }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-8">No hay gastos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recibos de luz -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-bolt mr-2 text-yellow-600"></i>Recibos de Luz
+                        </h3>
+                        <a href="{% url 'tenants:electricity_bills' %}" class="text-yellow-600 hover:text-yellow-800 text-sm">
+                            Ver todos
+                        </a>
+                    </div>
+                    {% if recent_bills %}
+                        <div class="space-y-3">
+                            {% for bill in recent_bills %}
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">{{ bill.bill_month|date:"F Y" }}</h4>
+                                    <p class="text-sm text-gray-500">{{ bill.kwh_consumed }} kWh</p>
+                                    <p class="text-xs text-gray-400">Vence: {{ bill.due_date|date:"d/m/Y" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-gray-900">${{ bill.amount }}</p>
+                                    <span class="px-2 py-1 text-xs rounded-full
+                                        {% if bill.status == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                        {% elif bill.status == 'pagado' %}bg-green-100 text-green-800
+                                        {% elif bill.status == 'vencido' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ bill.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-8">No hay recibos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -19,11 +19,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from dashboard.views import login_view, logout_view
+from test_notifications_view import test_notifications
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('test-notifications/', test_notifications, name='test_notifications'),
     path('dashboard/', include('dashboard.urls')),
     path('tenants/', include('tenants.urls')),
     path('visits/', include('visits.urls')),
@@ -31,6 +33,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('maintenance/', include('maintenance.urls')),
     path('api/', include('accounts.api_urls')),
+    path('api/maintenance/', include('maintenance.api_urls')),
 ]
 
 # Servir archivos media en desarrollo

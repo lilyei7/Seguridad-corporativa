@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from .models import (
     MaintenanceArea, MaintenanceChecklist, MaintenanceItem, 
-    MaintenanceEvidence, Camera
+    MaintenanceEvidence, Camera, MaintenanceReport, MaintenanceReportImage
 )
 
 
@@ -255,3 +255,151 @@ class ChecklistFilterForm(forms.Form):
             'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
         })
     )
+
+
+class MaintenanceReportForm(forms.ModelForm):
+    """Formulario para que los inquilinos reporten problemas de mantenimiento"""
+    
+    class Meta:
+        model = MaintenanceReport
+        fields = [
+            'title', 'description', 'category', 'area', 'priority',
+            'specific_location', 'contact_phone', 'contact_email', 
+            'available_times'
+        ]
+        labels = {
+            'title': 'Título del Reporte',
+            'description': 'Descripción del Problema',
+            'category': 'Categoría',
+            'area': 'Área del Edificio',
+            'priority': 'Prioridad',
+            'specific_location': 'Ubicación Específica',
+            'contact_phone': 'Teléfono de Contacto',
+            'contact_email': 'Email de Contacto',
+            'available_times': 'Horarios Disponibles para Acceso',
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Describe detalladamente el problema que requiere atención...'
+            }),
+            'specific_location': forms.TextInput(attrs={
+                'placeholder': 'Ej: Oficina 201, Baño del 3er piso, Recepción...'
+            }),
+            'contact_phone': forms.TextInput(attrs={
+                'placeholder': 'Ej: +57 300 123 4567'
+            }),
+            'contact_email': forms.EmailInput(attrs={
+                'placeholder': 'tu.email@empresa.com'
+            }),
+            'available_times': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Ej: Lunes a Viernes de 8:00 AM a 5:00 PM, o especifica horarios específicos...'
+            }),
+        }
+        help_texts = {
+            'description': 'Incluye todos los detalles posibles para ayudar a resolver el problema más rápido.',
+            'priority': 'Selecciona la prioridad según la urgencia del problema.',
+            'specific_location': 'Ayúdanos a ubicar exactamente dónde está el problema.',
+            'available_times': 'Indica cuándo podemos acceder al área para realizar el mantenimiento.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar áreas activas
+        self.fields['area'].queryset = MaintenanceArea.objects.filter(
+            is_active=True
+        ).order_by('name')
+        
+        # Pre-llenar email si el usuario tiene uno
+        if user and user.email and not self.instance.pk:
+            self.fields['contact_email'].initial = user.email
+        
+        # Estilizar todos los campos
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors'
+            })
+            
+        # Estilo especial para campos obligatorios
+        required_fields = ['title', 'description', 'category', 'area']
+        for field_name in required_fields:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs.update({
+                    'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors required'
+                })
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+        return instance
+
+
+class MaintenanceReportImageForm(forms.ModelForm):
+    """Formulario para subir imágenes a reportes de mantenimiento"""
+    
+    class Meta:
+        model = MaintenanceReportImage
+        fields = ['image', 'description']
+        labels = {
+            'image': 'Imagen',
+            'description': 'Descripción de la imagen',
+        }
+        widgets = {
+            'description': forms.TextInput(attrs={
+                'placeholder': 'Describe qué se muestra en la imagen...'
+            }),
+            'image': forms.FileInput(attrs={
+                'accept': 'image/*',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name != 'image':  # El campo image ya tiene su clase
+                field.widget.attrs.update({
+                    'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                })
+
+
+class MaintenanceReportResponseForm(forms.ModelForm):
+    """Formulario para que los administradores respondan a reportes"""
+    
+    class Meta:
+        model = MaintenanceReport
+        fields = ['status', 'assigned_to', 'response_to_tenant', 'internal_notes']
+        labels = {
+            'status': 'Estado',
+            'assigned_to': 'Asignar a',
+            'response_to_tenant': 'Respuesta al Inquilino',
+            'internal_notes': 'Notas Internas',
+        }
+        widgets = {
+            'response_to_tenant': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Mensaje que será visible para el inquilino...'
+            }),
+            'internal_notes': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Notas internas del equipo de mantenimiento...'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar usuarios que pueden ser asignados
+        self.fields['assigned_to'].queryset = User.objects.filter(
+            models.Q(is_superuser=True) | 
+            models.Q(groups__name__in=['Vigilantes', 'Administradores', 'Mantenimiento'])
+        ).distinct().order_by('first_name', 'last_name')
+        
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+            })

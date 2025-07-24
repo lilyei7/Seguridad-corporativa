@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Recibos de Luz{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:tenant_panel' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Recibos de Luz</h1>
+                    <p class="text-sm text-gray-500">{{ tenant.tenant_name }} - Oficina {{ tenant.numero_oficina }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de consumo -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <p class="text-3xl font-bold text-yellow-600">{{ total_consumption|floatformat:0 }} kWh</p>
+                <p class="text-sm text-gray-600">Consumo Anual</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-bold text-green-600">${{ total_amount|floatformat:2 }}</p>
+                <p class="text-sm text-gray-600">Costo Anual</p>
+            </div>
+            <div class="text-center">
+                {% with avg_consumption=total_consumption|default:0 %}
+                    {% if total_consumption %}
+                        <p class="text-3xl font-bold text-blue-600">{{ total_consumption|floatformat:0|div:12 }} kWh</p>
+                    {% else %}
+                        <p class="text-3xl font-bold text-blue-600">0 kWh</p>
+                    {% endif %}
+                {% endwith %}
+                <p class="text-sm text-gray-600">Promedio Mensual</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de recibos -->
+    <div class="px-6 py-6">
+        {% if bills %}
+            <div class="space-y-4">
+                {% for bill in bills %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-bolt text-yellow-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">
+                                        {{ bill.bill_month|date:"F Y" }}
+                                    </h3>
+                                    <p class="text-sm text-gray-500">
+                                        Periodo de facturación
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Consumo</p>
+                                    <p class="text-lg font-semibold text-gray-900">{{ bill.kwh_consumed }} kWh</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Lectura Anterior</p>
+                                    <p class="text-lg font-semibold text-gray-900">{{ bill.previous_reading }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Lectura Actual</p>
+                                    <p class="text-lg font-semibold text-gray-900">{{ bill.current_reading }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Fecha de Vencimiento</p>
+                                    <p class="text-lg font-semibold {% if bill.status == 'vencido' %}text-red-600{% else %}text-gray-900{% endif %}">
+                                        {{ bill.due_date|date:"d/m/Y" }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {% if bill.paid_date %}
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                                <p class="text-sm text-green-800">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Pagado el {{ bill.paid_date|date:"d/m/Y" }}
+                                </p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if bill.notes %}
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                                <p class="text-sm text-blue-800">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    {{ bill.notes }}
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="ml-6 text-right">
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-500">Monto Total</p>
+                                <p class="text-3xl font-bold text-gray-900">${{ bill.amount|floatformat:2 }}</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium
+                                    {% if bill.status == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                    {% elif bill.status == 'pagado' %}bg-green-100 text-green-800
+                                    {% elif bill.status == 'vencido' %}bg-red-100 text-red-800
+                                    {% elif bill.status == 'en_revision' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ bill.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            {% if bill.bill_file %}
+                            <div>
+                                <a href="{{ bill.bill_file.url }}" 
+                                   target="_blank"
+                                   class="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Ver Recibo</span>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfico de consumo simple (usando CSS) -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between text-sm text-gray-500 mb-2">
+                            <span>Comparación de consumo</span>
+                            <span>{{ bill.kwh_consumed }} kWh</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            {% widthratio bill.kwh_consumed 1000 100 as percentage %}
+                            <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ percentage|add:10 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Gráfico de tendencia de consumo -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                    Tendencia de Consumo
+                </h2>
+                <div class="h-64 flex items-end justify-between space-x-2">
+                    {% for bill in bills|slice:":12" reversed %}
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="w-full bg-blue-100 rounded-t-sm relative" style="height: {% widthratio bill.kwh_consumed 1000 200 %}px; min-height: 20px;">
+                            <div class="w-full bg-blue-500 rounded-t-sm absolute bottom-0" style="height: {% widthratio bill.kwh_consumed 1000 200 %}px; min-height: 20px;">
+                            </div>
+                            <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 font-medium">
+                                {{ bill.kwh_consumed|floatformat:0 }}
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2 transform -rotate-45 origin-top-left">
+                            {{ bill.bill_month|date:"M Y" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bolt text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay recibos de luz</h3>
+                <p class="text-gray-500">Los recibos de luz aparecerán aquí una vez que se generen.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Animación para las barras del gráfico */
+.bg-blue-500 {
+    transition: height 0.5s ease-in-out;
+}
+</style>
+{% endblock %}

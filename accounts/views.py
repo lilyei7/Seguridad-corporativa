@@ -452,3 +452,29 @@ def bulk_user_actions(request):
             return JsonResponse({'error': f'Error al realizar la acción: {str(e)}'}, status=500)
     
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def user_profile(request):
+    """Vista del perfil del usuario actual"""
+    user = request.user
+    
+    # Obtener información adicional del usuario según su rol
+    user_role = getattr(user, 'role_profile', None)
+    tenant_profile = None
+    guard_profile = None
+    
+    if user_role:
+        if user_role.role == 'tenant' and hasattr(user_role, 'tenant_profile'):
+            tenant_profile = user_role.tenant_profile
+        elif user_role.role == 'guard' and hasattr(user_role, 'guard_profile'):
+            guard_profile = user_role.guard_profile
+    
+    context = {
+        'user': user,
+        'user_role': user_role,
+        'tenant_profile': tenant_profile,
+        'guard_profile': guard_profile,
+    }
+    
+    return render(request, 'accounts/profile.html', context)

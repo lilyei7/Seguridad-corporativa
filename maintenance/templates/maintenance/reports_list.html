@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load role_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                        <a href="{% url 'dashboard:index' %}" class="hover:text-gray-700">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <a href="{% url 'maintenance:dashboard' %}" class="hover:text-gray-700">Mantenimiento</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-gray-900">{{ page_title }}</span>
+                    </nav>
+                    <h1 class="text-2xl font-semibold text-gray-900">{{ page_title }}</h1>
+                    <p class="text-sm text-gray-500">
+                        {% if is_tenant %}
+                            Gestiona tus reportes de mantenimiento
+                        {% else %}
+                            Administra todos los reportes de mantenimiento del edificio
+                        {% endif %}
+                    </p>
+                </div>
+                {% if is_tenant %}
+                <a href="{% url 'maintenance:report_create' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Reporte
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Filtros -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Filtros</h2>
+            </div>
+            <form method="get" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Búsqueda -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ current_filters.search|default:'' }}"
+                               placeholder="Buscar por título, descripción o ubicación..."
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Estado -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todos los estados</option>
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Prioridad -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                        <select name="priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todas las prioridades</option>
+                            {% for value, label in priority_choices %}
+                                <option value="{{ value }}" {% if current_filters.priority == value|stringformat:"s" %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                        <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todas las categorías</option>
+                            {% for value, label in category_choices %}
+                                <option value="{{ value }}" {% if current_filters.category == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Área -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Área</label>
+                        <select name="area" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Todas las áreas</option>
+                            {% for area in areas %}
+                                <option value="{{ area.id }}" {% if current_filters.area == area.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ area.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-6 pt-4 border-t">
+                    <a href="{% url 'maintenance:reports_list' %}" class="text-sm text-gray-600 hover:text-gray-800">
+                        Limpiar filtros
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-search mr-2"></i>
+                        Aplicar Filtros
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Reportes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-medium text-gray-900">
+                        Reportes
+                        {% if page_obj.paginator.count %}
+                            <span class="text-sm text-gray-500 font-normal">({{ page_obj.paginator.count }} total{{ page_obj.paginator.count|pluralize }})</span>
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+
+            {% if reports %}
+                <div class="divide-y divide-gray-200">
+                    {% for report in reports %}
+                        <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <!-- Icono de categoría -->
+                                        <div class="flex-shrink-0">
+                                            <i class="{{ report.get_category_icon }} text-gray-600"></i>
+                                        </div>
+                                        
+                                        <!-- Título -->
+                                        <h3 class="text-sm font-medium text-gray-900 truncate">
+                                            {{ report.title }}
+                                        </h3>
+                                        
+                                        <!-- Estado -->
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ report.get_status_display_color }}">
+                                            {% if report.status == 'pendiente' %}Pendiente
+                                            {% elif report.status == 'en_proceso' %}En Proceso
+                                            {% elif report.status == 'completado' %}Completado
+                                            {% elif report.status == 'requiere_atencion' %}Requiere Atención
+                                            {% elif report.status == 'cancelado' %}Cancelado
+                                            {% else %}{{ report.get_status_display }}{% endif %}
+                                        </span>
+                                        
+                                        <!-- Prioridad -->
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ report.get_priority_display_color }}">
+                                            {{ report.get_priority_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Información secundaria -->
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500 mb-1">
+                                        <span><i class="fas fa-tag mr-1"></i>{{ report.get_category_display }}</span>
+                                        <span><i class="fas fa-map-marker-alt mr-1"></i>{{ report.area.name }}</span>
+                                        {% if report.specific_location %}
+                                            <span><i class="fas fa-location-dot mr-1"></i>{{ report.specific_location }}</span>
+                                        {% endif %}
+                                        <span><i class="fas fa-calendar mr-1"></i>{{ report.created_at|date:"d M Y" }}</span>
+                                        {% if not is_tenant %}
+                                            <span><i class="fas fa-user mr-1"></i>{{ report.reported_by.get_full_name }}</span>
+                                        {% endif %}
+                                        {% if report.assigned_to %}
+                                            <span><i class="fas fa-user-cog mr-1"></i>Asignado a {{ report.assigned_to.get_full_name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Descripción -->
+                                    {% if report.description %}
+                                        <p class="text-sm text-gray-600 line-clamp-2">{{ report.description|truncatewords:25 }}</p>
+                                    {% endif %}
+                                    
+                                    <!-- Imágenes -->
+                                    {% if report.images.exists %}
+                                        <div class="mt-2 flex items-center text-xs text-gray-500">
+                                            <i class="fas fa-images mr-1"></i>
+                                            {{ report.images.count }} imagen{{ report.images.count|pluralize }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Acciones -->
+                                <div class="flex items-center space-x-2">
+                                    <a href="{% url 'maintenance:report_detail' report.id %}" 
+                                       class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>
+                                        Ver
+                                    </a>
+                                    
+                                    {% if is_tenant and report.reported_by == user and report.status == 'pendiente' %}
+                                        <a href="{% url 'maintenance:report_edit' report.id %}" 
+                                           class="inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                            <i class="fas fa-edit mr-1"></i>
+                                            Editar
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-search text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        {% if current_filters.search or current_filters.status or current_filters.priority or current_filters.category or current_filters.area %}
+                            No se encontraron reportes
+                        {% else %}
+                            No hay reportes de mantenimiento
+                        {% endif %}
+                    </h3>
+                    <p class="text-gray-500 mb-6">
+                        {% if current_filters.search or current_filters.status or current_filters.priority or current_filters.category or current_filters.area %}
+                            Intenta ajustar los filtros para ver más resultados.
+                        {% else %}
+                            {% if is_tenant %}
+                                Cuando necesites reportar algún problema, podrás crear un reporte aquí.
+                            {% else %}
+                                Los reportes de mantenimiento aparecerán aquí una vez que los inquilinos empiecen a reportar problemas.
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    {% if is_tenant and not current_filters.search and not current_filters.status and not current_filters.priority and not current_filters.category and not current_filters.area %}
+                        <a href="{% url 'maintenance:report_create' %}" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Crear Primer Reporte
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-6 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Anterior
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Siguiente
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Mostrando
+                        <span class="font-medium">{{ page_obj.start_index }}</span>
+                        a
+                        <span class="font-medium">{{ page_obj.end_index }}</span>
+                        de
+                        <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                        resultado{{ page_obj.paginator.count|pluralize }}
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Anterior</span>
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit del formulario de filtros cuando cambian los select
+    const filterForm = document.querySelector('form');
+    const selects = filterForm.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            filterForm.submit();
+        });
+    });
+    
+    // Highlight de términos de búsqueda
+    const searchTerm = "{{ current_filters.search|default:'' }}";
+    if (searchTerm) {
+        const reports = document.querySelectorAll('[data-report-title], [data-report-description]');
+        reports.forEach(report => {
+            const text = report.textContent;
+            const regex = new RegExp(searchTerm, 'gi');
+            report.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$&</mark>');
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,448 @@
+/* Estilos móviles adicionales para experiencia tipo app */
+
+/* Variables CSS para consistencia */
+:root {
+    --primary-color: #0ea5e9;
+    --primary-dark: #0284c7;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --background-color: #f8fafc;
+    --card-background: #ffffff;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --border-radius: 16px;
+    --border-radius-small: 8px;
+}
+
+/* Contenedor principal móvil */
+@media (max-width: 768px) {
+    body {
+        background-color: var(--background-color);
+        overflow-x: hidden;
+    }
+    
+    /* Card estilo iOS */
+    .ios-card {
+        background: var(--card-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .ios-card:active {
+        transform: scale(0.98);
+        box-shadow: var(--shadow-medium);
+    }
+    
+    /* Botones estilo iOS */
+    .ios-button {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-small);
+        padding: 12px 24px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        position: relative;
+        overflow: hidden;
+        min-height: 44px; /* Apple Human Interface Guidelines */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .ios-button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+    }
+    
+    /* Lista estilo iOS */
+    .ios-list {
+        background: var(--card-background);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-light);
+    }
+    
+    .ios-list-item {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .ios-list-item:last-child {
+        border-bottom: none;
+    }
+    
+    .ios-list-item:active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Badges estilo iOS */
+    .ios-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+    }
+    
+    .ios-badge.urgent {
+        background: linear-gradient(135deg, var(--error-color), #dc2626);
+        color: white;
+    }
+    
+    .ios-badge.success {
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        color: white;
+    }
+    
+    .ios-badge.warning {
+        background: linear-gradient(135deg, var(--warning-color), #d97706);
+        color: white;
+    }
+    
+    /* Indicadores de estado */
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .status-online {
+        background: var(--success-color);
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    
+    .status-offline {
+        background: var(--error-color);
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    
+    .status-warning {
+        background: var(--warning-color);
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+    
+    /* Animaciones específicas para móvil */
+    .slide-up {
+        animation: slideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .fade-in-mobile {
+        animation: fadeInMobile 0.6s ease-out;
+    }
+    
+    @keyframes slideUpMobile {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeInMobile {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Pull to refresh indicator */
+    .pull-to-refresh {
+        position: absolute;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--shadow-medium);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .pull-to-refresh.visible {
+        top: 20px;
+    }
+    
+    .pull-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--primary-color);
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Skeleton loading */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* Swipe gestures feedback */
+    .swipe-left {
+        transform: translateX(-10px);
+        transition: transform 0.2s ease;
+    }
+    
+    .swipe-right {
+        transform: translateX(10px);
+        transition: transform 0.2s ease;
+    }
+    
+    /* Modal estilo iOS */
+    .ios-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: flex-end;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .ios-modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .ios-modal-content {
+        background: white;
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-height: 80vh;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    }
+    
+    .ios-modal.active .ios-modal-content {
+        transform: translateY(0);
+    }
+    
+    /* Action Sheet estilo iOS */
+    .action-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px 20px 0 0;
+        padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1001;
+    }
+    
+    .action-sheet.active {
+        transform: translateY(0);
+    }
+    
+    .action-sheet-item {
+        padding: 16px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--primary-color);
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background: white;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+    
+    .action-sheet-item:active {
+        background: #f0f0f0;
+        transform: scale(0.98);
+    }
+    
+    .action-sheet-item.destructive {
+        color: var(--error-color);
+    }
+    
+    .action-sheet-cancel {
+        margin-top: 12px;
+        font-weight: 600;
+    }
+    
+    /* Tab bar personalizada */
+    .custom-tab-bar {
+        display: flex;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border-color);
+        padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    }
+    
+    .custom-tab-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 4px;
+        text-decoration: none;
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+        min-height: 60px;
+        justify-content: center;
+    }
+    
+    .custom-tab-item.active {
+        color: var(--primary-color);
+    }
+    
+    .custom-tab-icon {
+        font-size: 20px;
+        margin-bottom: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .custom-tab-item.active .custom-tab-icon {
+        transform: scale(1.1);
+    }
+    
+    .custom-tab-text {
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1;
+    }
+    
+    /* Haptic feedback simulation */
+    .haptic-light:active {
+        animation: hapticLight 0.1s ease-out;
+    }
+    
+    .haptic-medium:active {
+        animation: hapticMedium 0.15s ease-out;
+    }
+    
+    .haptic-heavy:active {
+        animation: hapticHeavy 0.2s ease-out;
+    }
+    
+    @keyframes hapticLight {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(0.98); }
+    }
+    
+    @keyframes hapticMedium {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(0.96); }
+    }
+    
+    @keyframes hapticHeavy {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(0.94); }
+    }
+    
+    /* Loading states */
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        border-left-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    /* Success checkmark animation */
+    .success-checkmark {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--success-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: checkmarkPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    @keyframes checkmarkPop {
+        0% { transform: scale(0) rotate(-45deg); }
+        50% { transform: scale(1.2) rotate(-22.5deg); }
+        100% { transform: scale(1) rotate(0deg); }
+    }
+}
+
+/* Estilos para sidebar con soporte de temas */
+.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+    transition: background-color 0.3s ease !important;
+}
+
+#sidebar.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+}
+
+.sidebar-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s ease !important;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.sidebar-link.active {
+    background-color: var(--theme-primary, #0ea5e9) !important;
+    color: white !important;
+}
+
+/* Asegurar especificidad alta para el sidebar */
+body #sidebar.sidebar,
+html body #sidebar.sidebar {
+    background-color: var(--theme-sidebar, #1e293b) !important;
+}
+
+body #sidebar .sidebar-link,
+html body #sidebar .sidebar-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+body #sidebar .sidebar-link.active,
+html body #sidebar .sidebar-link.active {
+    background-color: var(--theme-primary, #0ea5e9) !important;
+    color: white !important;
+}

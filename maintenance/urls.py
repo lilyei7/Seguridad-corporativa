@@ -7,7 +7,14 @@ urlpatterns = [
     # Dashboard
     path('', views.maintenance_dashboard, name='dashboard'),
     
-    # Checklists
+    # Reportes de Mantenimiento (para inquilinos)
+    path('reports/', views.reports_list, name='reports_list'),
+    path('reports/create/', views.report_create, name='report_create'),
+    path('reports/<int:report_id>/', views.report_detail, name='report_detail'),
+    path('reports/<int:report_id>/edit/', views.report_edit, name='report_edit'),
+    path('reports/<int:report_id>/delete/', views.report_delete, name='report_delete'),
+    
+    # Checklists (para administradores)
     path('checklists/', views.checklists_list, name='checklists_list'),
     path('checklists/create/', views.checklist_create, name='checklist_create'),
     path('checklists/<int:checklist_id>/', views.checklist_detail, name='checklist_detail'),

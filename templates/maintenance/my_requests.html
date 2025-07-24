@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Solicitudes de Mantenimiento - {{ tenant.tenant_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                    <a href="{% url 'dashboard:tenant_dashboard' %}" class="hover:text-gray-700">Panel de Inquilino</a>
+                    <span>/</span>
+                    <span class="text-gray-900">Mis Solicitudes</span>
+                </nav>
+                <h1 class="text-2xl font-semibold text-gray-900">Mis Solicitudes de Mantenimiento</h1>
+                <p class="text-sm text-gray-500">{{ tenant.tenant_name }} - Oficina {{ tenant.numero_oficina }}</p>
+            </div>
+            <a href="{% url 'maintenance:checklist_create' %}" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>
+                Nuevo Checklist
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clipboard-list text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+                        <p class="text-sm text-gray-500">Total</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.pendiente }}</p>
+                        <p class="text-sm text-gray-500">Pendientes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cogs text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.en_proceso }}</p>
+                        <p class="text-sm text-gray-500">En Proceso</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.completada }}</p>
+                        <p class="text-sm text-gray-500">Completadas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                    {{ filter_form.status }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                    {{ filter_form.category }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Urgencia</label>
+                    {{ filter_form.urgency_level }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                    <div class="flex space-x-2">
+                        {{ filter_form.search }}
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Solicitudes -->
+        {% if requests %}
+            <div class="space-y-4">
+                {% for request in requests %}
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <!-- Encabezado -->
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 bg-{{ request.get_category_icon|slice:':3' }}-100 rounded-lg flex items-center justify-center">
+                                                <i class="{{ request.get_category_icon }} text-blue-600"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900">{{ request.title }}</h3>
+                                            <p class="text-sm text-gray-500">Solicitud #{{ request.id }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-2">
+                                        <!-- Badge de Urgencia -->
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ request.get_urgency_badge_color }}">
+                                            <i class="{{ request.get_urgency_icon }} mr-1"></i>
+                                            {{ request.get_urgency_level_display }}
+                                        </span>
+                                        
+                                        <!-- Badge de Estado -->
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ request.get_status_badge_color }}">
+                                            {{ request.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Detalles -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Categoría</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.get_category_display }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Ubicación</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.location_details }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Fecha de Solicitud</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.created_at|date:"d/m/Y H:i" }}</p>
+                                    </div>
+                                    {% if request.assigned_to %}
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Asignado a</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ request.assigned_to.get_full_name|default:request.assigned_to.username }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Descripción -->
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-500 mb-1">Descripción</p>
+                                    <p class="text-sm text-gray-700">{{ request.description|truncatewords:30 }}</p>
+                                </div>
+
+                                <!-- Fechas importantes -->
+                                {% if request.scheduled_date or request.completed_at %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    {% if request.scheduled_date %}
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Fecha Programada</p>
+                                        <p class="text-sm font-medium text-blue-900">
+                                            <i class="fas fa-calendar-alt mr-1"></i>
+                                            {{ request.scheduled_date|date:"d/m/Y H:i" }}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                    {% if request.completed_at %}
+                                    <div>
+                                        <p class="text-sm text-gray-500 mb-1">Fecha de Completado</p>
+                                        <p class="text-sm font-medium text-green-900">
+                                            <i class="fas fa-check mr-1"></i>
+                                            {{ request.completed_at|date:"d/m/Y H:i" }}
+                                        </p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <!-- Notas de resolución -->
+                                {% if request.resolution_notes %}
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-500 mb-1">Notas de Resolución</p>
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <p class="text-sm text-green-800">{{ request.resolution_notes }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Archivos -->
+                                {% if request.evidence_file %}
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-500 mb-2">Evidencia Adjunta</p>
+                                    <a href="{{ request.evidence_file.url }}" target="_blank" 
+                                       class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition-colors">
+                                        <i class="fas fa-paperclip mr-2"></i>
+                                        Ver Archivo
+                                    </a>
+                                </div>
+                                {% endif %}
+
+                                <!-- Indicador de vencimiento -->
+                                {% if request.is_overdue %}
+                                <div class="mb-4">
+                                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                                            <p class="text-sm text-red-800">Esta solicitud lleva más de 7 días sin ser asignada</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                            <div class="text-sm text-gray-500">
+                                Última actualización: {{ request.updated_at|date:"d/m/Y H:i" }}
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                {% if request.can_be_cancelled %}
+                                <button onclick="confirmCancel({{ request.id }}, '{{ request.title|escapejs }}')"
+                                        class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                                    <i class="fas fa-times mr-1"></i>
+                                    Cancelar
+                                </button>
+                                {% endif %}
+                                
+                                <button onclick="showDetails({{ request.id }})"
+                                        class="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Ver Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes solicitudes de mantenimiento</h3>
+                <p class="text-gray-500 mb-6">Cuando necesites reportar algún problema, podrás crear un checklist aquí.</p>
+                <a href="{% url 'maintenance:checklist_create' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Crear Primer Checklist
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Información adicional -->
+        <div class="mt-8 bg-blue-50 rounded-xl p-6">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-medium text-blue-900 mb-2">¿Tienes alguna pregunta sobre tus solicitudes?</h4>
+                    <p class="text-blue-800 text-sm mb-3">
+                        Puedes contactar al equipo de mantenimiento si necesitas más información sobre el estado de tus solicitudes.
+                    </p>
+                    <a href="{% url 'dashboard:admin_panel' %}" 
+                       class="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Contactar Administración
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles (opcional) -->
+<div id="detailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div id="modalContent">
+            <!-- Contenido del modal se carga dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmCancel(requestId, title) {
+    if (confirm(`¿Estás seguro de que deseas cancelar la solicitud "${title}"?`)) {
+        // Aquí puedes implementar la lógica AJAX para cancelar
+        alert('Funcionalidad de cancelación en desarrollo');
+    }
+}
+
+function showDetails(requestId) {
+    // Aquí puedes implementar un modal con detalles completos
+    alert('Funcionalidad de detalles expandidos en desarrollo');
+}
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.getElementById('detailsModal').classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

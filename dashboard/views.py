@@ -348,38 +348,43 @@ def guard_panel(request):
 
 @login_required
 def tenant_panel(request):
-    """Panel para inquilinos usando el nuevo sistema de roles"""
-    # Verificar que el usuario tenga rol de inquilino
-    user_role = getattr(request.user, 'user_role', None)
-    if not user_role or user_role.role != 'tenant':
+    """Panel para inquilinos - simplificado"""
+    # Verificar que el usuario sea inquilino
+    if not request.user.groups.filter(name='Inquilinos').exists():
         if not request.user.is_superuser:
-            messages.error(request, 'No tienes permisos para acceder a esta sección de inquilinos.')
-            return redirect('dashboard:index')
+            messages.error(request, 'No tienes permisos para acceder al panel de inquilinos.')
+            return redirect('dashboard:admin_panel')
     
     try:
-        # Buscar inquilino asociado al usuario
-        # Primero intentar por el campo assigned_user
-        tenant = None
-        if hasattr(request.user, 'tenant_assigned'):
-            tenant = request.user.tenant_assigned
-        elif user_role and user_role.tenant_profile:
-            tenant = user_role.tenant_profile
-        else:
-            # Buscar por email como fallback
-            tenant = Tenant.objects.filter(contact_email=request.user.email).first()
+        # Buscar inquilino asociado al usuario - lógica simplificada
+        tenant = Tenant.objects.filter(assigned_user=request.user).first()
         
         if not tenant:
-            # Buscar por otros criterios
-            tenant = Tenant.objects.filter(
-                Q(assigned_user=request.user) | 
-                Q(contact_email=request.user.email) |
-                Q(business_name__icontains=request.user.first_name) |
-                Q(business_name__icontains=request.user.last_name)
-            ).first()
+            # Buscar por email como fallback
+            tenant = Tenant.objects.filter(contact_email=request.user.email).first()
+            
+        if not tenant:
+            messages.warning(request, 'No se encontró información de inquilino asociada a tu usuario.')
+            # Crear un inquilino demo si no existe
+            tenant = Tenant.objects.create(
+                tenant_name=f'Inquilino {request.user.username}',
+                contact_person=f'{request.user.first_name} {request.user.last_name}' or request.user.username,
+                contact_email=request.user.email,
+                contact_phone='555-0000',
+                address='Dirección por definir',
+                city='Ciudad',
+                state='Estado',
+                zip_code='00000',
+                numero_oficina='TBD',
+                piso='1',
+                assigned_user=request.user,
+                is_active=True
+            )
+            messages.info(request, 'Se ha creado un perfil de inquilino temporal. Contacta al administrador para actualizar la información.')
             
     except Exception as e:
-        tenant = None
-        messages.warning(request, f'Error al buscar información del inquilino: {str(e)}')
+        messages.error(request, f'Error al buscar información del inquilino: {str(e)}')
+        return redirect('dashboard:admin_panel')
     
     if tenant:
         # Mis visitas
@@ -440,8 +445,8 @@ def tenant_panel(request):
         'username': request.user.username,
         'full_name': request.user.get_full_name() or request.user.username,
         'email': request.user.email,
-        'role': user_role.get_role_display() if user_role else 'Sin rol asignado',
-        'is_active': user_role.is_active if user_role else True,
+        'role': 'Inquilino',
+        'is_active': request.user.is_active,
         'date_joined': request.user.date_joined,
     }
     

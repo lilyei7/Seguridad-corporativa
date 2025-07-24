@@ -194,8 +194,69 @@
         </div>
     </div>
 
+    <!-- Estadísticas de Reportes de Mantenimiento -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+            <i class="fas fa-exclamation-circle mr-2 text-orange-600"></i>
+            Reportes de Inquilinos
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Total Reportes -->
+            <div class="stat-card border-orange-500">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-file-alt text-orange-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase">Total Reportes</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ report_stats.total_reports|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reportes Pendientes -->
+            <div class="stat-card border-red-500">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase">Pendientes</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ report_stats.pending_reports|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sin Asignar -->
+            <div class="stat-card border-yellow-500">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-user-slash text-yellow-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase">Sin Asignar</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ report_stats.unassigned_reports|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alta Prioridad -->
+            <div class="stat-card border-purple-500">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-fire text-purple-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 uppercase">Alta Prioridad</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ report_stats.high_priority_reports|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Acciones Rápidas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Gestión de Checklists -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <div class="text-center">
@@ -214,6 +275,35 @@
                         Crear Nuevo
                     </a>
                 </div>
+            </div>
+        </div>
+
+        <!-- Reportes de Inquilinos -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-circle text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Reportes de Inquilinos</h3>
+                <p class="text-gray-600 mb-4">Gestionar reportes de problemas de los inquilinos</p>
+                <div class="space-y-3">
+                    <a href="{% url 'maintenance:reports_list' %}" class="btn-primary w-full text-center">
+                        <i class="fas fa-eye mr-2"></i>
+                        Ver Reportes
+                    </a>
+                    <a href="{% url 'maintenance:report_create' %}" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors w-full text-center block">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Reporte
+                    </a>
+                </div>
+                {% if report_stats.pending_reports > 0 %}
+                <div class="mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-800 font-medium">
+                        <i class="fas fa-bell mr-1"></i>
+                        {{ report_stats.pending_reports }} pendiente{{ report_stats.pending_reports|pluralize }}
+                    </p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -260,8 +350,164 @@
         </div>
     </div>
 
-    <!-- Checklists Recientes -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- Reportes Pendientes (URGENTE) -->
+    {% if pending_reports %}
+    <div class="bg-red-50 border-l-4 border-red-400 rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-red-200 bg-red-100">
+            <h2 class="text-xl font-semibold text-red-900">
+                <i class="fas fa-exclamation-triangle mr-2 text-red-600"></i>
+                ⚠️ Reportes Pendientes - REQUIEREN ATENCIÓN
+            </h2>
+            <p class="text-sm text-red-700 mt-1">Reportes de inquilinos que necesitan ser asignados y atendidos</p>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for report in pending_reports %}
+                    <div class="flex items-center justify-between p-4 bg-white rounded-lg border border-red-200 hover:shadow-md transition-all">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                                <i class="{{ report.get_category_icon }} text-red-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-900">{{ report.title }}</h4>
+                                <p class="text-sm text-gray-600">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>{{ report.area.name }} 
+                                    {% if report.specific_location %}• {{ report.specific_location }}{% endif %}
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    Reportado por {{ report.reported_by.get_full_name }} • {{ report.created_at|timesince }} ago
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ report.get_priority_display_color }} mb-2">
+                                {{ report.get_priority_display }}
+                            </span>
+                            <div class="space-x-2">
+                                <a href="{% url 'maintenance:report_detail' report.id %}" 
+                                   class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-eye mr-1"></i>Ver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mt-6 text-center">
+                <a href="{% url 'maintenance:reports_list' %}?status=pendiente" 
+                   class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <i class="fas fa-list mr-2"></i>
+                    Ver Todos los Reportes Pendientes
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actividad Reciente -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Checklists Recientes -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-clipboard-list mr-2 text-blue-600"></i>
+                    Checklists Recientes
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if recent_checklists %}
+                    <div class="space-y-4">
+                        {% for checklist in recent_checklists %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-clipboard-list text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">{{ checklist.title }}</h4>
+                                        <p class="text-sm text-gray-600">{{ checklist.area.name }} • Creado por {{ checklist.created_by.get_full_name|default:checklist.created_by.username }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ checklist.get_status_display_color }}">
+                                        {{ checklist.get_status_display }}
+                                    </span>
+                                    <p class="text-sm text-gray-500 mt-1">{{ checklist.created_at|timesince }} ago</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'maintenance:checklists_list' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+                            Ver todos los checklists →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-500">No hay checklists recientes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reportes Recientes -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-exclamation-circle mr-2 text-orange-600"></i>
+                    Reportes de Inquilinos
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if recent_reports %}
+                    <div class="space-y-4">
+                        {% for report in recent_reports|slice:":5" %}
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="{{ report.get_category_icon }} text-orange-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">{{ report.title }}</h4>
+                                        <p class="text-sm text-gray-600">{{ report.area.name }} • {{ report.reported_by.get_full_name }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ report.get_status_display_color }}">
+                                        {% if report.status == 'pendiente' %}Pendiente
+                                        {% elif report.status == 'en_proceso' %}En Proceso
+                                        {% elif report.status == 'completado' %}Completado
+                                        {% elif report.status == 'requiere_atencion' %}Requiere Atención
+                                        {% else %}{{ report.get_status_display }}{% endif %}
+                                    </span>
+                                    <p class="text-sm text-gray-500 mt-1">{{ report.created_at|timesince }} ago</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'maintenance:reports_list' %}" class="text-orange-600 hover:text-orange-700 font-medium">
+                            Ver todos los reportes →
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-exclamation-circle text-gray-400 text-2xl"></i>
+                        </div>
+                        <p class="text-gray-500">No hay reportes recientes</p>
+                        <p class="text-sm text-gray-400 mt-1">Los reportes de inquilinos aparecerán aquí</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Checklists Recientes (ANTIGUA SECCIÓN) -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden" style="display: none;">
         <div class="px-6 py-4 border-b border-gray-200">
             <h2 class="text-xl font-semibold text-gray-900">
                 <i class="fas fa-clock mr-2 text-gray-600"></i>

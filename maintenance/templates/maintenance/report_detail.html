@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+{% load role_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-gray-700">Dashboard</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'maintenance:dashboard' %}" class="hover:text-gray-700">Mantenimiento</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'maintenance:reports_list' %}" class="hover:text-gray-700">Reportes</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-gray-900">{{ report.title|truncatechars:50 }}</span>
+            </nav>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">{{ report.title }}</h1>
+                    <div class="flex items-center space-x-4 mt-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ report.get_status_display_color }}">
+                            {% if report.status == 'pendiente' %}Pendiente
+                            {% elif report.status == 'en_proceso' %}En Proceso
+                            {% elif report.status == 'completado' %}Completado
+                            {% elif report.status == 'requiere_atencion' %}Requiere Atención
+                            {% elif report.status == 'cancelado' %}Cancelado
+                            {% else %}{{ report.get_status_display }}{% endif %}
+                        </span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ report.get_priority_display_color }}">
+                            {{ report.get_priority_display }}
+                        </span>
+                        <span class="text-sm text-gray-500">
+                            <i class="fas fa-tag mr-1"></i>{{ report.get_category_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    {% if is_tenant and report.reported_by == user and report.status == 'pendiente' %}
+                        <a href="{% url 'maintenance:report_edit' report.id %}" 
+                           class="inline-flex items-center px-4 py-2 border border-blue-300 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-edit mr-2"></i>
+                            Editar
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'maintenance:reports_list' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Información Principal -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Descripción del Problema -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-file-alt mr-2 text-blue-600"></i>
+                            Descripción del Problema
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 whitespace-pre-line">{{ report.description }}</p>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>
+                            Ubicación
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                                <p class="text-gray-900">{{ report.area.name }}</p>
+                            </div>
+                            {% if report.specific_location %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ubicación Específica</label>
+                                <p class="text-gray-900">{{ report.specific_location }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disponibilidad -->
+                {% if report.available_times %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-clock mr-2 text-blue-600"></i>
+                            Horarios Disponibles
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-700 whitespace-pre-line">{{ report.available_times }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Respuesta del Equipo -->
+                {% if report.response_to_tenant %}
+                <div class="bg-green-50 border border-green-200 rounded-xl">
+                    <div class="px-6 py-4 border-b border-green-200">
+                        <h2 class="text-lg font-medium text-green-900">
+                            <i class="fas fa-comment-dots mr-2 text-green-600"></i>
+                            Respuesta del Equipo de Mantenimiento
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-green-800 whitespace-pre-line">{{ report.response_to_tenant }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Imágenes -->
+                {% if report.images.exists %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-images mr-2 text-blue-600"></i>
+                            Imágenes ({{ report.images.count }})
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for image in report.images.all %}
+                                <div class="group relative">
+                                    <img src="{{ image.image.url }}" 
+                                         alt="{{ image.description }}" 
+                                         class="w-full h-48 object-cover rounded-lg border border-gray-200 group-hover:opacity-75 transition-opacity cursor-pointer"
+                                         onclick="openImageModal('{{ image.image.url }}', '{{ image.description|default:"Imagen del reporte" }}')">
+                                    {% if image.description %}
+                                        <p class="mt-2 text-sm text-gray-600">{{ image.description }}</p>
+                                    {% endif %}
+                                    <p class="text-xs text-gray-500">
+                                        Subida por {{ image.uploaded_by.get_full_name }} el {{ image.uploaded_at|date:"d M Y H:i" }}
+                                    </p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Subir Nueva Imagen -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-camera mr-2 text-blue-600"></i>
+                            Subir Imagen
+                        </h2>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" class="p-6">
+                        {% csrf_token %}
+                        <input type="hidden" name="upload_image" value="1">
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="{{ image_form.image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ image_form.image.label }}
+                                </label>
+                                {{ image_form.image }}
+                                {% if image_form.image.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ image_form.image.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ image_form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ image_form.description.label }}
+                                </label>
+                                {{ image_form.description }}
+                                {% if image_form.description.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ image_form.description.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-upload mr-2"></i>
+                                Subir Imagen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Panel Lateral -->
+            <div class="space-y-6">
+                <!-- Información General -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Información General</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ID del Reporte</label>
+                            <p class="text-gray-900 font-mono">#{{ report.id }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Creación</label>
+                            <p class="text-gray-900">{{ report.created_at|date:"d M Y H:i" }}</p>
+                        </div>
+                        
+                        {% if report.resolved_at %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Resolución</label>
+                            <p class="text-gray-900">{{ report.resolved_at|date:"d M Y H:i" }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Reportado por</label>
+                            <p class="text-gray-900">{{ report.reported_by.get_full_name }}</p>
+                        </div>
+                        
+                        {% if report.assigned_to %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Asignado a</label>
+                            <p class="text-gray-900">{{ report.assigned_to.get_full_name }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Información de Contacto -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Contacto</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        {% if report.contact_email %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <a href="mailto:{{ report.contact_email }}" class="text-blue-600 hover:text-blue-700">
+                                {{ report.contact_email }}
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        {% if report.contact_phone %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            <a href="tel:{{ report.contact_phone }}" class="text-blue-600 hover:text-blue-700">
+                                {{ report.contact_phone }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Panel de Administración (solo para no inquilinos) -->
+                {% if response_form %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-cog mr-2 text-blue-600"></i>
+                            Administración
+                        </h3>
+                    </div>
+                    <form method="post" class="p-6">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_status" value="1">
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label for="{{ response_form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ response_form.status.label }}
+                                </label>
+                                {{ response_form.status }}
+                                {% if response_form.status.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ response_form.status.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ response_form.assigned_to.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ response_form.assigned_to.label }}
+                                </label>
+                                {{ response_form.assigned_to }}
+                                {% if response_form.assigned_to.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ response_form.assigned_to.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ response_form.response_to_tenant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ response_form.response_to_tenant.label }}
+                                </label>
+                                {{ response_form.response_to_tenant }}
+                                {% if response_form.response_to_tenant.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ response_form.response_to_tenant.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ response_form.internal_notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ response_form.internal_notes.label }}
+                                </label>
+                                {{ response_form.internal_notes }}
+                                {% if response_form.internal_notes.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ response_form.internal_notes.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <button type="submit" 
+                                    class="w-full inline-flex justify-center items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>
+                                Actualizar Reporte
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Notas Internas (solo para administradores) -->
+                {% if not is_tenant and report.internal_notes %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl">
+                    <div class="px-6 py-4 border-b border-yellow-200">
+                        <h3 class="text-lg font-medium text-yellow-900">
+                            <i class="fas fa-sticky-note mr-2 text-yellow-600"></i>
+                            Notas Internas
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-yellow-800 whitespace-pre-line">{{ report.internal_notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver imágenes -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
+    <div class="max-w-4xl max-h-full">
+        <div class="relative">
+            <img id="modalImage" src="" alt="" class="max-w-full max-h-screen object-contain">
+            <button onclick="closeImageModal()" 
+                    class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75 transition-opacity">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p id="modalCaption" class="text-white text-center mt-4"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openImageModal(imageSrc, caption) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalCaption = document.getElementById('modalCaption');
+    
+    modalImage.src = imageSrc;
+    modalCaption.textContent = caption;
+    modal.classList.remove('hidden');
+    
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+}
+
+// Cerrar modal haciendo clic fuera de la imagen
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+</script>
+{% endblock %}

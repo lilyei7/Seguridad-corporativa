@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Visitas de Hoy{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:index' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">Visitas de Hoy</h1>
+                    <p class="text-sm text-gray-500">{{ today|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'visits:register' %}" 
+                   class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Registrar Visita</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del día -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center">
+                <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+                <p class="text-sm text-gray-600">Total</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
+                <p class="text-sm text-gray-600">Pendientes</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-green-600">{{ stats.aprobadas }}</p>
+                <p class="text-sm text-gray-600">Aprobadas</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-blue-600">{{ stats.en_curso }}</p>
+                <p class="text-sm text-gray-600">En Curso</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-gray-600">{{ stats.completadas }}</p>
+                <p class="text-sm text-gray-600">Completadas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        {% if visits %}
+            <!-- Lista de Visitas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                    <h3 class="font-medium text-gray-900 flex items-center">
+                        <i class="fas fa-calendar-day mr-2 text-blue-600"></i>
+                        Visitas Programadas ({{ visits.count }})
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Hora
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Visitante
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Local
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Estado
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for visit in visits %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {% if visit.scheduled_time %}
+                                                {{ visit.scheduled_time|time:"H:i" }}
+                                            {% else %}
+                                                <span class="text-gray-400">Sin hora</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <i class="fas fa-user text-blue-600"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ visit.visitor_name }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    {{ visit.visitor_document|default:"Sin documento" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">{{ visit.tenant.tenant_name }}</div>
+                                        <div class="text-sm text-gray-500">Local {{ visit.tenant.tenant_number|default:"N/A" }}</div>
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        {% if visit.status == 'pendiente' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                Pendiente
+                                            </span>
+                                        {% elif visit.status == 'aprobada' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check mr-1"></i>
+                                                Aprobada
+                                            </span>
+                                        {% elif visit.status == 'en_curso' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-play mr-1"></i>
+                                                En Curso
+                                            </span>
+                                        {% elif visit.status == 'completada' %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-check-double mr-1"></i>
+                                                Completada
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                {{ visit.status|title }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex items-center space-x-2">
+                                            <a href="{% url 'dashboard:visit_detail' visit.id %}" 
+                                               class="text-blue-600 hover:text-blue-900" 
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if visit.status == 'aprobada' %}
+                                                <button onclick="markArrived({{ visit.id }})"
+                                                        class="text-green-600 hover:text-green-900" 
+                                                        title="Marcar llegada">
+                                                    <i class="fas fa-sign-in-alt"></i>
+                                                </button>
+                                            {% elif visit.status == 'en_curso' %}
+                                                <button onclick="markDeparted({{ visit.id }})"
+                                                        class="text-orange-600 hover:text-orange-900" 
+                                                        title="Marcar salida">
+                                                    <i class="fas fa-sign-out-alt"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <!-- Estado Vacío -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-calendar-day text-gray-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        No hay visitas programadas para hoy
+                    </h3>
+                    <p class="text-gray-500 mb-6">
+                        Aún no se han programado visitas para el día {{ today|date:"d/m/Y" }}.
+                    </p>
+                    <a href="{% url 'visits:register' %}" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Registrar Visita
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function markArrived(visitId) {
+    if (confirm('¿Confirmar la llegada del visitante?')) {
+        fetch(`/dashboard/visit/${visitId}/arrived/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al procesar la solicitud');
+        });
+    }
+}
+
+function markDeparted(visitId) {
+    if (confirm('¿Confirmar la salida del visitante?')) {
+        fetch(`/dashboard/visit/${visitId}/departed/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al procesar la solicitud');
+        });
+    }
+}
+</script>
+{% endblock %}

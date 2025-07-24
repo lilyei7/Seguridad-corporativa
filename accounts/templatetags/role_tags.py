@@ -4,6 +4,16 @@ from accounts.models import UserRole, Notification
 register = template.Library()
 
 @register.filter
+def in_group(user, group_name):
+    """
+    Verifica si el usuario pertenece a un grupo específico
+    Uso: {{ user|in_group:"Inquilinos" }}
+    """
+    if not user.is_authenticated:
+        return False
+    return user.groups.filter(name=group_name).exists()
+
+@register.filter
 def has_role(user, role_name):
     """
     Verifica si el usuario tiene un rol específico

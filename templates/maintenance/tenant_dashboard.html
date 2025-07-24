@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load role_tags %}
+
+{% block title %}Reportes de Mantenimiento - {{ user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                        <a href="{% url 'dashboard:index' %}" class="hover:text-gray-700">Dashboard</a>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                        <span class="text-gray-900">Reportes de Mantenimiento</span>
+                    </nav>
+                    <h1 class="text-2xl font-semibold text-gray-900">Reportes de Mantenimiento</h1>
+                    <p class="text-sm text-gray-500">Gestiona tus solicitudes de mantenimiento</p>
+                </div>
+                <a href="{% url 'maintenance:report_create' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i class="fas fa-clipboard-list text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Reportes</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ tenant_stats.my_total_requests }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pendientes</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ tenant_stats.my_pending_requests }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-orange-100 rounded-lg">
+                        <i class="fas fa-cog text-orange-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">En Proceso</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ tenant_stats.my_in_progress_requests }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Completados</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ tenant_stats.my_completed_requests }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Reportes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-medium text-gray-900">Mis Reportes de Mantenimiento</h2>
+                    <a href="{% url 'maintenance:reports_list' %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Ver todos →
+                    </a>
+                </div>
+            </div>
+            
+            {% if my_requests %}
+                <div class="divide-y divide-gray-200">
+                    {% for request in my_requests %}
+                        <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center space-x-3">
+                                        <h3 class="text-sm font-medium text-gray-900 truncate">
+                                            {{ request.title }}
+                                        </h3>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {% if request.status == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                            {% elif request.status == 'en_proceso' %}bg-orange-100 text-orange-800
+                                            {% elif request.status == 'completado' %}bg-green-100 text-green-800
+                                            {% elif request.status == 'requiere_atencion' %}bg-red-100 text-red-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {% if request.status == 'pendiente' %}Pendiente
+                                            {% elif request.status == 'en_proceso' %}En Proceso
+                                            {% elif request.status == 'completado' %}Completado
+                                            {% elif request.status == 'requiere_atencion' %}Requiere Atención
+                                            {% else %}{{ request.status|title }}{% endif %}
+                                        </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {% if request.priority == 1 %}bg-red-100 text-red-800
+                                            {% elif request.priority == 2 %}bg-orange-100 text-orange-800
+                                            {% elif request.priority == 3 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-green-100 text-green-800{% endif %}">
+                                            {% if request.priority == 1 %}Crítica
+                                            {% elif request.priority == 2 %}Alta
+                                            {% elif request.priority == 3 %}Media
+                                            {% else %}Baja{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                                        {% if request.area %}
+                                            <span><i class="fas fa-map-marker-alt mr-1"></i>{{ request.area.name }}</span>
+                                        {% endif %}
+                                        <span><i class="fas fa-calendar mr-1"></i>{{ request.created_at|date:"d M Y" }}</span>
+                                        {% if request.assigned_to %}
+                                            <span><i class="fas fa-user mr-1"></i>Asignado a {{ request.assigned_to.get_full_name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if request.description %}
+                                        <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ request.description|truncatewords:20 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{% url 'maintenance:report_detail' request.id %}" 
+                                       class="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>
+                                        Ver
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clipboard-list text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No tienes reportes de mantenimiento</h3>
+                    <p class="text-gray-500 mb-6">Cuando necesites reportar algún problema, podrás crear un reporte aquí.</p>
+                    <a href="{% url 'maintenance:report_create' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Primer Reporte
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{% url 'maintenance:report_create' %}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow group">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-plus text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">Nuevo Reporte</h3>
+                        <p class="text-sm text-gray-500">Reportar problema de mantenimiento</p>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{% url 'maintenance:reports_list' %}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow group">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-list text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">Ver Todos</h3>
+                        <p class="text-sm text-gray-500">Historial completo de reportes</p>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="{% url 'maintenance:areas_list' %}" class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow group">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                        <i class="fas fa-map-marker-alt text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">Áreas</h3>
+                        <p class="text-sm text-gray-500">Ver áreas del edificio</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

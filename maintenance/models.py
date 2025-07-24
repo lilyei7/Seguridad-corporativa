@@ -358,3 +358,205 @@ class Camera(models.Model):
             'inactive': 'bg-gray-100 text-gray-800',
         }
         return colors.get(self.status, 'bg-gray-100 text-gray-800')
+
+
+class MaintenanceReport(models.Model):
+    """Modelo para reportes de mantenimiento creados por inquilinos"""
+    STATUS_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('en_proceso', 'En Proceso'),
+        ('completado', 'Completado'),
+        ('requiere_atencion', 'Requiere Atención'),
+        ('cancelado', 'Cancelado'),
+    ]
+    
+    PRIORITY_CHOICES = [
+        (1, 'Crítica'),
+        (2, 'Alta'),
+        (3, 'Media'),
+        (4, 'Baja'),
+    ]
+    
+    CATEGORY_CHOICES = [
+        ('plomeria', 'Plomería'),
+        ('electricidad', 'Electricidad'),
+        ('climatizacion', 'Climatización'),
+        ('limpieza', 'Limpieza'),
+        ('seguridad', 'Seguridad'),
+        ('ascensores', 'Ascensores'),
+        ('jardineria', 'Jardinería'),
+        ('pintura', 'Pintura'),
+        ('carpinteria', 'Carpintería'),
+        ('otros', 'Otros'),
+    ]
+
+    title = models.CharField(max_length=200, verbose_name="Título del Reporte")
+    description = models.TextField(verbose_name="Descripción del problema")
+    category = models.CharField(
+        max_length=20, 
+        choices=CATEGORY_CHOICES, 
+        verbose_name="Categoría"
+    )
+    area = models.ForeignKey(
+        MaintenanceArea, 
+        on_delete=models.CASCADE, 
+        related_name='reports',
+        verbose_name="Área"
+    )
+    priority = models.IntegerField(
+        choices=PRIORITY_CHOICES, 
+        default=3,
+        verbose_name="Prioridad"
+    )
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='pendiente',
+        verbose_name="Estado"
+    )
+    
+    # Usuario que reporta (inquilino)
+    reported_by = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE,
+        related_name='maintenance_reports',
+        verbose_name="Reportado por"
+    )
+    
+    # Usuario asignado para resolver (administrador/mantenimiento)
+    assigned_to = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='assigned_maintenance_reports',
+        verbose_name="Asignado a"
+    )
+    
+    # Información de contacto del inquilino
+    contact_phone = models.CharField(
+        max_length=20, 
+        blank=True, 
+        verbose_name="Teléfono de contacto"
+    )
+    contact_email = models.EmailField(
+        blank=True, 
+        verbose_name="Email de contacto"
+    )
+    
+    # Ubicación específica
+    specific_location = models.CharField(
+        max_length=200, 
+        blank=True,
+        verbose_name="Ubicación específica",
+        help_text="Ej: Oficina 201, Baño del 3er piso, etc."
+    )
+    
+    # Disponibilidad para acceso
+    available_times = models.TextField(
+        blank=True,
+        verbose_name="Horarios disponibles para acceso",
+        help_text="Indica cuándo es posible acceder al área para realizar el mantenimiento"
+    )
+    
+    # Fechas
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
+    resolved_at = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de resolución")
+    
+    # Notas internas (solo visible para administradores)
+    internal_notes = models.TextField(
+        blank=True, 
+        verbose_name="Notas internas",
+        help_text="Notas visibles solo para el equipo de mantenimiento"
+    )
+    
+    # Respuesta al inquilino
+    response_to_tenant = models.TextField(
+        blank=True,
+        verbose_name="Respuesta al inquilino",
+        help_text="Mensaje que será visible para el inquilino"
+    )
+
+    class Meta:
+        verbose_name = "Reporte de Mantenimiento"
+        verbose_name_plural = "Reportes de Mantenimiento"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.area.name} ({self.get_status_display()})"
+    
+    def get_status_display_color(self):
+        """Retorna las clases CSS para el color del estado"""
+        colors = {
+            'pendiente': 'bg-yellow-100 text-yellow-800',
+            'en_proceso': 'bg-blue-100 text-blue-800',
+            'completado': 'bg-green-100 text-green-800',
+            'requiere_atencion': 'bg-red-100 text-red-800',
+            'cancelado': 'bg-gray-100 text-gray-800',
+        }
+        return colors.get(self.status, 'bg-gray-100 text-gray-800')
+    
+    def get_priority_display_color(self):
+        """Retorna las clases CSS para el color de la prioridad"""
+        colors = {
+            1: 'bg-red-100 text-red-800',      # Crítica
+            2: 'bg-orange-100 text-orange-800', # Alta
+            3: 'bg-blue-100 text-blue-800',     # Media
+            4: 'bg-green-100 text-green-800',   # Baja
+        }
+        return colors.get(self.priority, 'bg-gray-100 text-gray-800')
+    
+    def get_category_icon(self):
+        """Retorna el icono FontAwesome para la categoría"""
+        icons = {
+            'plomeria': 'fas fa-faucet',
+            'electricidad': 'fas fa-bolt',
+            'climatizacion': 'fas fa-snowflake',
+            'limpieza': 'fas fa-broom',
+            'seguridad': 'fas fa-shield-alt',
+            'ascensores': 'fas fa-elevator',
+            'jardineria': 'fas fa-leaf',
+            'pintura': 'fas fa-paint-roller',
+            'carpinteria': 'fas fa-hammer',
+            'otros': 'fas fa-wrench',
+        }
+        return icons.get(self.category, 'fas fa-wrench')
+    
+    def get_status_display_for_value(self, status_value):
+        """Retorna el texto de display para un valor de estado específico"""
+        status_dict = dict(self.STATUS_CHOICES)
+        return status_dict.get(status_value, status_value)
+
+
+class MaintenanceReportImage(models.Model):
+    """Modelo para imágenes adjuntas a reportes de mantenimiento"""
+    report = models.ForeignKey(
+        MaintenanceReport,
+        on_delete=models.CASCADE,
+        related_name='images',
+        verbose_name="Reporte"
+    )
+    image = models.ImageField(
+        upload_to='maintenance_reports/%Y/%m/',
+        verbose_name="Imagen"
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Descripción de la imagen"
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de subida")
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Subido por"
+    )
+
+    class Meta:
+        verbose_name = "Imagen de Reporte"
+        verbose_name_plural = "Imágenes de Reportes"
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"Imagen de {self.report.title}"

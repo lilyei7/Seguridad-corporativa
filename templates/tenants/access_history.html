@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Accesos{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:tenant_panel' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Historial de Accesos</h1>
+                    <p class="text-sm text-gray-500">{{ tenant.tenant_name }} - Oficina {{ tenant.numero_oficina }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de accesos -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="text-center">
+                <p class="text-2xl font-bold text-green-600">
+                    {% with entradas=0 %}
+                        {% for access in access_logs %}
+                            {% if access.access_type == 'entrada' %}{{ forloop.counter0 }}{% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </p>
+                <p class="text-sm text-gray-600">Entradas</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-red-600">
+                    {% with salidas=0 %}
+                        {% for access in access_logs %}
+                            {% if access.access_type == 'salida' %}{{ forloop.counter0 }}{% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </p>
+                <p class="text-sm text-gray-600">Salidas</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-blue-600">
+                    {% with visitas=0 %}
+                        {% for access in access_logs %}
+                            {% if 'visita' in access.access_type %}{{ forloop.counter0 }}{% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </p>
+                <p class="text-sm text-gray-600">Visitas</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-gray-600">{{ access_logs.count }}</p>
+                <p class="text-sm text-gray-600">Total Registros</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline de accesos -->
+    <div class="px-6 py-6">
+        {% if access_logs %}
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <!-- Línea del timeline -->
+                    <div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                    
+                    <div class="space-y-6">
+                        {% for access in access_logs %}
+                        <div class="relative flex items-start">
+                            <!-- Punto del timeline -->
+                            <div class="absolute left-6 w-4 h-4 rounded-full border-4 border-white shadow
+                                {% if access.access_type == 'entrada' %}bg-green-500
+                                {% elif access.access_type == 'salida' %}bg-red-500
+                                {% elif access.access_type == 'visita_entrada' %}bg-blue-500
+                                {% elif access.access_type == 'visita_salida' %}bg-purple-500
+                                {% else %}bg-gray-500{% endif %}">
+                            </div>
+                            
+                            <!-- Contenido -->
+                            <div class="ml-16 bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center
+                                            {% if access.access_type == 'entrada' %}bg-green-100
+                                            {% elif access.access_type == 'salida' %}bg-red-100
+                                            {% elif access.access_type == 'visita_entrada' %}bg-blue-100
+                                            {% elif access.access_type == 'visita_salida' %}bg-purple-100
+                                            {% else %}bg-gray-100{% endif %}">
+                                            {% if access.access_type == 'entrada' %}
+                                                <i class="fas fa-sign-in-alt text-green-600"></i>
+                                            {% elif access.access_type == 'salida' %}
+                                                <i class="fas fa-sign-out-alt text-red-600"></i>
+                                            {% elif access.access_type == 'visita_entrada' %}
+                                                <i class="fas fa-user-plus text-blue-600"></i>
+                                            {% elif access.access_type == 'visita_salida' %}
+                                                <i class="fas fa-user-minus text-purple-600"></i>
+                                            {% else %}
+                                                <i class="fas fa-door-open text-gray-600"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-medium text-gray-900">
+                                                {{ access.get_access_type_display }}
+                                            </h3>
+                                            <p class="text-sm text-gray-500">
+                                                {{ access.user.get_full_name|default:access.user.username }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-right">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ access.access_time|date:"H:i" }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ access.access_time|date:"d/m/Y" }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3 flex items-center justify-between text-sm text-gray-500">
+                                    <div class="flex items-center space-x-4">
+                                        <span>
+                                            <i class="fas fa-map-marker-alt mr-1"></i>
+                                            {{ access.location }}
+                                        </span>
+                                        {% if access.notes %}
+                                        <span>
+                                            <i class="fas fa-sticky-note mr-1"></i>
+                                            {{ access.notes|truncatewords:5 }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Tiempo transcurrido desde el acceso -->
+                                    <span class="text-xs text-gray-400">
+                                        {% now "c" as now_time %}
+                                        {% with diff=access.access_time|timesince %}
+                                            hace {{ diff|split:" "|first }} {{ diff|split:" "|slice:"1:2"|join:" " }}
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                                
+                                {% if access.notes and access.notes|length > 30 %}
+                                <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                                    <p class="text-sm text-gray-700">{{ access.notes }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Indicador de más registros -->
+                {% if access_logs.count >= 50 %}
+                <div class="mt-8 text-center">
+                    <div class="inline-flex items-center space-x-2 text-gray-500 bg-gray-50 px-4 py-2 rounded-lg">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="text-sm">Mostrando los últimos 50 accesos</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-history text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay registros de acceso</h3>
+                <p class="text-gray-500">Los accesos a las instalaciones aparecerán aquí conforme se registren.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+/* Animación para los puntos del timeline */
+.relative .absolute.left-6 {
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Hover effects */
+.bg-white:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+</style>
+{% endblock %}

@@ -20,6 +20,27 @@ class CustomUserCreationForm(UserCreationForm):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
     
+    # Campo para asignar inquilino existente
+    existing_tenant = forms.ModelChoiceField(
+        queryset=Tenant.objects.filter(is_active=True, assigned_user__isnull=True),
+        required=False,
+        label='Asignar a Oficina/Espacio Existente',
+        empty_label='Seleccionar oficina...',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    # Opción para crear nuevo inquilino o usar existente
+    tenant_option = forms.ChoiceField(
+        choices=[
+            ('existing', 'Asignar a oficina existente'),
+            ('new', 'Crear nueva oficina'),
+        ],
+        required=False,
+        label='Opciones de Oficina',
+        initial='existing',
+        widget=forms.RadioSelect(attrs={'class': 'form-radio'})
+    )
+    
     # Campos adicionales para inquilinos
     tenant_business_name = forms.CharField(
         max_length=200, 
@@ -71,8 +92,21 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Personalizar el queryset de inquilinos existentes con mejor información
+        available_tenants = Tenant.objects.filter(
+            is_active=True, 
+            assigned_user__isnull=True
+        ).order_by('piso', 'numero_oficina', 'tenant_name')
+        
+        self.fields['existing_tenant'].queryset = available_tenants
+        self.fields['existing_tenant'].empty_label = "Seleccione una oficina disponible..."
+        
         # Aplicar clases CSS a todos los campos
         for field_name, field in self.fields.items():
+            if field_name == 'tenant_option':
+                # Estilo especial para radio buttons
+                continue
             field.widget.attrs.update({
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
             })
@@ -89,8 +123,19 @@ class CustomUserCreationForm(UserCreationForm):
         
         # Validar campos específicos según el rol
         if role == 'inquilino':
-            if not cleaned_data.get('tenant_business_name'):
-                raise forms.ValidationError("El nombre del negocio es requerido para inquilinos.")
+            tenant_option = cleaned_data.get('tenant_option')
+            existing_tenant = cleaned_data.get('existing_tenant')
+            
+            if tenant_option == 'existing':
+                if not existing_tenant:
+                    raise forms.ValidationError("Debe seleccionar una oficina existente.")
+            elif tenant_option == 'new':
+                if not cleaned_data.get('tenant_business_name'):
+                    raise forms.ValidationError("El nombre del negocio es requerido para crear una nueva oficina.")
+            else:
+                # Si no se especifica opción, verificar si hay datos suficientes
+                if not existing_tenant and not cleaned_data.get('tenant_business_name'):
+                    raise forms.ValidationError("Debe seleccionar una oficina existente o proporcionar datos para crear una nueva.")
         
         elif role == 'vigilante':
             if not cleaned_data.get('guard_employee_id'):
@@ -132,19 +177,29 @@ class CustomUserCreationForm(UserCreationForm):
                 group, created = Group.objects.get_or_create(name='Inquilinos')
                 user.groups.add(group)
                 
-                # Crear perfil de inquilino
-                Tenant.objects.create(
-                    assigned_user=user,
-                    tenant_name=self.cleaned_data.get('tenant_business_name', ''),
-                    contact_person=self.cleaned_data.get('tenant_contact_person', ''),
-                    contact_phone=self.cleaned_data.get('tenant_phone', ''),
-                    contact_email=user.email,
-                    address=self.cleaned_data.get('tenant_address', ''),
-                    city='',
-                    state='',
-                    zip_code='',
-                    is_active=True
-                )
+                # Verificar si se asigna a inquilino existente o se crea nuevo
+                tenant_option = self.cleaned_data.get('tenant_option')
+                existing_tenant = self.cleaned_data.get('existing_tenant')
+                
+                if tenant_option == 'existing' and existing_tenant:
+                    # Asignar usuario a inquilino existente
+                    existing_tenant.assigned_user = user
+                    existing_tenant.save()
+                    
+                elif tenant_option == 'new' or (not existing_tenant and self.cleaned_data.get('tenant_business_name')):
+                    # Crear nuevo perfil de inquilino
+                    Tenant.objects.create(
+                        assigned_user=user,
+                        tenant_name=self.cleaned_data.get('tenant_business_name', ''),
+                        contact_person=self.cleaned_data.get('tenant_contact_person', ''),
+                        contact_phone=self.cleaned_data.get('tenant_phone', ''),
+                        contact_email=user.email,
+                        address=self.cleaned_data.get('tenant_address', ''),
+                        city='',
+                        state='',
+                        zip_code='',
+                        is_active=True
+                    )
         
         return user
 

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title|default:"Panel de Inquilino" }} - Olcha Tecnología En Seguridad{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 px-4 py-6">
+    <div class="max-w-md mx-auto">
+        <!-- Header del Panel -->
+        <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg mb-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-building text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold mb-2">Panel de Inquilino</h1>
+                {% if tenant %}
+                    <p class="text-purple-100 text-lg font-medium">{{ tenant.tenant_name }}</p>
+                    {% if tenant.numero_oficina %}
+                        <p class="text-purple-300 text-sm">Oficina: {{ tenant.numero_oficina }}</p>
+                    {% endif %}
+                {% endif %}
+                {% if user_info %}
+                    <p class="text-purple-200 text-sm mt-2">Bienvenido, {{ user_info.full_name }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not tenant %}
+            <!-- Mensaje cuando no se encuentra inquilino -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Local No Encontrado</h3>
+                    <p class="text-gray-600 mb-4">Tu usuario no está asociado con ningún local en el sistema.</p>
+                    
+                    <div class="bg-gray-50 rounded-xl p-4 mb-4 text-left">
+                        <h4 class="font-medium text-gray-800 mb-2">Tu cuenta:</h4>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>Usuario:</strong> {{ user_info.username }}</p>
+                            <p><strong>Nombre:</strong> {{ user_info.full_name }}</p>
+                            <p><strong>Email:</strong> {{ user_info.email|default:"No especificado" }}</p>
+                            <p><strong>Rol:</strong> {{ user_info.role }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-xl p-4 text-left">
+                        <h4 class="font-medium text-blue-800 mb-2">¿Qué hacer?</h4>
+                        <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                            <li>Contacta al administrador</li>
+                            <li>Verifica tu email</li>
+                            <li>Solicita asignación al local</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Estadísticas Rápidas -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-chart-bar text-blue-600 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-blue-600">{{ total_visits }}</p>
+                        <p class="text-sm text-gray-600">Total Visitas</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-yellow-600">{{ pending_visits }}</p>
+                        <p class="text-sm text-gray-600">Pendientes</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-green-600">{{ approved_visits }}</p>
+                        <p class="text-sm text-gray-600">Aprobadas</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check-double text-purple-600 text-xl"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-purple-600">{{ completed_visits }}</p>
+                        <p class="text-sm text-gray-600">Completadas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Local -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-building text-purple-600 mr-2"></i>
+                    Mi Local
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Nombre:</span>
+                        <span class="font-medium text-gray-900">{{ tenant.tenant_name }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Local #:</span>
+                        <span class="font-medium text-gray-900">{{ tenant.unit_number }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Tipo:</span>
+                        <span class="font-medium text-gray-900">{{ tenant.get_business_type_display|default:"No especificado" }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Contacto:</span>
+                        <span class="font-medium text-gray-900">{{ tenant.contact_person }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Teléfono:</span>
+                        <span class="font-medium text-gray-900">{{ tenant.contact_phone }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Estado:</span>
+                        <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full {% if tenant.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {% if tenant.is_active %}Activo{% else %}Inactivo{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-bolt text-purple-600 mr-2"></i>
+                    Acciones Rápidas
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="bg-purple-500 text-white p-6 rounded-2xl shadow-sm hover:bg-purple-600 transition-colors">
+                        <div class="text-center">
+                            <i class="fas fa-user-plus text-2xl mb-2"></i>
+                            <div class="font-medium text-sm">Nueva Visita</div>
+                        </div>
+                    </button>
+                    
+                    <button class="bg-blue-500 text-white p-6 rounded-2xl shadow-sm hover:bg-blue-600 transition-colors">
+                        <div class="text-center">
+                            <i class="fas fa-users text-2xl mb-2"></i>
+                            <div class="font-medium text-sm">Personal Autorizado</div>
+                        </div>
+                    </button>
+                    
+                    <button class="bg-green-500 text-white p-6 rounded-2xl shadow-sm hover:bg-green-600 transition-colors">
+                        <div class="text-center">
+                            <i class="fas fa-qrcode text-2xl mb-2"></i>
+                            <div class="font-medium text-sm">Generar QR</div>
+                        </div>
+                    </button>
+                    
+                    <button class="bg-orange-500 text-white p-6 rounded-2xl shadow-sm hover:bg-orange-600 transition-colors">
+                        <div class="text-center">
+                            <i class="fas fa-chart-bar text-2xl mb-2"></i>
+                            <div class="font-medium text-sm">Ver Reportes</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visitas de Hoy -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <i class="fas fa-calendar-day text-purple-600 mr-2"></i>
+                            Visitas de Hoy
+                        </h3>
+                        <span class="text-sm text-gray-500">{{ todays_visits.count }} programadas</span>
+                    </div>
+                </div>
+                <div class="max-h-64 overflow-y-auto">
+                    {% if todays_visits %}
+                        {% for visit in todays_visits %}
+                            <div class="p-4 border-b border-gray-50 last:border-b-0">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center
+                                        {% if visit.status == 'pendiente' %}bg-yellow-100{% elif visit.status == 'aprobada' %}bg-blue-100{% elif visit.status == 'en_progreso' %}bg-green-100{% else %}bg-gray-100{% endif %}">
+                                        <i class="fas 
+                                            {% if visit.status == 'pendiente' %}fa-clock text-yellow-600{% elif visit.status == 'aprobada' %}fa-check text-blue-600{% elif visit.status == 'en_progreso' %}fa-play text-green-600{% else %}fa-check-circle text-gray-600{% endif %}"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                                        <p class="text-sm text-gray-600">{{ visit.scheduled_time }}</p>
+                                        {% if visit.purpose %}
+                                            <p class="text-xs text-gray-500">{{ visit.purpose|truncatechars:30 }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if visit.status == 'pendiente' %}bg-yellow-100 text-yellow-800{% elif visit.status == 'aprobada' %}bg-blue-100 text-blue-800{% elif visit.status == 'en_progreso' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-8 text-center">
+                            <i class="fas fa-calendar-times text-gray-300 text-4xl mb-3"></i>
+                            <p class="text-gray-500 mb-3">No tienes visitas para hoy</p>
+                            <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                                Programar Nueva Visita
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historial Reciente -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-history text-purple-600 mr-2"></i>
+                        Historial Reciente
+                    </h3>
+                </div>
+                <div class="max-h-64 overflow-y-auto">
+                    {% if my_visits %}
+                        {% for visit in my_visits|slice:":5" %}
+                            <div class="p-4 border-b border-gray-50 last:border-b-0">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                        {% if visit.status == 'completada' %}bg-green-100{% elif visit.status == 'cancelada' %}bg-red-100{% else %}bg-gray-100{% endif %}">
+                                        <i class="fas fa-user text-sm
+                                            {% if visit.status == 'completada' %}text-green-600{% elif visit.status == 'cancelada' %}text-red-600{% else %}text-gray-600{% endif %}"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900 text-sm">{{ visit.visitor_name }}</p>
+                                        <p class="text-xs text-gray-600">{{ visit.scheduled_date|date:"d/m/Y" }} - {{ visit.scheduled_time }}</p>
+                                    </div>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if visit.status == 'completada' %}bg-green-100 text-green-800{% elif visit.status == 'cancelada' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ visit.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-8 text-center">
+                            <i class="fas fa-history text-gray-300 text-4xl mb-3"></i>
+                            <p class="text-gray-500">No tienes historial de visitas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

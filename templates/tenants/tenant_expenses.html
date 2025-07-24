@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gastos de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:tenant_panel' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900">Gastos de Mantenimiento</h1>
+                    <p class="text-sm text-gray-500">{{ tenant.tenant_name }} - Oficina {{ tenant.numero_oficina }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <p class="text-3xl font-bold text-green-600">${{ total_expenses|floatformat:2 }}</p>
+                <p class="text-sm text-gray-600">Total Histórico</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-bold text-blue-600">${{ monthly_expenses|floatformat:2 }}</p>
+                <p class="text-sm text-gray-600">Este Mes</p>
+            </div>
+            <div class="text-center">
+                <p class="text-3xl font-bold text-gray-600">{{ expenses.count }}</p>
+                <p class="text-sm text-gray-600">Total de Registros</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de gastos -->
+    <div class="px-6 py-6">
+        {% if expenses %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Categoría
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Descripción
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Proveedor
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Monto
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Factura
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for expense in expenses %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ expense.service_date|date:"d/m/Y" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if expense.category == 'limpieza' %}bg-blue-100 text-blue-800
+                                        {% elif expense.category == 'electricidad' %}bg-yellow-100 text-yellow-800
+                                        {% elif expense.category == 'plomeria' %}bg-cyan-100 text-cyan-800
+                                        {% elif expense.category == 'aire_acondicionado' %}bg-green-100 text-green-800
+                                        {% elif expense.category == 'pintura' %}bg-purple-100 text-purple-800
+                                        {% elif expense.category == 'seguridad' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ expense.get_category_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    <div class="max-w-xs truncate" title="{{ expense.description }}">
+                                        {{ expense.description }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ expense.provider|default:"-" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                    ${{ expense.amount|floatformat:2 }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if expense.invoice_file %}
+                                        <a href="{{ expense.invoice_file.url }}" 
+                                           target="_blank"
+                                           class="text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+                                            <i class="fas fa-file-pdf text-sm"></i>
+                                            <span>Ver</span>
+                                        </a>
+                                    {% elif expense.invoice_number %}
+                                        <span class="text-gray-600">{{ expense.invoice_number }}</span>
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Resumen por categoría -->
+            <div class="mt-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Resumen por Categoría</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {% regroup expenses by category as category_list %}
+                    {% for category in category_list %}
+                    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ category.grouper|capfirst }}</p>
+                                <p class="text-lg font-bold text-green-600">
+                                    ${% widthratio category.list|length 1 1 as category_total %}
+                                    {% for item in category.list %}
+                                        {% if forloop.first %}{{ item.amount }}{% endif %}
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-bar text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-dollar-sign text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay gastos registrados</h3>
+                <p class="text-gray-500">Los gastos de mantenimiento aparecerán aquí una vez que se registren.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

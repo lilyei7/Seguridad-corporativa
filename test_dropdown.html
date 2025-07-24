@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Dropdown Notificaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notifications-dropdown-show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
+        }
+        
+        #test-dropdown {
+            z-index: 9999 !important;
+            position: absolute !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Prueba de Dropdown de Notificaciones</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Instrucciones:</h2>
+            <p class="mb-4">Haz clic en la campana para probar el dropdown de notificaciones</p>
+            
+            <!-- Simulación del header -->
+            <div class="bg-white border-b border-gray-200 p-4 flex justify-between items-center relative">
+                <h3 class="text-lg font-semibold">Sistema de Gestión</h3>
+                
+                <!-- Botón de notificaciones -->
+                <div class="relative">
+                    <button id="test-notifications-btn" class="relative p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 group">
+                        <i class="fas fa-bell text-xl group-hover:scale-110 transition-all duration-200"></i>
+                        <!-- Badge -->
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center font-bold shadow-lg">
+                            5
+                        </span>
+                    </button>
+                    
+                    <!-- Dropdown -->
+                    <div id="test-dropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible transform translate-y-2 scale-95 transition-all duration-300 ease-out" style="z-index: 9999 !important;">
+                        <div class="p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+                            <h3 class="text-lg font-bold text-gray-900">Notificaciones de Prueba</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="p-3 bg-blue-50 rounded-lg mb-3">
+                                <p class="font-medium">Juan reportó problema en Elevadores</p>
+                                <p class="text-sm text-gray-600">Electricidad - Alta prioridad</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg mb-3">
+                                <p class="font-medium">Tu reporte fue completado</p>
+                                <p class="text-sm text-gray-600">El problema fue solucionado</p>
+                            </div>
+                            <div class="p-3 bg-yellow-50 rounded-lg">
+                                <p class="font-medium">Mantenimiento programado</p>
+                                <p class="text-sm text-gray-600">Mañana a las 10:00 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contenido adicional para probar z-index -->
+            <div class="mt-8 space-y-4">
+                <div class="bg-blue-500 text-white p-4 rounded-lg" style="position: relative; z-index: 100;">
+                    <h3 class="font-semibold">Elemento con z-index 100</h3>
+                    <p>Este elemento debería estar debajo del dropdown</p>
+                </div>
+                <div class="bg-green-500 text-white p-4 rounded-lg" style="position: relative; z-index: 500;">
+                    <h3 class="font-semibold">Elemento con z-index 500</h3>
+                    <p>Este elemento también debería estar debajo del dropdown</p>
+                </div>
+                <div class="bg-purple-500 text-white p-4 rounded-lg" style="position: relative; z-index: 1000;">
+                    <h3 class="font-semibold">Elemento con z-index 1000</h3>
+                    <p>Este elemento debería estar debajo del dropdown (z-index 9999)</p>
+                </div>
+            </div>
+            
+            <!-- Botones de prueba -->
+            <div class="mt-8 space-x-4">
+                <button onclick="forceOpen()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Forzar Abrir Dropdown
+                </button>
+                <button onclick="forceClose()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Forzar Cerrar Dropdown
+                </button>
+                <button onclick="debugState()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Debug Estado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isOpen = false;
+        
+        // Toggle normal
+        document.getElementById('test-notifications-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+        
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('test-dropdown');
+            const button = document.getElementById('test-notifications-btn');
+            if (!dropdown.contains(e.target) && !button.contains(e.target) && isOpen) {
+                closeDropdown();
+            }
+        });
+        
+        function toggleDropdown() {
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        }
+        
+        function openDropdown() {
+            const dropdown = document.getElementById('test-dropdown');
+            dropdown.classList.add('notifications-dropdown-show');
+            isOpen = true;
+            console.log('✅ Dropdown abierto');
+        }
+        
+        function closeDropdown() {
+            const dropdown = document.getElementById('test-dropdown');
+            dropdown.classList.remove('notifications-dropdown-show');
+            isOpen = false;
+            console.log('✅ Dropdown cerrado');
+        }
+        
+        function forceOpen() {
+            const dropdown = document.getElementById('test-dropdown');
+            dropdown.style.opacity = '1';
+            dropdown.style.visibility = 'visible';
+            dropdown.style.transform = 'translateY(0) scale(1)';
+            dropdown.classList.add('notifications-dropdown-show');
+            isOpen = true;
+            console.log('🔧 Dropdown forzado a abrir');
+        }
+        
+        function forceClose() {
+            const dropdown = document.getElementById('test-dropdown');
+            dropdown.style.opacity = '0';
+            dropdown.style.visibility = 'hidden';
+            dropdown.style.transform = 'translateY(2px) scale(0.95)';
+            dropdown.classList.remove('notifications-dropdown-show');
+            isOpen = false;
+            console.log('🔧 Dropdown forzado a cerrar');
+        }
+        
+        function debugState() {
+            const dropdown = document.getElementById('test-dropdown');
+            const computedStyle = window.getComputedStyle(dropdown);
+            
+            console.log('🔍 Estado del dropdown:');
+            console.log('  - isOpen:', isOpen);
+            console.log('  - opacity:', computedStyle.opacity);
+            console.log('  - visibility:', computedStyle.visibility);
+            console.log('  - z-index:', computedStyle.zIndex);
+            console.log('  - transform:', computedStyle.transform);
+            console.log('  - position:', computedStyle.position);
+            console.log('  - classes:', dropdown.className);
+        }
+    </script>
+</body>
+</html>

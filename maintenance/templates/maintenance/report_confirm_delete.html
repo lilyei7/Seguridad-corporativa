@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load role_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-gray-700">Dashboard</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'maintenance:dashboard' %}" class="hover:text-gray-700">Mantenimiento</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'maintenance:reports_list' %}" class="hover:text-gray-700">Reportes</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-gray-900">Eliminar Reporte</span>
+            </nav>
+            <h1 class="text-2xl font-semibold text-gray-900">Eliminar Reporte</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Confirma la eliminación del reporte de mantenimiento
+            </p>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <!-- Alerta de Advertencia -->
+            <div class="bg-red-50 border-l-4 border-red-400 p-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">
+                            ¿Estás seguro de que quieres eliminar este reporte?
+                        </h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>Esta acción no se puede deshacer. El reporte y toda la información asociada se eliminarán permanentemente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Reporte -->
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900 mb-4">Información del Reporte a Eliminar</h2>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                            <p class="text-gray-900 font-semibold">{{ report.title }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ report.get_status_display_color }}">
+                                {% if report.status == 'pendiente' %}Pendiente
+                                {% elif report.status == 'en_proceso' %}En Proceso
+                                {% elif report.status == 'completado' %}Completado
+                                {% elif report.status == 'requiere_atencion' %}Requiere Atención
+                                {% elif report.status == 'cancelado' %}Cancelado
+                                {% else %}{{ report.get_status_display }}{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                            <p class="text-gray-900">{{ report.get_category_display }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Área</label>
+                            <p class="text-gray-900">{{ report.area.name }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ report.get_priority_display_color }}">
+                                {{ report.get_priority_display }}
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Creación</label>
+                            <p class="text-gray-900">{{ report.created_at|date:"d M Y H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if report.description %}
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                        <p class="text-gray-900 text-sm bg-white p-3 rounded border">{{ report.description|truncatewords:30 }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if report.images.exists %}
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Imágenes</label>
+                        <p class="text-gray-600 text-sm">
+                            <i class="fas fa-images mr-1"></i>
+                            {{ report.images.count }} imagen{{ report.images.count|pluralize }} adjunta{{ report.images.count|pluralize }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Formulario de Confirmación -->
+            <form method="post" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Mensaje de Confirmación -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">
+                                Importante
+                            </h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>El reporte se eliminará permanentemente</li>
+                                    <li>Todas las imágenes asociadas también se eliminarán</li>
+                                    <li>No podrás recuperar esta información después</li>
+                                    {% if not is_tenant %}
+                                    <li>El inquilino perderá acceso a este reporte</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'maintenance:report_detail' report.id %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancelar
+                    </a>
+                    
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                        <i class="fas fa-trash mr-2"></i>
+                        Eliminar Reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmar eliminación
+    const deleteForm = document.querySelector('form');
+    const deleteButton = deleteForm.querySelector('button[type="submit"]');
+    
+    deleteForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Cambiar el texto del botón para indicar procesamiento
+        const originalText = deleteButton.innerHTML;
+        deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Eliminando...';
+        deleteButton.disabled = true;
+        
+        // Mostrar confirmación final
+        if (confirm('¿Estás completamente seguro? Esta acción no se puede deshacer.')) {
+            deleteForm.submit();
+        } else {
+            // Restaurar el botón si se cancela
+            deleteButton.innerHTML = originalText;
+            deleteButton.disabled = false;
+        }
+    });
+});
+</script>
+{% endblock %}

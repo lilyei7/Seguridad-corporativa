@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load role_tags %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <nav class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-gray-700">Dashboard</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'maintenance:dashboard' %}" class="hover:text-gray-700">Mantenimiento</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-gray-900">{{ page_title }}</span>
+            </nav>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ page_title }}</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                {% if is_editing %}
+                    Actualiza la información de tu reporte de mantenimiento
+                {% else %}
+                    Describe el problema que necesita atención del equipo de mantenimiento
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-tools mr-2 text-blue-600"></i>
+                    Información del Reporte
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    Completa todos los campos requeridos para ayudarnos a resolver tu problema más rápido.
+                </p>
+            </div>
+
+            <form method="post" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Información Básica -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Título -->
+                        <div class="md:col-span-2">
+                            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.title.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Categoría -->
+                        <div>
+                            <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.category.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Prioridad -->
+                        <div>
+                            <label for="{{ form.priority.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.priority.label }}
+                            </label>
+                            {{ form.priority }}
+                            {% if form.priority.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.priority.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Área -->
+                        <div>
+                            <label for="{{ form.area.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.area.label }} <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.area }}
+                            {% if form.area.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.area.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Ubicación Específica -->
+                        <div>
+                            <label for="{{ form.specific_location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.specific_location.label }}
+                            </label>
+                            {{ form.specific_location }}
+                            {% if form.specific_location.help_text %}
+                                <p class="mt-1 text-xs text-gray-500">{{ form.specific_location.help_text }}</p>
+                            {% endif %}
+                            {% if form.specific_location.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.specific_location.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ form.description.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ form.description.help_text }}</p>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Información de Contacto -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-4">
+                            <i class="fas fa-phone mr-2 text-blue-600"></i>
+                            Información de Contacto
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Teléfono -->
+                            <div>
+                                <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.contact_phone.label }}
+                                </label>
+                                {{ form.contact_phone }}
+                                {% if form.contact_phone.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.contact_phone.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.contact_email.label }}
+                                </label>
+                                {{ form.contact_email }}
+                                {% if form.contact_email.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.contact_email.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horarios Disponibles -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-4">
+                            <i class="fas fa-clock mr-2 text-blue-600"></i>
+                            Disponibilidad para Acceso
+                        </h3>
+                        <div>
+                            <label for="{{ form.available_times.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.available_times.label }}
+                            </label>
+                            {{ form.available_times }}
+                            {% if form.available_times.help_text %}
+                                <p class="mt-1 text-xs text-gray-500">{{ form.available_times.help_text }}</p>
+                            {% endif %}
+                            {% if form.available_times.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.available_times.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex items-center justify-between pt-6 border-t">
+                    <a href="{% if is_tenant %}{% url 'maintenance:dashboard' %}{% else %}{% url 'maintenance:reports_list' %}{% endif %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Cancelar
+                    </a>
+                    
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <i class="fas fa-save mr-2"></i>
+                        {% if is_editing %}Actualizar Reporte{% else %}Crear Reporte{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información Adicional -->
+        {% if not is_editing %}
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-blue-900">¿Qué sucede después?</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Tu reporte será revisado por nuestro equipo de mantenimiento</li>
+                            <li>Te contactaremos para coordinar el acceso si es necesario</li>
+                            <li>Recibirás actualizaciones sobre el progreso de la reparación</li>
+                            <li>Podrás seguir el estado de tu reporte en cualquier momento</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus en el primer campo
+    const firstInput = document.querySelector('input[type="text"]:first-of-type');
+    if (firstInput) {
+        firstInput.focus();
+    }
+    
+    // Validación del formulario
+    const form = document.querySelector('form');
+    const requiredFields = form.querySelectorAll('[required], .required');
+    
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('border-red-500');
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            const firstError = form.querySelector('.border-red-500');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

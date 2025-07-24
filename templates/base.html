@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load user_tags %}
+{% load role_tags %}
 <html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
@@ -15,6 +16,7 @@
     <meta name="msapplication-TileColor" content="#0ea5e9">
     <meta name="theme-color" content="#0ea5e9">
     <meta name="description" content="Sistema de gestión de seguridad corporativa y mantenimiento para Olcha Tecnología">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/static/manifest.json">
@@ -649,7 +651,7 @@ Ver consola para detalles completos.
                 width: 280px;
                 transform: translateX(-100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                z-index: 1000;
+                z-index: 1001 !important; /* Mayor que el overlay */
                 background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
                 display: block !important;
@@ -666,16 +668,34 @@ Ver consola para detalles completos.
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.6);
-                z-index: 999;
+                background: rgba(0, 0, 0, 0.5); /* Reducir opacidad */
+                z-index: 1000; /* Menor que el sidebar */
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
+                pointer-events: none; /* Evitar interferencia con clics */
             }
 
             .sidebar-overlay.active {
                 opacity: 1 !important;
                 visibility: visible !important;
+                pointer-events: auto; /* Permitir clics solo cuando está activo */
+            }
+
+            /* Asegurar que todos los elementos del sidebar sean clicables */
+            .sidebar * {
+                pointer-events: auto !important;
+                position: relative;
+                z-index: 1002;
+            }
+
+            .sidebar .sidebar-link,
+            .sidebar button,
+            .sidebar a {
+                pointer-events: auto !important;
+                cursor: pointer !important;
+                -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+                touch-action: manipulation;
             }
 
             .main-content {
@@ -690,20 +710,165 @@ Ver consola para detalles completos.
 
         /* Header móvil */
         .mobile-header {
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 40;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.8);
             padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: between;
+            height: 64px;
+            width: 100%;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
 
         @media (min-width: 769px) {
             .mobile-header {
                 display: none;
+            }
+        }
+
+        /* Ajustes para header fijo en móvil */
+        @media (max-width: 768px) {
+            /* Compensar el header fijo */
+            body {
+                padding-top: 64px;
+            }
+            
+            /* Asegurar que el header se vea bien en todas las pantallas */
+            .mobile-header {
+                min-height: 64px;
+                transition: all 0.3s ease;
+            }
+            
+            /* Mejorar la visibilidad del backdrop blur */
+            .mobile-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.8);
+                z-index: -1;
+            }
+        }
+
+        /* Mejoras para responsividad móvil */
+        @media (max-width: 768px) {
+            .mobile-header .w-12.h-12 {
+                min-width: 48px;
+                min-height: 48px;
+            }
+            
+            /* Asegurar que el logo sea visible y centrado */
+            .mobile-header .flex-1 {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            /* Mejorar el spacing del header móvil */
+            .mobile-header {
+                height: 64px;
+                padding: 8px 16px;
+            }
+        }
+
+        /* Estilos para dropdowns de notificaciones */
+        .notifications-dropdown-show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
+            display: block !important;
+        }
+
+        /* Animación específica para dropdown del usuario (slide desde derecha) */
+        .user-dropdown-show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateX(0) !important;
+            display: block !important;
+        }
+
+        #mobile-notifications-dropdown,
+        #desktop-notifications-dropdown {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Animación del sidebar del usuario - estilo hamburger menu */
+        #mobile-user-dropdown {
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Cuando está activo */
+        #mobile-user-dropdown.user-dropdown-show {
+            transform: translateX(0) !important;
+        }
+
+        /* Overlay para sidebar del usuario */
+        #user-sidebar-overlay.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* Mejoras específicas para móvil */
+        @media (max-width: 768px) {
+            #mobile-notifications-dropdown {
+                max-width: calc(100vw - 2rem);
+                right: 0.5rem !important;
+                left: auto !important;
+                transform: none !important;
+                width: min(320px, calc(100vw - 1rem));
+            }
+            
+            /* Sidebar del usuario desde la derecha */
+            #mobile-user-dropdown {
+                position: fixed !important;
+                top: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 320px !important;
+                height: 100vh !important;
+                max-width: 85vw !important;
+                border-radius: 0 !important;
+                box-shadow: -8px 0 32px rgba(0, 0, 0, 0.24) !important;
+                overflow-y: auto !important;
+                z-index: 50 !important;
+                transform: translateX(100%) !important;
+            }
+            
+            /* Cuando está activo */
+            #mobile-user-dropdown.user-dropdown-show {
+                transform: translateX(0) !important;
+            }
+            
+            /* Pantallas muy pequeñas (menos de 400px) */
+            @media (max-width: 400px) {
+                #mobile-notifications-dropdown {
+                    right: 0.25rem !important;
+                    width: calc(100vw - 0.5rem) !important;
+                    max-width: calc(100vw - 0.5rem) !important;
+                }
+                
+                #mobile-user-dropdown {
+                    width: 280px !important;
+                    max-width: 90vw !important;
+                }
+                
+                #mobile-notifications-dropdown {
+                    font-size: 0.875rem;
+                }
             }
         }
 
@@ -753,6 +918,329 @@ Ver consola para detalles completos.
             to {
                 transform: translateX(0);
                 opacity: 1;
+            }
+        }
+
+        /* Animaciones adicionales para notificaciones */
+        .notification-toast {
+            animation: notificationPop 0.5s ease-out;
+        }
+
+        @keyframes notificationPop {
+            0% {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: translateX(-10px) scale(1.05);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Badge de notificaciones pulsante MEJORADO */
+        .notification-badge {
+            animation: badgeScale 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .notification-badge.show {
+            transform: scale(1);
+        }
+
+        .notification-badge.hide {
+            transform: scale(0);
+        }
+
+        @keyframes badgeScale {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Animación del punto rojo pulsante */
+        .notification-pulse {
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+        }
+
+        /* Campana de notificaciones animada MEJORADA */
+        .notification-bell-shake {
+            animation: bellShake 0.8s ease-in-out;
+        }
+
+        .notification-bell-ring {
+            animation: bellRing 1s ease-in-out;
+        }
+
+        @keyframes bellShake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+            20%, 40%, 60%, 80% { transform: rotate(10deg); }
+        }
+
+        @keyframes bellRing {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            40% {
+                transform: translateY(-3px) rotate(-5deg);
+            }
+            60% {
+                transform: translateY(-2px) rotate(5deg);
+            }
+        }
+
+        /* Dropdown de notificaciones mejorado */
+        .notifications-dropdown-show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: translateY(0) scale(1) !important;
+        }
+
+        /* Z-index específico para dropdown de notificaciones */
+        #desktop-notifications-dropdown {
+            z-index: 9999 !important;
+            position: absolute !important;
+        }
+
+        #desktop-notifications-dropdown.notifications-dropdown-show {
+            z-index: 9999 !important;
+        }
+
+        /* Asegurar que el dropdown esté por encima de todo */
+        .notification-dropdown-overlay {
+            z-index: 9998 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: transparent !important;
+            pointer-events: none !important;
+        }
+
+        .notification-dropdown-overlay.active {
+            pointer-events: auto !important;
+        }
+
+        /* Custom scrollbar para notificaciones */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Notificación individual mejorada */
+        .notification-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .notification-item.unread {
+            background: linear-gradient(90deg, #eff6ff, #ffffff);
+            border-left-color: #3b82f6;
+        }
+
+        .notification-item.urgent {
+            background: linear-gradient(90deg, #fef2f2, #ffffff);
+            border-left-color: #ef4444;
+        }
+
+        .notification-item:hover {
+            transform: translateX(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #f8fafc;
+        }
+
+        /* Indicador de notificación no leída MEJORADO */
+        .unread-indicator {
+            position: relative;
+        }
+
+        .unread-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -8px;
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            animation: unreadPulse 2s infinite;
+        }
+
+        @keyframes unreadPulse {
+            0% {
+                transform: translateY(-50%) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-50%) scale(1.3);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Animaciones de entrada para notificaciones */
+        .notification-enter {
+            animation: notificationSlideIn 0.3s ease-out;
+        }
+
+        @keyframes notificationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Efecto de carga suave */
+        .notification-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Responsividad para notificaciones en móvil */
+        @media (max-width: 768px) {
+            .notification-badge {
+                min-width: 20px;
+                height: 20px;
+                font-size: 0.7rem;
+            }
+            
+            .notification-item {
+                padding: 0.75rem;
+            }
+            
+            .notification-item .text-sm {
+                font-size: 0.8rem;
+            }
+            
+            .notifications-dropdown-show {
+                width: calc(100vw - 2rem) !important;
+                right: 1rem !important;
+                left: 1rem !important;
+                max-width: none !important;
+            }
+            
+            /* Mejorar táctil en móvil */
+            .notification-item {
+                min-height: 60px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .notification-item:active {
+                background-color: #f1f5f9;
+                transform: scale(0.98);
+            }
+        }
+
+        /* Animaciones suaves para mejor UX */
+        .notification-bell-pulse {
+            animation: bellPulse 0.6s ease-in-out;
+        }
+
+        @keyframes bellPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Estados de carga más atractivos */
+        .notification-loading {
+            background: linear-gradient(90deg, 
+                rgba(59, 130, 246, 0.1) 25%, 
+                rgba(59, 130, 246, 0.2) 50%, 
+                rgba(59, 130, 246, 0.1) 75%);
+            background-size: 200% 100%;
+            animation: notificationLoading 1.5s infinite;
+        }
+
+        @keyframes notificationLoading {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Mejoras de accesibilidad */
+        .notification-item:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: -2px;
+        }
+
+        .notification-item[aria-pressed="true"] {
+            background-color: #eff6ff;
+        }
+        }
+
+        @keyframes unreadPulse {
+            0%, 100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-50%) scale(1.2);
             }
         }
 
@@ -846,44 +1334,186 @@ Ver consola para detalles completos.
     {% if user.is_authenticated %}
         <!-- Header Móvil -->
         <header class="mobile-header">
-            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback" 
-                    onclick="toggleSidebar()" 
-                    style="touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.1);">
-                <i class="fas fa-bars text-gray-600 text-xl"></i>
-            </button>
+            <!-- Botón hamburger con posición absoluta -->
+            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback" 
+                        onclick="toggleSidebar()" 
+                        style="touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.1);">
+                    <i class="fas fa-bars text-gray-600 text-xl"></i>
+                </button>
+            </div>
             
-            <div class="flex-1 flex items-center justify-center">
-                <div class="flex items-center space-x-3">
-                    <div class="flex items-center justify-center">
-                        {% if system_config.company_logo %}
-                            <img src="{{ system_config.company_logo.url }}" 
-                                 alt="{{ system_config.company_name|default:'Logo' }}" 
-                                 class="w-8 h-8 object-contain">
-                        {% else %}
-                            <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-shield-alt text-white text-sm"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <h1 class="text-lg font-bold text-gray-900">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h1>
+            <!-- Logo centrado en toda la página -->
+            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div class="flex items-center justify-center">
+                    {% if system_config.company_logo %}
+                        <img src="{{ system_config.company_logo.url }}" 
+                             alt="{{ system_config.company_name|default:'Logo' }}" 
+                             class="w-12 h-12 md:w-8 md:h-8 object-contain">
+                    {% else %}
+                        <div class="w-12 h-12 md:w-8 md:h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-white text-lg md:text-sm"></i>
+                        </div>
+                    {% endif %}
+                    <!-- Título solo visible en tablet y escritorio -->
+                    <h1 class="hidden md:block text-lg font-bold text-gray-900 ml-3">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h1>
                 </div>
             </div>
             
-            <div class="flex items-center space-x-2">
-                <!-- Componente de notificaciones -->
-                {% if user.user_role.role == 'admin' %}
-                {% include 'components/notifications.html' %}
-                {% endif %}
+            <!-- Notificaciones y usuario con posición absoluta a la derecha -->
+            <div class="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                <!-- Componente de notificaciones universal -->
+                <div class="relative">
+                    <button id="mobile-notifications-btn" class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i id="mobile-notification-bell" class="fas fa-bell text-xl"></i>
+                        <span id="mobile-notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse hidden">
+                            <span id="mobile-notification-count">0</span>
+                        </span>
+                    </button>
+                    
+                    <!-- Dropdown de notificaciones móvil -->
+                    <div id="mobile-notifications-dropdown" class="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-lg shadow-xl border border-gray-200 hidden" style="z-index: 9999 !important;">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                                <button id="mobile-mark-all-read" class="text-sm text-blue-600 hover:text-blue-800">
+                                    Marcar todas como leídas
+                                </button>
+                            </div>
+                        </div>
+                        <div id="mobile-notifications-list" class="max-h-64 overflow-y-auto">
+                            <div class="p-4 text-center text-gray-500">
+                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                <p>No hay notificaciones</p>
+                            </div>
+                        </div>
+                        <div class="p-3 border-t border-gray-200">
+                            <a href="{% url 'accounts:notifications' %}" class="block text-center text-sm text-blue-600 hover:text-blue-800">
+                                Ver todas las notificaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 
-                <span class="text-sm font-medium text-gray-700">{{ user.first_name|default:user.username }}</span>
-                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-user text-primary-600 text-sm"></i>
+                <!-- Username solo visible en tablet y escritorio -->
+                <span class="hidden md:block text-sm font-medium text-gray-700">{{ user.first_name|default:user.username }}</span>
+                
+                <!-- Dropdown del usuario -->
+                <div class="relative">
+                    <button id="mobile-user-btn" class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors">
+                        <i class="fas fa-user text-primary-600 text-sm"></i>
+                    </button>
+                    
+                    <!-- Dropdown del usuario - Sidebar Style -->
+                    <div id="mobile-user-dropdown" class="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out">
+                        <!-- Header del sidebar de usuario -->
+                        <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-primary-500 to-blue-600 text-white">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">Mi Cuenta</h3>
+                                <button id="close-user-sidebar" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-white">{{ user.first_name|default:user.username }}</p>
+                                    <p class="text-sm text-white/80">{{ user.email }}</p>
+                                    {% if user.user_role %}
+                                        <span class="inline-block px-2 py-1 text-xs bg-white/20 text-white rounded-full mt-1">
+                                            {{ user.user_role.get_role_display }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Opciones del menú -->
+                        <div class="flex-1 overflow-y-auto p-4">
+                            <!-- Mi Perfil -->
+                            <a href="{% url 'accounts:profile' %}" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
+                                <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user-circle text-primary-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-900">Mi Perfil</span>
+                                    <p class="text-sm text-gray-500">Gestionar información personal</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Configuración -->
+                            <a href="{% url 'dashboard:user_preferences' %}" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-cog text-blue-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-900">Configuración</span>
+                                    <p class="text-sm text-gray-500">Preferencias del sistema</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Notificaciones -->
+                            <a href="{% url 'accounts:notifications' %}" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-bell text-yellow-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-900">Notificaciones</span>
+                                    <p class="text-sm text-gray-500">Historial de alertas</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Ayuda -->
+                            <a href="#" class="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors mb-2">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-question-circle text-green-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-900">Ayuda</span>
+                                    <p class="text-sm text-gray-500">Soporte y documentación</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Divisor -->
+                            <div class="my-6 border-t border-gray-200"></div>
+                            
+                            <!-- Cambiar Tema -->
+                            <button onclick="toggleDarkMode()" class="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-colors text-left mb-2">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-moon text-purple-600 text-lg" id="theme-icon"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-900">Modo Oscuro</span>
+                                    <p class="text-sm text-gray-500">Cambiar tema visual</p>
+                                </div>
+                            </button>
+                            
+                            <!-- Cerrar Sesión -->
+                            <form method="post" action="{% url 'accounts:logout' %}" class="w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full flex items-center space-x-4 p-4 rounded-xl hover:bg-red-50 transition-colors text-left">
+                                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-sign-out-alt text-red-500 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-red-600">Cerrar Sesión</span>
+                                        <p class="text-sm text-red-400">Salir del sistema</p>
+                                    </div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Overlay para sidebar móvil -->
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Overlay para sidebar del usuario -->
+        <div id="user-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 visibility-hidden transition-all duration-300 ease-out"></div>
 
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
@@ -936,89 +1566,6 @@ Ver consola para detalles completos.
                     </nav>
                 </div>
 
-                <!-- DEBUG: Mostrar información completa del usuario y rol -->
-                <div class="mb-6 px-4">
-                    <div class="bg-gray-800 p-3 rounded-lg text-xs text-gray-300 space-y-2">
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-user text-blue-400"></i>
-                            <div><strong>Usuario:</strong> {{ user.username }}</div>
-                        </div>
-                        
-                        {% if user.user_role %}
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-id-badge text-green-400"></i>
-                                <div><strong>Rol:</strong> {{ user.user_role.get_role_display }}</div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-toggle-on text-green-400"></i>
-                                <div><strong>Estado:</strong> {% if user.user_role.is_active %}Activo{% else %}Inactivo{% endif %}</div>
-                            </div>
-                            
-                            {% if user.user_role.role == 'tenant' and user.user_role.tenant_profile %}
-                                <div class="bg-green-900 p-2 rounded mt-2">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-building text-green-300"></i>
-                                        <div><strong>Local:</strong> {{ user.user_role.tenant_profile.tenant_name }}</div>
-                                    </div>
-                                    <div class="text-green-200 text-xs mt-1">
-                                        Oficina: {{ user.user_role.tenant_profile.numero_oficina|default:"No especificada" }}
-                                    </div>
-                                </div>
-                            {% elif user.user_role.role == 'tenant' %}
-                                <div class="bg-yellow-900 p-2 rounded mt-2 text-yellow-200">
-                                    <i class="fas fa-exclamation-triangle"></i> Sin local asignado
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-exclamation-triangle text-red-400"></i>
-                                <div class="text-red-400"><strong>⚠️ Sin rol asignado</strong></div>
-                            </div>
-                            {% if user.is_superuser %}
-                                <div class="flex items-center space-x-2">
-                                    <i class="fas fa-crown text-yellow-400"></i>
-                                    <div class="text-green-400">Es superusuario</div>
-                                </div>
-                            {% endif %}
-                        {% endif %}
-                        
-                        {% if user.groups.exists %}
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-users text-blue-400 mt-0.5"></i>
-                                <div>
-                                    <strong>Grupos:</strong> 
-                                    {% for group in user.groups.all %}
-                                        <span class="bg-blue-800 px-2 py-1 rounded text-xs">{{ group.name }}</span>{% if not forloop.last %} {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="pt-2 border-t border-gray-700">
-                            <div class="text-xs text-gray-400">
-                                <div><strong>Email:</strong> {{ user.email|default:"No especificado" }}</div>
-                                <div><strong>Registrado:</strong> {{ user.date_joined|date:"d/m/Y H:i" }}</div>
-                            </div>
-                            <div class="mt-2 space-y-2">
-                                <a href="{% url 'accounts:debug_user_info' %}" 
-                                   class="inline-flex items-center px-2 py-1 bg-indigo-800 hover:bg-indigo-700 rounded text-xs text-white transition-colors">
-                                    <i class="fas fa-bug mr-1"></i>
-                                    Ver Info Completa
-                                </a>
-                                <button onclick="window.reloadSystemConfig()" 
-                                        class="inline-flex items-center px-2 py-1 bg-green-800 hover:bg-green-700 rounded text-xs text-white transition-colors">
-                                    <i class="fas fa-sync-alt mr-1"></i>
-                                    Recargar Logo
-                                </button>
-                                <button onclick="window.debugLogo()" 
-                                        class="inline-flex items-center px-2 py-1 bg-blue-800 hover:bg-blue-700 rounded text-xs text-white transition-colors">
-                                    <i class="fas fa-bug mr-1"></i>
-                                    Debug Logo
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- ADMINISTRADOR O SUPERUSUARIO -->
                 {% if user.is_superuser or user.user_role and user.user_role.role == 'admin' %}
@@ -1034,6 +1581,23 @@ Ver consola para detalles completos.
                                class="sidebar-link {% if 'maintenance' in request.path and 'dashboard' in request.path %}active{% endif %}">
                                 <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
                                 <span>Dashboard</span>
+                            </a>
+                            <a href="{% url 'maintenance:reports_list' %}" 
+                               class="sidebar-link {% if 'reports' in request.path %}active{% endif %}">
+                                <i class="fas fa-exclamation-circle w-5 text-center mr-3"></i>
+                                <span>Reportes de Inquilinos</span>
+                                {% if user.is_superuser or user.user_role.role == 'admin' %}
+                                    {% if pending_maintenance_reports > 0 %}
+                                    <!-- Badge de notificación dinámico -->
+                                    <span id="reports-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-pulse">
+                                        <span class="reports-count">{{ pending_maintenance_reports }}</span>
+                                    </span>
+                                    {% else %}
+                                    <span id="reports-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-pulse hidden">
+                                        <span class="reports-count">0</span>
+                                    </span>
+                                    {% endif %}
+                                {% endif %}
                             </a>
                             <a href="{% url 'maintenance:checklists_list' %}" 
                                class="sidebar-link {% if 'checklist' in request.path %}active{% endif %}">
@@ -1133,9 +1697,13 @@ Ver consola para detalles completos.
                                 <span>Panel Admin</span>
                             </a>
                             <a href="{% url 'accounts:notifications' %}" 
-                               class="sidebar-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %}">
+                               class="sidebar-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %} relative">
                                 <i class="fas fa-bell w-5 text-center mr-3"></i>
                                 <span>Notificaciones</span>
+                                <!-- Badge de notificaciones pendientes -->
+                                <span id="sidebar-notification-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-bounce hidden">
+                                    <span id="sidebar-notification-count">0</span>
+                                </span>
                             </a>
                             <a href="{% url 'dashboard:system_configuration' %}" 
                                class="sidebar-link {% if 'system_configuration' in request.resolver_match.url_name %}active{% endif %}">
@@ -1146,7 +1714,7 @@ Ver consola para detalles completos.
                     </div>
 
                 <!-- VIGILANTE (GUARD) -->
-                {% elif user.user_role and user.user_role.role == 'guard' %}
+                {% elif user|in_group:"Vigilantes" %}
                     <!-- Seguridad -->
                     <div class="mb-6">
                         <div class="px-4 mb-2">
@@ -1193,7 +1761,7 @@ Ver consola para detalles completos.
                     </div>
 
                 <!-- INQUILINO (TENANT) -->
-                {% elif user.user_role and user.user_role.role == 'tenant' %}
+                {% elif user|in_group:"Inquilinos" %}
                     <!-- Mi Local -->
                     <div class="mb-6">
                         <div class="px-4 mb-2">
@@ -1207,8 +1775,8 @@ Ver consola para detalles completos.
                                 <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
                                 <span>Panel de Inquilino</span>
                             </a>
-                            <a href="{% url 'tenants:my_profile' %}" 
-                               class="sidebar-link {% if 'my_profile' in request.resolver_match.url_name %}active{% endif %}">
+                            <a href="#" 
+                               class="sidebar-link">
                                 <i class="fas fa-building w-5 text-center mr-3"></i>
                                 <span>Información del Local</span>
                             </a>
@@ -1223,18 +1791,18 @@ Ver consola para detalles completos.
                             </h3>
                         </div>
                         <nav class="space-y-1">
-                            <a href="{% url 'visits:register' %}" 
-                               class="sidebar-link {% if 'register' in request.resolver_match.url_name and request.resolver_match.namespace == 'visits' %}active{% endif %}">
+                            <a href="{% url 'visits:visit_create' %}" 
+                               class="sidebar-link">
                                 <i class="fas fa-user-plus w-5 text-center mr-3"></i>
                                 <span>Registrar Visita</span>
                             </a>
-                            <a href="{% url 'visits:my_visits' %}" 
-                               class="sidebar-link {% if 'my_visits' in request.resolver_match.url_name %}active{% endif %}">
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link">
                                 <i class="fas fa-calendar-alt w-5 text-center mr-3"></i>
                                 <span>Mis Visitas</span>
                             </a>
-                            <a href="{% url 'visits:today' %}" 
-                               class="sidebar-link {% if 'today' in request.resolver_match.url_name and request.resolver_match.namespace == 'visits' %}active{% endif %}">
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link">
                                 <i class="fas fa-clock w-5 text-center mr-3"></i>
                                 <span>Visitas de Hoy</span>
                             </a>
@@ -1249,15 +1817,15 @@ Ver consola para detalles completos.
                             </h3>
                         </div>
                         <nav class="space-y-1">
-                            <a href="{% url 'maintenance:request_maintenance' %}" 
-                               class="sidebar-link {% if 'request_maintenance' in request.resolver_match.url_name %}active{% endif %}">
+                            <a href="{% url 'maintenance:dashboard' %}" 
+                               class="sidebar-link {% if 'maintenance' in request.resolver_match.app_name %}active{% endif %}">
                                 <i class="fas fa-wrench w-5 text-center mr-3"></i>
-                                <span>Solicitar Mantenimiento</span>
+                                <span>Mantenimiento</span>
                             </a>
-                            <a href="{% url 'maintenance:my_requests' %}" 
-                               class="sidebar-link {% if 'my_requests' in request.resolver_match.url_name %}active{% endif %}">
-                                <i class="fas fa-clipboard-list w-5 text-center mr-3"></i>
-                                <span>Mis Solicitudes</span>
+                            <a href="{% url 'maintenance:reports_list' %}" 
+                               class="sidebar-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-exclamation-circle w-5 text-center mr-3"></i>
+                                <span>Mis Reportes</span>
                             </a>
                         </nav>
                     </div>
@@ -1270,12 +1838,12 @@ Ver consola para detalles completos.
                             </h3>
                         </div>
                         <nav class="space-y-1">
-                            <a href="{% url 'dashboard:contact_admin' %}" 
-                               class="sidebar-link {% if 'contact_admin' in request.resolver_match.url_name %}active{% endif %}">
+                            <a href="{% url 'dashboard:admin_panel' %}" 
+                               class="sidebar-link {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
                                 <i class="fas fa-envelope w-5 text-center mr-3"></i>
                                 <span>Contactar Administración</span>
                             </a>
-                            <a href="{% url 'dashboard:announcements' %}" 
+                            <a href="{% url 'dashboard:index' %}" 
                                class="sidebar-link {% if 'announcements' in request.resolver_match.url_name %}active{% endif %}">
                                 <i class="fas fa-bullhorn w-5 text-center mr-3"></i>
                                 <span>Anuncios</span>
@@ -1400,6 +1968,96 @@ Ver consola para detalles completos.
 
         <!-- Contenido Principal -->
         <main class="lg:ml-64 min-h-screen">
+            <!-- Header Desktop (solo visible en pantallas grandes) -->
+            <header class="hidden lg:flex sticky top-0 z-40 bg-white border-b border-gray-200 px-8 py-4 items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        {% block page_title %}Sistema de Gestión{% endblock %}
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Icono de notificaciones para desktop - MEJORADO -->
+                    <div class="relative" id="desktop-notifications-container">
+                        <button id="desktop-notifications-btn" class="relative p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i id="desktop-notification-bell" class="fas fa-bell text-xl group-hover:scale-110 transition-all duration-200"></i>
+                            <!-- Badge con contador y punto rojo -->
+                            <span id="desktop-notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[24px] h-6 flex items-center justify-center font-bold shadow-lg transform scale-0 transition-all duration-300 notification-badge">
+                                <span id="desktop-notification-count">0</span>
+                            </span>
+                            <!-- Punto rojo pulsante para notificaciones nuevas -->
+                            <span id="desktop-notification-pulse" class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse hidden"></span>
+                        </button>
+                        
+                        <!-- Dropdown de notificaciones desktop - MEJORADO -->
+                        <div id="desktop-notifications-dropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 opacity-0 invisible transform translate-y-2 scale-95 transition-all duration-300 ease-out" style="z-index: 9999 !important;">
+                            <!-- Header del dropdown -->
+                            <div class="p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
+                                            <i class="fas fa-bell text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-bold text-gray-900">Notificaciones</h3>
+                                            <p class="text-sm text-gray-600"><span id="desktop-unread-count">0</span> sin leer</p>
+                                        </div>
+                                    </div>
+                                    <button id="desktop-mark-all-read" class="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <i class="fas fa-check-double mr-1"></i>Marcar todas
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Lista de notificaciones -->
+                            <div id="desktop-notifications-list" class="max-h-80 overflow-y-auto custom-scrollbar">
+                                <!-- Loading state -->
+                                <div id="desktop-notifications-loading" class="p-8 text-center">
+                                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                    <p class="text-sm text-gray-500 mt-2">Cargando notificaciones...</p>
+                                </div>
+                                
+                                <!-- Empty state -->
+                                <div id="desktop-notifications-empty" class="p-8 text-center text-gray-500 hidden">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                    </div>
+                                    <p class="text-lg font-medium">No hay notificaciones</p>
+                                    <p class="text-sm">Te notificaremos cuando llegue algo nuevo</p>
+                                </div>
+                                
+                                <!-- Contenedor de notificaciones -->
+                                <div id="desktop-notifications-content" class="hidden"></div>
+                            </div>
+                            
+                            <!-- Footer del dropdown -->
+                            <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                                <a href="{% url 'accounts:notifications' %}" class="block text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-list mr-2"></i>Ver todas las notificaciones
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del usuario -->
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="text-xs text-gray-500">
+                                {% if user.user_role %}
+                                    {{ user.user_role.get_role_display }}
+                                {% else %}
+                                    Usuario
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                            <span class="text-white font-bold text-sm">{{ user.first_name.0|default:user.username.0|upper }}</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
             <div class="main-content p-4 lg:p-8">
                 <!-- Mensajes del sistema -->
                 {% if messages %}
@@ -1495,7 +2153,10 @@ Ver consola para detalles completos.
     <!-- Mobile App JavaScript -->
     <script src="/static/js/mobile-app.js"></script>
     
-    <!-- JavaScript mejorado -->
+    <!-- Sistema de Notificaciones Robusto -->
+    <script src="/static/js/notifications-system.js"></script>
+
+    <!-- JavaScript esencial -->
     <script>
         // Variables globales
         let isSidebarOpen = false;
@@ -1603,6 +2264,197 @@ Ver consola para detalles completos.
                 });
             }
 
+            // === SIDEBAR DEL USUARIO ===
+            const userBtn = document.getElementById('mobile-user-btn');
+            const userDropdown = document.getElementById('mobile-user-dropdown');
+            const userOverlay = document.getElementById('user-sidebar-overlay');
+            const closeUserBtn = document.getElementById('close-user-sidebar');
+            let isUserDropdownOpen = false;
+
+            if (userBtn && userDropdown) {
+                // Toggle sidebar del usuario
+                userBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Cerrar dropdown de notificaciones si está abierto
+                    if (window.notificationSystem && window.notificationSystem.isMobileDropdownOpen) {
+                        console.log('🔄 Cerrando dropdown de notificaciones desde usuario');
+                        window.notificationSystem.closeDropdown('mobile');
+                    }
+                    
+                    toggleUserDropdown();
+                });
+
+                // Cerrar sidebar al hacer click en overlay
+                if (userOverlay) {
+                    userOverlay.addEventListener('click', function() {
+                        if (isUserDropdownOpen) {
+                            closeUserDropdown();
+                        }
+                    });
+                }
+
+                // Cerrar sidebar con el botón de cerrar
+                if (closeUserBtn) {
+                    closeUserBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        closeUserDropdown();
+                    });
+                }
+
+                // Cerrar sidebar con tecla ESC
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && isUserDropdownOpen) {
+                        closeUserDropdown();
+                    }
+                });
+
+                // Prevenir que clicks dentro del sidebar lo cierren
+                userDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+
+                console.log('✅ Event listeners agregados para sidebar del usuario');
+            }
+
+            // Funciones para manejar el sidebar del usuario (globales)
+            window.toggleUserDropdown = function toggleUserDropdown() {
+                if (isUserDropdownOpen) {
+                    closeUserDropdown();
+                } else {
+                    openUserDropdown();
+                }
+            }
+
+            window.openUserDropdown = function openUserDropdown() {
+                userDropdown.classList.add('user-dropdown-show');
+                
+                // Mostrar overlay
+                if (userOverlay) {
+                    userOverlay.classList.add('active');
+                }
+                
+                // Bloquear scroll del body
+                document.body.style.overflow = 'hidden';
+                
+                isUserDropdownOpen = true;
+                console.log('👤 Sidebar del usuario abierto (slide desde derecha)');
+            }
+
+            window.closeUserDropdown = function closeUserDropdown() {
+                userDropdown.classList.remove('user-dropdown-show');
+                
+                // Ocultar overlay
+                if (userOverlay) {
+                    userOverlay.classList.remove('active');
+                }
+                
+                // Restaurar scroll del body
+                document.body.style.overflow = '';
+                
+                isUserDropdownOpen = false;
+                console.log('👤 Sidebar del usuario cerrado');
+            }
+
+            // === FUNCIÓN PARA CAMBIAR TEMA ===
+            window.toggleDarkMode = function() {
+                const body = document.body;
+                const themeIcon = document.getElementById('theme-icon');
+                
+                if (body.classList.contains('dark')) {
+                    body.classList.remove('dark');
+                    if (themeIcon) {
+                        themeIcon.classList.remove('fa-sun');
+                        themeIcon.classList.add('fa-moon');
+                    }
+                    localStorage.setItem('theme', 'light');
+                    console.log('🌞 Modo claro activado');
+                } else {
+                    body.classList.add('dark');
+                    if (themeIcon) {
+                        themeIcon.classList.remove('fa-moon');
+                        themeIcon.classList.add('fa-sun');
+                    }
+                    localStorage.setItem('theme', 'dark');
+                    console.log('🌙 Modo oscuro activado');
+                }
+            };
+
+            // === FUNCIÓN PARA CAMBIAR CONTRASEÑA ===
+            window.changePassword = function() {
+                // Crear modal dinámico para cambiar contraseña
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg max-w-md w-full p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Cambiar Contraseña</h3>
+                        <form id="change-password-form">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña Actual</label>
+                                    <input type="password" id="current-password" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña</label>
+                                    <input type="password" id="new-password" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar Nueva Contraseña</label>
+                                    <input type="password" id="confirm-password" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                                </div>
+                            </div>
+                            <div class="flex justify-end space-x-3 mt-6">
+                                <button type="button" onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Cambiar</button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Event listener para el formulario
+                document.getElementById('change-password-form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const newPassword = document.getElementById('new-password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    
+                    if (newPassword !== confirmPassword) {
+                        alert('Las contraseñas no coinciden');
+                        return;
+                    }
+                    
+                    alert('Función de cambio de contraseña en desarrollo');
+                    closePasswordModal();
+                });
+                
+                // Cerrar modal al hacer click fuera
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closePasswordModal();
+                    }
+                });
+            };
+
+            window.closePasswordModal = function() {
+                const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+                if (modal) {
+                    modal.remove();
+                }
+            };
+
+            // Aplicar tema guardado al cargar
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
+                const themeIcon = document.getElementById('theme-icon');
+                if (themeIcon) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                }
+            }
+
             // Gestos táctiles para sidebar
             document.addEventListener('touchstart', function(e) {
                 touchStartX = e.touches[0].clientX;
@@ -1631,8 +2483,13 @@ Ver consola para detalles completos.
 
             // Cerrar sidebar con tecla ESC
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && isSidebarOpen) {
-                    toggleSidebar();
+                if (e.key === 'Escape') {
+                    if (isSidebarOpen) {
+                        toggleSidebar();
+                    }
+                    if (isUserDropdownOpen) {
+                        closeUserDropdown();
+                    }
                 }
             });
 
@@ -1758,6 +2615,676 @@ Ver consola para detalles completos.
             // Service Worker removido para evitar errores 404
             console.log('Service Worker disabled for development');
         });
+    </script>
+    
+    <!-- Script para header fijo móvil -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let lastScrollTop = 0;
+            const mobileHeader = document.querySelector('.mobile-header');
+            
+            if (mobileHeader && window.innerWidth <= 768) {
+                window.addEventListener('scroll', function() {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    if (scrollTop > lastScrollTop && scrollTop > 100) {
+                        // Scrolling down
+                        mobileHeader.style.transform = 'translateY(-100%)';
+                        mobileHeader.style.opacity = '0.95';
+                    } else {
+                        // Scrolling up
+                        mobileHeader.style.transform = 'translateY(0)';
+                        mobileHeader.style.opacity = '1';
+                    }
+                    
+                    // Add shadow when scrolled
+                    if (scrollTop > 10) {
+                        mobileHeader.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                        mobileHeader.style.backdropFilter = 'blur(20px)';
+                    } else {
+                        mobileHeader.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+                        mobileHeader.style.backdropFilter = 'blur(10px)';
+                    }
+                    
+                    lastScrollTop = scrollTop;
+                }, { passive: true });
+                
+                // Smooth transition for header
+                mobileHeader.style.transition = 'transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease';
+            }
+        });
+    </script>
+    
+    <!-- Script de compatibilidad y depuración -->
+    <script>
+        // Asegurar que las funciones globales estén disponibles
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Sistema iniciando - Verificando componentes...');
+            
+            // Verificar elementos críticos
+            const elementsToCheck = [
+                'mobile-notifications-btn',
+                'mobile-notifications-dropdown', 
+                'mobile-notifications-list',
+                'mobile-notification-badge',
+                'mobile-notification-count',
+                'desktop-notifications-btn',
+                'desktop-notifications-dropdown',
+                'desktop-notifications-list',
+                'desktop-notification-badge',
+                'desktop-notification-count'
+            ];
+            
+            elementsToCheck.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    console.log(`✅ ${id} encontrado`);
+                } else {
+                    console.warn(`⚠️ ${id} no encontrado`);
+                }
+            });
+            
+            // Fallback para markNotificationAsRead si no existe
+            if (typeof window.markNotificationAsRead === 'undefined') {
+                window.markNotificationAsRead = function(notificationId, actionUrl = null) {
+                    console.log('⚡ Usando función fallback markNotificationAsRead');
+                    if (actionUrl && actionUrl !== '#') {
+                        window.location.href = actionUrl;
+                    }
+                };
+            }
+            
+            // Verificar si el sistema de notificaciones está funcionando
+            setTimeout(() => {
+                if (window.notificationSystem) {
+                    console.log('✅ Sistema de notificaciones cargado correctamente');
+                } else {
+                    console.warn('⚠️ Sistema de notificaciones no cargado - Reintentando...');
+                    // Reintentar carga
+                    if (typeof RobustNotificationSystem !== 'undefined') {
+                        window.notificationSystem = new RobustNotificationSystem();
+                        console.log('🔄 Sistema de notificaciones reiniciado');
+                    }
+                }
+            }, 2000);
+        });
+        
+        // Debugging global
+        window.debugNotifications = function() {
+            console.log('🔍 DEBUG NOTIFICACIONES:');
+            console.log('- notificationSystem:', !!window.notificationSystem);
+            console.log('- RobustNotificationSystem:', typeof RobustNotificationSystem);
+            console.log('- markNotificationAsRead:', typeof window.markNotificationAsRead);
+            
+            // Elementos HTML
+            const elements = {
+                mobileBtn: document.getElementById('mobile-notifications-btn'),
+                mobileDropdown: document.getElementById('mobile-notifications-dropdown'),
+                mobileBadge: document.getElementById('mobile-notification-badge'),
+                desktopBtn: document.getElementById('desktop-notifications-btn'),
+                desktopDropdown: document.getElementById('desktop-notifications-dropdown'),
+                desktopBadge: document.getElementById('desktop-notification-badge')
+            };
+            
+            Object.entries(elements).forEach(([name, element]) => {
+                console.log(`- ${name}:`, !!element);
+            });
+        };
+
+        // =============================================
+        // SISTEMA DE NOTIFICACIONES MEJORADO 
+        // =============================================
+        
+        class NotificationSystem {
+            constructor() {
+                this.isLoading = false;
+                this.notifications = [];
+                this.unreadCount = 0;
+                this.isDropdownOpen = false;
+                this.isMobileDropdownOpen = false;
+                this.refreshInterval = null;
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadNotifications();
+                this.startPeriodicRefresh();
+                console.log('🔔 Sistema de notificaciones mejorado iniciado');
+            }
+            
+            bindEvents() {
+                // Elementos de escritorio
+                const desktopBtn = document.getElementById('desktop-notifications-btn');
+                const desktopDropdown = document.getElementById('desktop-notifications-dropdown');
+                const markAllReadBtn = document.getElementById('desktop-mark-all-read');
+                
+                // Elementos de móvil
+                const mobileBtn = document.getElementById('mobile-notifications-btn');
+                const mobileDropdown = document.getElementById('mobile-notifications-dropdown');
+                const mobileMarkAllReadBtn = document.getElementById('mobile-mark-all-read');
+                
+                // Configurar eventos para escritorio
+                if (desktopBtn && desktopDropdown) {
+                    // Toggle dropdown con debugging
+                    desktopBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log('🔔 Click en campana de notificaciones (escritorio)');
+                        this.toggleDropdown('desktop');
+                    });
+                    
+                    // Cerrar dropdown al hacer click fuera - mejorado
+                    document.addEventListener('click', (e) => {
+                        const container = document.getElementById('desktop-notifications-container');
+                        if (container && !container.contains(e.target) && this.isDropdownOpen) {
+                            console.log('👆 Click fuera del dropdown (escritorio), cerrando...');
+                            this.closeDropdown('desktop');
+                        }
+                    });
+                    
+                    // Prevenir que clicks dentro del dropdown lo cierren
+                    desktopDropdown.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                    
+                    // Marcar todas como leídas
+                    if (markAllReadBtn) {
+                        markAllReadBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.markAllAsRead();
+                        });
+                    }
+                    
+                    console.log('🔔 Event listeners agregados para notificaciones (escritorio)');
+                }
+                
+                // Configurar eventos para móvil
+                if (mobileBtn && mobileDropdown) {
+                    // Toggle dropdown móvil
+                    mobileBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log('🔔 Click en campana de notificaciones (móvil)');
+                        
+                        // Cerrar dropdown del usuario si está abierto
+                        if (typeof closeUserDropdown === 'function') {
+                            console.log('🔄 Cerrando dropdown del usuario desde notificaciones');
+                            closeUserDropdown();
+                        }
+                        
+                        this.toggleDropdown('mobile');
+                    });
+                    
+                    // Cerrar dropdown al hacer click fuera
+                    document.addEventListener('click', (e) => {
+                        if (!mobileDropdown.contains(e.target) && !mobileBtn.contains(e.target) && this.isMobileDropdownOpen) {
+                            console.log('� Click fuera del dropdown (móvil), cerrando...');
+                            this.closeDropdown('mobile');
+                        }
+                    });
+                    
+                    // Prevenir que clicks dentro del dropdown lo cierren
+                    mobileDropdown.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                    
+                    // Marcar todas como leídas (móvil)
+                    if (mobileMarkAllReadBtn) {
+                        mobileMarkAllReadBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.markAllAsRead();
+                        });
+                    }
+                    
+                    console.log('🔔 Event listeners agregados para notificaciones (móvil)');
+                }
+            }
+            
+            async loadNotifications() {
+                if (this.isLoading) return;
+                
+                this.isLoading = true;
+                this.showLoading();
+                
+                try {
+                    const response = await fetch('/api/notifications/list/');
+                    if (!response.ok) throw new Error('Error al cargar notificaciones');
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        this.notifications = data.notifications;
+                        this.unreadCount = data.unread_count;
+                        this.updateUI();
+                        this.renderNotifications();
+                    }
+                } catch (error) {
+                    console.error('Error cargando notificaciones:', error);
+                    this.showError();
+                } finally {
+                    this.isLoading = false;
+                    this.hideLoading();
+                }
+            }
+            
+            updateUI() {
+                this.updateBadge();
+                this.updateBell();
+            }
+            
+            updateBadge() {
+                const badge = document.getElementById('desktop-notification-badge');
+                const count = document.getElementById('desktop-notification-count');
+                const unreadCountText = document.getElementById('desktop-unread-count');
+                const pulse = document.getElementById('desktop-notification-pulse');
+                
+                if (badge && count) {
+                    if (this.unreadCount > 0) {
+                        count.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
+                        badge.classList.remove('scale-0');
+                        badge.classList.add('show');
+                        
+                        if (pulse) {
+                            pulse.classList.remove('hidden');
+                        }
+                    } else {
+                        badge.classList.remove('show');
+                        badge.classList.add('scale-0');
+                        
+                        if (pulse) {
+                            pulse.classList.add('hidden');
+                        }
+                    }
+                }
+                
+                if (unreadCountText) {
+                    unreadCountText.textContent = this.unreadCount;
+                }
+            }
+            
+            updateBell() {
+                const bell = document.getElementById('desktop-notification-bell');
+                if (bell && this.unreadCount > 0) {
+                    bell.classList.add('notification-bell-ring');
+                    setTimeout(() => {
+                        bell.classList.remove('notification-bell-ring');
+                    }, 1000);
+                }
+            }
+            
+            renderNotifications() {
+                const container = document.getElementById('desktop-notifications-content');
+                const emptyState = document.getElementById('desktop-notifications-empty');
+                
+                if (!container) return;
+                
+                if (this.notifications.length === 0) {
+                    container.classList.add('hidden');
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+                
+                if (emptyState) emptyState.classList.add('hidden');
+                container.classList.remove('hidden');
+                
+                container.innerHTML = this.notifications.map(notification => 
+                    this.createNotificationHTML(notification)
+                ).join('');
+                
+                // Bind click events
+                this.bindNotificationEvents(container);
+            }
+            
+            createNotificationHTML(notification) {
+                const priorityClass = this.getPriorityClass(notification.priority);
+                const readClass = notification.is_read ? 'read' : 'unread';
+                
+                return `
+                    <div class="notification-item ${readClass} ${priorityClass} p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-all duration-200 notification-enter" 
+                         data-notification-id="${notification.id}" 
+                         data-action-url="${notification.action_url || ''}">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center ${this.getIconBgClass(notification.priority)}">
+                                    <i class="${notification.icon} text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-900 truncate ${notification.is_read ? '' : 'unread-indicator'}">${notification.title}</p>
+                                    <span class="text-xs text-gray-500 ml-2 flex-shrink-0">${notification.time_ago}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1 line-clamp-2">${notification.message}</p>
+                                ${notification.priority <= 2 ? '<div class="w-2 h-2 bg-red-500 rounded-full mt-2 animate-pulse"></div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            getPriorityClass(priority) {
+                if (priority <= 2) return 'urgent';
+                return '';
+            }
+            
+            getIconBgClass(priority) {
+                if (priority === 1) return 'bg-red-500';
+                if (priority === 2) return 'bg-orange-500';
+                if (priority === 3) return 'bg-blue-500';
+                return 'bg-gray-500';
+            }
+            
+            bindNotificationEvents(container) {
+                container.querySelectorAll('.notification-item').forEach(item => {
+                    item.addEventListener('click', async (e) => {
+                        const notificationId = item.dataset.notificationId;
+                        const actionUrl = item.dataset.actionUrl;
+                        
+                        // Marcar como leída
+                        await this.markAsRead(notificationId);
+                        
+                        // Redirigir si hay URL de acción
+                        if (actionUrl && actionUrl !== 'null' && actionUrl !== '') {
+                            window.location.href = actionUrl;
+                        }
+                    });
+                });
+            }
+            
+            async markAsRead(notificationId) {
+                try {
+                    const response = await fetch(`/api/notifications/${notificationId}/read/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': this.getCSRFToken(),
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        // Actualizar en la lista local
+                        const notification = this.notifications.find(n => n.id == notificationId);
+                        if (notification && !notification.is_read) {
+                            notification.is_read = true;
+                            this.unreadCount = Math.max(0, this.unreadCount - 1);
+                            this.updateUI();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error marcando notificación como leída:', error);
+                }
+            }
+            
+            async markAllAsRead() {
+                try {
+                    const response = await fetch('/api/notifications/mark-all-read/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': this.getCSRFToken(),
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        this.notifications.forEach(n => n.is_read = true);
+                        this.unreadCount = 0;
+                        this.updateUI();
+                        this.renderNotifications();
+                        
+                        window.showNotification('Todas las notificaciones marcadas como leídas', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error marcando todas como leídas:', error);
+                    window.showNotification('Error al marcar notificaciones', 'error');
+                }
+            }
+            
+            toggleDropdown(platform = 'desktop') {
+                const dropdown = document.getElementById(`${platform}-notifications-dropdown`);
+                if (!dropdown) {
+                    console.error(`❌ Dropdown element not found for ${platform}`);
+                    return;
+                }
+                
+                const isOpen = platform === 'mobile' ? this.isMobileDropdownOpen : this.isDropdownOpen;
+                console.log(`🔄 Toggle dropdown ${platform} - Estado actual:`, isOpen);
+                
+                if (isOpen) {
+                    this.closeDropdown(platform);
+                } else {
+                    this.openDropdown(platform);
+                }
+            }
+            
+            openDropdown(platform = 'desktop') {
+                const dropdown = document.getElementById(`${platform}-notifications-dropdown`);
+                if (!dropdown) {
+                    console.error(`❌ Dropdown element not found in openDropdown for ${platform}`);
+                    return;
+                }
+                
+                console.log(`📖 Abriendo dropdown de notificaciones ${platform}...`);
+                
+                // Asegurar z-index máximo
+                dropdown.style.zIndex = '9999';
+                dropdown.style.position = 'absolute';
+                
+                // Aplicar clases para mostrar
+                dropdown.classList.remove('hidden');
+                dropdown.classList.add('notifications-dropdown-show');
+                
+                if (platform === 'mobile') {
+                    this.isMobileDropdownOpen = true;
+                } else {
+                    this.isDropdownOpen = true;
+                }
+                
+                // Debug: verificar estilos aplicados
+                const computedStyle = window.getComputedStyle(dropdown);
+                console.log(`🎨 Dropdown ${platform} styles after open:`);
+                console.log('  - opacity:', computedStyle.opacity);
+                console.log('  - visibility:', computedStyle.visibility);
+                console.log('  - z-index:', computedStyle.zIndex);
+                console.log('  - transform:', computedStyle.transform);
+                
+                // Recargar notificaciones al abrir
+                if (!this.isLoading) {
+                    this.loadNotifications();
+                }
+                
+                console.log(`✅ Dropdown ${platform} abierto correctamente`);
+            }
+            
+            closeDropdown(platform = 'desktop') {
+                const dropdown = document.getElementById(`${platform}-notifications-dropdown`);
+                if (!dropdown) {
+                    console.error(`❌ Dropdown element not found in closeDropdown for ${platform}`);
+                    return;
+                }
+                
+                console.log(`📕 Cerrando dropdown de notificaciones ${platform}...`);
+                
+                dropdown.classList.add('hidden');
+                dropdown.classList.remove('notifications-dropdown-show');
+                
+                if (platform === 'mobile') {
+                    this.isMobileDropdownOpen = false;
+                } else {
+                    this.isDropdownOpen = false;
+                }
+                
+                console.log(`✅ Dropdown ${platform} cerrado correctamente`);
+            }
+            
+            showLoading() {
+                const loading = document.getElementById('desktop-notifications-loading');
+                const content = document.getElementById('desktop-notifications-content');
+                const emptyState = document.getElementById('desktop-notifications-empty');
+                
+                if (loading) loading.classList.remove('hidden');
+                if (content) content.classList.add('hidden');
+                if (emptyState) emptyState.classList.add('hidden');
+            }
+            
+            hideLoading() {
+                const loading = document.getElementById('desktop-notifications-loading');
+                if (loading) loading.classList.add('hidden');
+            }
+            
+            showError() {
+                const container = document.getElementById('desktop-notifications-content');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="p-8 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                            <p>Error al cargar notificaciones</p>
+                            <button onclick="notificationSystem.loadNotifications()" class="mt-2 text-sm text-blue-600 hover:underline">
+                                Reintentar
+                            </button>
+                        </div>
+                    `;
+                    container.classList.remove('hidden');
+                }
+            }
+            
+            startPeriodicRefresh() {
+                // Actualizar cada 30 segundos
+                this.refreshInterval = setInterval(() => {
+                    if (!this.isDropdownOpen && !this.isLoading) {
+                        this.loadNotifications();
+                    }
+                }, 30000);
+            }
+            
+            getCSRFToken() {
+                // Intentar obtener el token de diferentes fuentes
+                const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (metaToken) return metaToken;
+                
+                const inputToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                if (inputToken) return inputToken;
+                
+                const cookieToken = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('csrftoken='))
+                    ?.split('=')[1];
+                if (cookieToken) return cookieToken;
+                
+                console.warn('Token CSRF no encontrado');
+                return '';
+            }
+        }
+        
+        // Inicializar sistema de notificaciones cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🔔 Inicializando NotificationSystem (DOMContentLoaded)...');
+                window.notificationSystem = new NotificationSystem();
+                
+                // Debug automático después de 3 segundos para dar tiempo a la inicialización
+                setTimeout(() => {
+                    console.log('🔍 Verificación automática del sistema...');
+                    if (typeof window.debugNotificationSystem === 'function') {
+                        window.debugNotificationSystem();
+                    }
+                }, 3000);
+            });
+        } else {
+            console.log('🔔 Inicializando NotificationSystem (DOM ya listo)...');
+            window.notificationSystem = new NotificationSystem();
+            
+            // Debug automático después de 3 segundos para dar tiempo a la inicialización
+            setTimeout(() => {
+                console.log('🔍 Verificación automática del sistema...');
+                if (typeof window.debugNotificationSystem === 'function') {
+                    window.debugNotificationSystem();
+                }
+            }, 3000);
+        }
+        
+        // Función de debug mejorada
+        window.debugNotificationSystem = function() {
+            console.log('🔔 =================================');
+            console.log('🔔 DEBUG SISTEMA DE NOTIFICACIONES');
+            console.log('🔔 =================================');
+            
+            // Verificar que el sistema esté inicializado
+            if (!window.notificationSystem) {
+                console.log('❌ ERROR: window.notificationSystem no está definido');
+                return;
+            }
+            
+            const dropdown = document.getElementById('desktop-notifications-dropdown');
+            const button = document.getElementById('desktop-notifications-btn');
+            const container = document.getElementById('desktop-notifications-container');
+            
+            console.log('📍 Elementos encontrados:');
+            console.log('  - Dropdown:', !!dropdown);
+            console.log('  - Button:', !!button);
+            console.log('  - Container:', !!container);
+            
+            if (dropdown) {
+                const computedStyle = window.getComputedStyle(dropdown);
+                const boundingRect = dropdown.getBoundingClientRect();
+                
+                console.log('🎨 Estilos del dropdown:');
+                console.log('  - display:', computedStyle.display);
+                console.log('  - opacity:', computedStyle.opacity);
+                console.log('  - visibility:', computedStyle.visibility);
+                console.log('  - z-index:', computedStyle.zIndex);
+                console.log('  - position:', computedStyle.position);
+                console.log('  - transform:', computedStyle.transform);
+                
+                console.log('📐 Posición del dropdown:');
+                console.log('  - top:', boundingRect.top);
+                console.log('  - left:', boundingRect.left);
+                console.log('  - width:', boundingRect.width);
+                console.log('  - height:', boundingRect.height);
+                
+                console.log('🔍 Clases del dropdown:', dropdown.className);
+            } else {
+                console.log('❌ Dropdown no encontrado');
+            }
+            
+            if (window.notificationSystem) {
+                console.log('⚙️ Estado del sistema:');
+                console.log('  - Dropdown abierto:', window.notificationSystem.isDropdownOpen || 'No definido');
+                console.log('  - Cargando:', window.notificationSystem.isLoading || 'No definido');
+                
+                // Verificación segura de notifications
+                if (window.notificationSystem.notifications !== undefined && window.notificationSystem.notifications !== null) {
+                    console.log('  - Notificaciones:', window.notificationSystem.notifications.length);
+                    console.log('  - Tipo de notifications:', typeof window.notificationSystem.notifications);
+                    console.log('  - Es array:', Array.isArray(window.notificationSystem.notifications));
+                } else {
+                    console.log('  - ⚠️ notifications es null o undefined');
+                }
+                
+                console.log('  - Sin leer:', window.notificationSystem.unreadCount || 'No definido');
+            } else {
+                console.log('⚠️ window.notificationSystem no está definido');
+            }
+            
+            console.log('🔔 =================================');
+        };
+        
+        // Función para forzar apertura del dropdown (para debugging)
+        window.forceOpenDropdown = function() {
+            console.log('🔧 Forzando apertura del dropdown...');
+            const dropdown = document.getElementById('desktop-notifications-dropdown');
+            if (dropdown) {
+                dropdown.style.zIndex = '99999';
+                dropdown.style.position = 'absolute';
+                dropdown.style.opacity = '1';
+                dropdown.style.visibility = 'visible';
+                dropdown.style.transform = 'translateY(0) scale(1)';
+                dropdown.classList.add('notifications-dropdown-show');
+                console.log('✅ Dropdown forzado a abrirse');
+            } else {
+                console.error('❌ No se encontró el dropdown');
+            }
+        };
     </script>
     
     {% block extra_js %}{% endblock %}

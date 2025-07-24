@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load user_tags %}
+{% load role_tags %}
 <html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
@@ -23,10 +24,6 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
     
-    <!-- Preload crítico -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap" as="style">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
-    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -48,7 +45,7 @@
                 extend: {
                     fontFamily: {
                         'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        'roboto': ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
+                        'roboto': ['Roboto', 'system-ui', '-apple-system', 'sans-serif']
                     },
                     colors: {
                         'primary': {
@@ -63,38 +60,22 @@
                             800: '#075985',
                             900: '#0c4a6e',
                         },
-                        'sidebar': {
-                            'bg': '#1e293b',
-                            'hover': '#334155',
-                            'active': '#475569',
-                            'text': '#e2e8f0',
-                            'muted': '#94a3b8',
-                        }
+                        'sidebar': '#1e293b',
+                        'sidebar-hover': '#334155',
                     },
                     animation: {
-                        'slide-in': 'slideIn 0.3s ease-out',
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                        'bounce-soft': 'bounceSoft 0.5s ease-out',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                        'scale-in': 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.2s ease-out',
                         'float': 'float 3s ease-in-out infinite',
                     },
                     keyframes: {
-                        slideIn: {
-                            '0%': { transform: 'translateX(-100%)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' }
-                        },
                         fadeIn: {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' }
                         },
-                        bounceSoft: {
-                            '0%, 20%, 50%, 80%, 100%': { transform: 'translateY(0)' },
-                            '40%': { transform: 'translateY(-4px)' },
-                            '60%': { transform: 'translateY(-2px)' }
-                        },
                         slideUp: {
-                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' }
                         },
                         scaleIn: {
@@ -114,6 +95,395 @@
             }
         }
     </script>
+    
+    <!-- CSS Dinámico para Temas -->
+    <link rel="stylesheet" href="{% url 'dashboard:theme_css' %}">
+    
+    <style>
+        /* Variables CSS por defecto para temas */
+        :root {
+            --theme-primary: {{ active_theme_colors.primary|default:"#0ea5e9" }};
+            --theme-secondary: {{ active_theme_colors.secondary|default:"#0284c7" }};
+            --theme-accent: {{ active_theme_colors.accent|default:"#0369a1" }};
+            --theme-sidebar: {{ active_theme_colors.sidebar|default:"#1e293b" }};
+        }
+        
+        /* Aplicar variables a elementos principales con alta especificidad */
+        body .sidebar,
+        #sidebar.sidebar,
+        body #sidebar {
+            background-color: var(--theme-sidebar) !important;
+            border-color: var(--theme-sidebar) !important;
+        }
+        
+        body .sidebar-link,
+        body #sidebar .sidebar-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        body .sidebar-link:hover,
+        body #sidebar .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+        
+        body .sidebar-link.active,
+        body #sidebar .sidebar-link.active {
+            background-color: var(--theme-primary) !important;
+            color: white !important;
+        }
+        
+        /* Asegurar que los colores del sidebar sean aplicados forzosamente */
+        .sidebar[style*="background-color"] {
+            background-color: var(--theme-sidebar) !important;
+        }
+    </style>
+    
+    <!-- Variables de tema dinámicas -->
+    <script>
+        // Configuración de tema dinámico
+        window.currentThemeConfig = {
+            primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
+            secondary: '{{ active_theme_colors.secondary|default:"#0284c7" }}',
+            accent: '{{ active_theme_colors.accent|default:"#0369a1" }}',
+            sidebar: '{{ active_theme_colors.sidebar|default:"#1e293b" }}'
+        };
+        
+        // Aplicar tema al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            applyCurrentTheme();
+        });
+        
+        function applyCurrentTheme() {
+            const config = window.currentThemeConfig;
+            
+            // Actualizar variables CSS
+            document.documentElement.style.setProperty('--theme-primary', config.primary);
+            document.documentElement.style.setProperty('--theme-secondary', config.secondary);
+            document.documentElement.style.setProperty('--theme-accent', config.accent);
+            document.documentElement.style.setProperty('--theme-sidebar', config.sidebar);
+            
+            // Aplicar específicamente al sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.style.backgroundColor = config.sidebar;
+                sidebar.style.background = config.sidebar;
+            }
+            
+            // Aplicar a enlaces del sidebar
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.style.color = 'rgba(255, 255, 255, 0.8)';
+                
+                if (link.classList.contains('active')) {
+                    link.style.backgroundColor = config.primary;
+                    link.style.color = 'white';
+                }
+            });
+        }
+        
+        // Función para actualizar tema dinámicamente
+        window.updateSidebarTheme = function(colors) {
+            document.documentElement.style.setProperty('--theme-primary', colors.primary);
+            document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
+            document.documentElement.style.setProperty('--theme-accent', colors.accent);
+            document.documentElement.style.setProperty('--theme-sidebar', colors.sidebar);
+            
+            // Forzar aplicación inmediata al sidebar
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                // Remover clases de Tailwind que puedan interferir
+                sidebar.classList.remove('bg-gray-900', 'bg-slate-800', 'bg-blue-900', 'bg-green-900', 'bg-purple-900', 'bg-orange-900', 'bg-red-900', 'bg-indigo-900', 'bg-teal-900', 'bg-pink-900');
+                
+                // Aplicar color directamente
+                sidebar.style.backgroundColor = colors.sidebar + ' !important';
+                sidebar.style.setProperty('background-color', colors.sidebar, 'important');
+                
+                // También aplicar a la clase
+                sidebar.style.cssText += `background-color: ${colors.sidebar} !important;`;
+            }
+            
+            // Forzar aplicación a todos los enlaces del sidebar
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                if (link.classList.contains('active')) {
+                    link.style.setProperty('background-color', colors.primary, 'important');
+                    link.style.setProperty('color', 'white', 'important');
+                }
+            });
+        };
+        
+        // Función para ejecutar al cargar la página
+        window.forceThemeOnLoad = function() {
+            const themeColors = window.currentThemeConfig;
+            if (themeColors && themeColors.sidebar) {
+                setTimeout(() => {
+                    window.updateSidebarTheme(themeColors);
+                }, 50);
+                
+                // Segundo intento por si acaso
+                setTimeout(() => {
+                    window.updateSidebarTheme(themeColors);
+                }, 200);
+            }
+        };
+        window.themeConfig = {
+            colors: {
+                primary: '{{ active_theme_colors.primary|default:"#0ea5e9" }}',
+                secondary: '{{ active_theme_colors.secondary|default:"#0284c7" }}',
+                accent: '{{ active_theme_colors.accent|default:"#0369a1" }}',
+                sidebar: '{{ active_theme_colors.sidebar|default:"#1e293b" }}'
+            },
+            darkMode: {% if is_dark_mode %}true{% else %}false{% endif %},
+            companyName: '{{ system_config.company_name|default:"Corporativo Aqua Administración" }}',
+            logoUrl: {% if system_config.company_logo %}'{{ system_config.company_logo.url }}'{% else %}null{% endif %}
+        };
+        
+        // Debugging: Log de configuración inicial
+        console.log('🎯 Configuración inicial del tema:', window.themeConfig);
+        console.log('📊 Logo URL inicial:', window.themeConfig.logoUrl);
+        console.log('🏢 Nombre empresa inicial:', window.themeConfig.companyName);
+    </script>
+    
+    <!-- Script para ejecutar tema al cargar -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.forceThemeOnLoad) {
+                window.forceThemeOnLoad();
+            }
+            
+            // Función para actualizar la información de la empresa
+            window.updateCompanyInfo = function() {
+                console.log('🏢 Actualizando información de la empresa...');
+                console.log('📋 Configuración actual:', window.themeConfig);
+                
+                const companyNameEl = document.getElementById('sidebar-company-name');
+                const logoContainer = document.getElementById('sidebar-logo-container');
+                
+                // Actualizar nombre de la empresa
+                if (companyNameEl && window.themeConfig.companyName) {
+                    console.log('📝 Actualizando nombre de empresa:', window.themeConfig.companyName);
+                    companyNameEl.textContent = window.themeConfig.companyName;
+                }
+                
+                // Actualizar logo
+                if (logoContainer) {
+                    console.log('🖼️ Actualizando logo, URL:', window.themeConfig.logoUrl);
+                    
+                    if (window.themeConfig.logoUrl) {
+                        // Mostrar logo real sin fondo
+                        logoContainer.innerHTML = `
+                            <img id="sidebar-logo" 
+                                 src="${window.themeConfig.logoUrl}" 
+                                 alt="Logo" 
+                                 class="w-16 h-16 object-contain mx-auto"
+                                 onload="console.log('✅ Logo cargado exitosamente')"
+                                 onerror="console.error('❌ Error cargando logo:', this.src)">
+                        `;
+                        console.log('✅ Logo HTML actualizado');
+                    } else {
+                        // Mostrar icono por defecto con fondo
+                        logoContainer.innerHTML = `
+                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg mx-auto">
+                                <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
+                            </div>
+                        `;
+                        console.log('🛡️ Icono por defecto mostrado');
+                    }
+                } else {
+                    console.error('❌ Contenedor de logo no encontrado');
+                }
+                
+                // También actualizar logo en header móvil
+                const mobileLogoContainer = document.querySelector('.mobile-header img, .mobile-header .w-8.h-8');
+                if (mobileLogoContainer && window.themeConfig.logoUrl) {
+                    if (mobileLogoContainer.tagName === 'IMG') {
+                        mobileLogoContainer.src = window.themeConfig.logoUrl;
+                        console.log('📱 Logo móvil actualizado');
+                    }
+                }
+            };
+            
+            // Llamar la función al cargar
+            window.updateCompanyInfo();
+            
+            // Verificador de persistencia del logo
+            window.checkLogoConsistency = function() {
+                const logoImg = document.getElementById('sidebar-logo');
+                const logoContainer = document.getElementById('sidebar-logo-container');
+                
+                if (window.themeConfig.logoUrl) {
+                    if (!logoImg) {
+                        console.warn('⚠️ Logo debería estar presente pero no se encontró, restaurando...');
+                        window.updateCompanyInfo();
+                    } else if (logoImg.src !== window.themeConfig.logoUrl) {
+                        console.warn('⚠️ URL del logo no coincide, corrigiendo...');
+                        logoImg.src = window.themeConfig.logoUrl;
+                    }
+                }
+            };
+            
+            // Verificar consistencia cada 5 segundos
+            setInterval(window.checkLogoConsistency, 5000);
+        });
+        
+        // También ejecutar cuando la página esté completamente cargada
+        window.addEventListener('load', function() {
+            if (window.forceThemeOnLoad) {
+                window.forceThemeOnLoad();
+            }
+            if (window.updateCompanyInfo) {
+                window.updateCompanyInfo();
+            }
+        });
+        
+        // Función para recargar configuración vía AJAX (para uso futuro)
+        window.reloadSystemConfig = function() {
+            console.log('🔄 Recargando configuración del sistema...');
+            
+            fetch('/dashboard/api/system-config/')
+                .then(response => {
+                    console.log('📡 Respuesta recibida:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📦 Datos recibidos:', data);
+                    
+                    if (data.success) {
+                        // Actualizar configuración global
+                        window.themeConfig.companyName = data.company_name;
+                        window.themeConfig.logoUrl = data.logo_url;
+                        window.themeConfig.colors = data.colors;
+                        
+                        console.log('🎨 Nueva configuración:', {
+                            companyName: data.company_name,
+                            logoUrl: data.logo_url,
+                            colors: data.colors
+                        });
+                        
+                        // Actualizar elementos
+                        window.updateCompanyInfo();
+                        window.updateSidebarTheme(data.colors);
+                        
+                        console.log('✅ Configuración del sistema actualizada');
+                        
+                        // Mostrar notificación visual
+                        const notification = document.createElement('div');
+                        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all';
+                        notification.innerHTML = '<i class="fas fa-check mr-2"></i>¡Logo y configuración actualizados!';
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            notification.style.opacity = '0';
+                            setTimeout(() => notification.remove(), 300);
+                        }, 3000);
+                    } else {
+                        console.error('❌ Error en la respuesta:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error al recargar configuración:', error);
+                    
+                    // Mostrar notificación de error
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all';
+                    notification.innerHTML = '<i class="fas fa-times mr-2"></i>Error al actualizar configuración';
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                });
+        };
+        
+        // Función de debug avanzada para el logo
+        window.debugLogo = function() {
+            console.log('🔍 INICIANDO DEBUG AVANZADO DEL LOGO');
+            console.log('=' * 50);
+            
+            // 1. Estado actual del DOM
+            const logoContainer = document.getElementById('sidebar-logo-container');
+            const logoImg = document.getElementById('sidebar-logo');
+            const defaultIcon = document.getElementById('sidebar-default-icon');
+            
+            console.log('📋 ESTADO DEL DOM:');
+            console.log('  logoContainer:', !!logoContainer);
+            console.log('  logoImg:', !!logoImg);
+            console.log('  defaultIcon:', !!defaultIcon);
+            
+            if (logoContainer) {
+                console.log('  logoContainer.innerHTML:', logoContainer.innerHTML);
+            }
+            
+            if (logoImg) {
+                console.log('  logoImg.src:', logoImg.src);
+                console.log('  logoImg.complete:', logoImg.complete);
+                console.log('  logoImg.naturalWidth:', logoImg.naturalWidth);
+                console.log('  logoImg.naturalHeight:', logoImg.naturalHeight);
+                console.log('  logoImg.style.display:', logoImg.style.display);
+                console.log('  logoImg.classList:', logoImg.classList.toString());
+            }
+            
+            // 2. Configuración de tema
+            console.log('📊 CONFIGURACIÓN DE TEMA:');
+            console.log('  window.themeConfig:', window.themeConfig);
+            
+            // 3. Probar carga directa del logo
+            if (window.themeConfig && window.themeConfig.logoUrl) {
+                console.log('🔬 PROBANDO CARGA DIRECTA:');
+                const testImg = new Image();
+                testImg.onload = function() {
+                    console.log('  ✅ Imagen carga correctamente:', this.src);
+                    console.log('  📐 Dimensiones:', this.naturalWidth + 'x' + this.naturalHeight);
+                };
+                testImg.onerror = function() {
+                    console.log('  ❌ Error cargando imagen:', this.src);
+                };
+                testImg.src = window.themeConfig.logoUrl;
+            }
+            
+            // 4. Verificar APIs
+            console.log('🔌 PROBANDO API:');
+            fetch('/dashboard/api/system-config/')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('  ✅ API responde:', data);
+                    if (data.logo_url !== window.themeConfig.logoUrl) {
+                        console.warn('  ⚠️ URL del logo no coincide:');
+                        console.log('    API:', data.logo_url);
+                        console.log('    Local:', window.themeConfig.logoUrl);
+                    }
+                })
+                .catch(error => {
+                    console.error('  ❌ Error en API:', error);
+                });
+            
+            // 5. Información del navegador
+            console.log('🌐 INFORMACIÓN DEL NAVEGADOR:');
+            console.log('  userAgent:', navigator.userAgent);
+            console.log('  localStorage disponible:', !!window.localStorage);
+            console.log('  sessionStorage disponible:', !!window.sessionStorage);
+            
+            // 6. Mostrar reporte visual
+            const report = `
+📋 REPORTE DE DEBUG:
+- Logo Container: ${!!logoContainer ? '✅' : '❌'}
+- Logo Image: ${!!logoImg ? '✅' : '❌'} 
+- Logo URL: ${window.themeConfig?.logoUrl || 'No configurado'}
+- Imagen carga: ${logoImg?.complete ? '✅' : '❌'}
+- Dimensiones: ${logoImg?.naturalWidth || 0}x${logoImg?.naturalHeight || 0}
+
+Ver consola para detalles completos.
+            `;
+            
+            alert(report);
+            console.log('🔍 DEBUG COMPLETADO - Ver información arriba');
+        };
+    </script>
+    
+
     
     <!-- Estilos personalizados -->
     <style>
@@ -149,646 +519,1137 @@
             body {
                 min-height: 100vh;
                 min-height: -webkit-fill-available;
-                position: relative;
-                padding-bottom: 80px; /* Espacio para navegación inferior */
             }
         }
 
-        /* Navegación inferior móvil */
+        /* Sidebar estilos */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        /* Asegurar que el sidebar esté visible en todas las pantallas */
+        .sidebar {
+            display: block;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            margin: 4px 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+
+        /* Mobile Navigation */
         .mobile-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            height: 80px;
-            padding: 8px 0;
-            display: none;
+            z-index: 50;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
         }
-        
-        @media (max-width: 768px) {
+
+        @media (min-width: 769px) {
             .mobile-nav {
-                display: flex;
+                display: none;
             }
         }
-        
+
         .mobile-nav-item {
-            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 8px 4px;
-            border-radius: 12px;
-            margin: 0 4px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            position: relative;
-            min-height: 60px;
-        }
-        
-        .mobile-nav-item:active {
-            transform: scale(0.95);
-        }
-        
-        .mobile-nav-item.active {
-            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-            color: white;
-            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
-        }
-        
-        .mobile-nav-item:not(.active) {
+            padding: 8px 12px;
             color: #6b7280;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            min-width: 60px;
         }
-        
-        .mobile-nav-item:not(.active):hover {
-            background: rgba(14, 165, 233, 0.1);
+
+        .mobile-nav-item:hover,
+        .mobile-nav-item.active {
             color: #0ea5e9;
+            background: rgba(14, 165, 233, 0.1);
         }
-        
+
         .mobile-nav-icon {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 4px;
-            transition: all 0.3s ease;
         }
-        
-        .mobile-nav-item.active .mobile-nav-icon {
-            transform: scale(1.1);
-        }
-        
+
         .mobile-nav-text {
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             line-height: 1;
         }
 
-        /* Header móvil optimizado */
-        @media (max-width: 768px) {
-            .mobile-header {
-                background: linear-gradient(135deg, #1e293b, #334155);
-                backdrop-filter: blur(20px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                height: 60px;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 999;
-                padding: 0 16px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            
-            .mobile-content {
-                padding-top: 60px;
-                padding-bottom: 80px;
-                min-height: calc(100vh - 140px);
-            }
+        /* Touch feedback */
+        .touch-feedback {
+            transition: transform 0.1s ease, background-color 0.1s ease;
+            -webkit-tap-highlight-color: rgba(14, 165, 233, 0.2);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* Sidebar mejorado para móvil */
-        .sidebar {
-            backdrop-filter: blur(10px);
-            background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .touch-feedback:active {
+            transform: scale(0.95);
+            background-color: rgba(0, 0, 0, 0.1);
         }
-        
+
+        /* Mobile menu button specific styles */
+        #mobile-menu-button {
+            cursor: pointer;
+            outline: none;
+            border: none;
+            background: transparent;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(14, 165, 233, 0.3);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #mobile-menu-button:focus {
+            outline: 2px solid #0ea5e9;
+            outline-offset: 2px;
+        }
+
+        /* Sidebar móvil */
         @media (max-width: 768px) {
             .sidebar {
-                position: fixed;
+                position: fixed !important;
                 top: 0;
                 left: 0;
+                bottom: 0;
                 width: 280px;
-                height: 100vh;
-                z-index: 1001;
                 transform: translateX(-100%);
-                border-radius: 0 20px 20px 0;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1000;
+                background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                display: block !important;
+                /* Override lg:block */
             }
-            
+
             .sidebar.mobile-open {
-                transform: translateX(0);
+                transform: translateX(0) !important;
             }
-            
+
             .sidebar-overlay {
                 position: fixed;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 1000;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 999;
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
             }
-            
+
             .sidebar-overlay.active {
-                opacity: 1;
-                visibility: visible;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            .main-content {
+                padding-bottom: 80px;
+            }
+
+            /* Hide desktop sidebar completely on mobile */
+            .sidebar:not(.mobile-open) {
+                display: block;
             }
         }
-        
-        .sidebar-item {
-            position: relative;
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-            border-radius: 12px;
-            margin: 2px 8px;
-            overflow: hidden;
-        }
-        
-        .sidebar-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 3px;
-            background: linear-gradient(180deg, #0ea5e9, #3b82f6);
-            transform: scaleY(0);
-            transition: transform 0.2s ease;
-        }
-        
-        .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .sidebar-item:hover::before {
-            transform: scaleY(1);
-        }
-        
-        .sidebar-item.active {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(14, 165, 233, 0.3);
-            transform: translateX(4px);
-        }
-        
-        .sidebar-item.active::before {
-            transform: scaleY(1);
-        }
-        
-        .sidebar-icon {
-            transition: all 0.2s ease;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-        }
-        
-        .sidebar-item:hover .sidebar-icon {
-            transform: scale(1.1);
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-        }
 
-        /* Cards y contenido con estilo app */
-        .app-card {
+        /* Header móvil */
+        .mobile-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .app-card:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        /* Botones estilo app */
-        .app-button {
-            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 24px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .app-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .app-button:hover::before {
-            left: 100%;
-        }
-        
-        .app-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
-        }
-        
-        .app-button:active {
-            transform: translateY(0);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: between;
         }
 
-        /* Gestos y animaciones táctiles */
-        @media (max-width: 768px) {
-            .touch-feedback {
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .touch-feedback::after {
-                content: '';
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 0;
-                height: 0;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.3);
-                transform: translate(-50%, -50%);
-                transition: width 0.3s, height 0.3s;
-            }
-            
-            .touch-feedback:active::after {
-                width: 200px;
-                height: 200px;
-            }
-        }
-
-        /* Status bar safe area para iOS */
-        @supports (padding-top: constant(safe-area-inset-top)) {
+        @media (min-width: 769px) {
             .mobile-header {
-                padding-top: constant(safe-area-inset-top);
-                height: calc(60px + constant(safe-area-inset-top));
-            }
-            
-            .mobile-content {
-                padding-top: calc(60px + constant(safe-area-inset-top));
-            }
-            
-            .mobile-nav {
-                padding-bottom: constant(safe-area-inset-bottom);
-                height: calc(80px + constant(safe-area-inset-bottom));
-            }
-        }
-        
-        @supports (padding-top: env(safe-area-inset-top)) {
-            .mobile-header {
-                padding-top: env(safe-area-inset-top);
-                height: calc(60px + env(safe-area-inset-top));
-            }
-            
-            .mobile-content {
-                padding-top: calc(60px + env(safe-area-inset-top));
-            }
-            
-            .mobile-nav {
-                padding-bottom: env(safe-area-inset-bottom);
-                height: calc(80px + env(safe-area-inset-bottom));
+                display: none;
             }
         }
 
-        /* Scroll personalizado */
-        .sidebar::-webkit-scrollbar {
+        /* Animaciones mejoradas */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Scroll suave */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Personalización de scrollbar */
+        ::-webkit-scrollbar {
             width: 6px;
         }
-        
-        .sidebar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-        
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
         }
 
-        /* Elementos ocultos en mobile */
-        @media (max-width: 768px) {
-            .desktop-only {
-                display: none !important;
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Notificaciones */
+        .notification {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
             }
-            
-            .mobile-only {
-                display: block !important;
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
         }
-        
-        @media (min-width: 769px) {
-            .mobile-only {
-                display: none !important;
+
+        /* Animaciones adicionales para notificaciones */
+        .notification-toast {
+            animation: notificationPop 0.5s ease-out;
+        }
+
+        @keyframes notificationPop {
+            0% {
+                transform: translateX(100%) scale(0.8);
+                opacity: 0;
             }
-            
-            .desktop-only {
-                display: block !important;
+            50% {
+                transform: translateX(-10px) scale(1.05);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Badge de notificaciones pulsante */
+        .notification-badge {
+            animation: badgePulse 2s infinite;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        }
+
+        @keyframes badgePulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            70% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Campana de notificaciones animada */
+        .notification-bell-shake {
+            animation: bellShake 0.8s ease-in-out;
+        }
+
+        @keyframes bellShake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
+            20%, 40%, 60%, 80% { transform: rotate(10deg); }
+        }
+
+        /* Notificación urgente con borde parpadeante */
+        .urgent-notification {
+            animation: urgentBlink 1s infinite alternate;
+            border: 3px solid transparent;
+        }
+
+        @keyframes urgentBlink {
+            0% {
+                border-color: #ef4444;
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+            }
+            100% {
+                border-color: #fbbf24;
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+            }
+        }
+
+        /* Efectos hover mejorados */
+        .notification-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Indicador de notificación no leída */
+        .unread-indicator {
+            position: relative;
+        }
+
+        .unread-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -15px;
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            animation: unreadPulse 2s infinite;
+        }
+
+        @keyframes unreadPulse {
+            0%, 100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        /* Loading states */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
             }
         }
     </style>
-
-    {% block extra_css %}{% endblock %}
-</head>
-<body class="h-full bg-gray-50 font-inter antialiased">
-    {% if user.is_authenticated %}
-        <!-- Overlay para sidebar móvil -->
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
+    <!-- CSS específico para aplicar temas al sidebar -->
+    <style id="sidebar-theme-styles">
+        /* Forzar aplicación de tema al sidebar */
+        #sidebar.sidebar,
+        aside.sidebar {
+            background-color: var(--theme-sidebar) !important;
+            background: var(--theme-sidebar) !important;
+        }
         
-        <!-- Header Desktop -->
-        <header class="desktop-only bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 shadow-2xl border-b border-slate-700/50 fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
-            <div class="px-6 py-4 flex items-center justify-between">
-                <!-- Logo y título -->
-                <a href="{% url 'dashboard:index' %}" class="flex items-center space-x-3 text-white hover:text-primary-300 transition-all duration-300 group">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary-500/25 transition-all duration-300">
-                        <i class="fas fa-shield-alt text-white text-lg"></i>
+        /* Enlaces del sidebar */
+        .sidebar-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+        
+        .sidebar-link.active {
+            background-color: var(--theme-primary) !important;
+            color: white !important;
+        }
+        
+        /* Iconos del sidebar */
+        .sidebar-link i {
+            color: inherit !important;
+        }
+        
+        /* Header/logo del sidebar */
+        .sidebar .logo,
+        .sidebar h1,
+        .sidebar h2 {
+            color: white !important;
+        }
+        
+        /* Títulos de sección */
+        .sidebar .section-title,
+        .sidebar .text-xs {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        /* Estilos específicos para el logo */
+        #sidebar-logo-container img {
+            max-width: 100%;
+            max-height: 100%;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+        
+        /* Asegurar que el logo se vea bien contra el fondo oscuro */
+        #sidebar-logo {
+            background: transparent !important;
+            border-radius: 8px;
+        }
+        
+        /* Mejorar la presentación del texto del company name */
+        #sidebar-company-name {
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+        
+        #sidebar-company-subtitle {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="h-full bg-gray-50 font-inter">
+    {% csrf_token %}
+    {% if user.is_authenticated %}
+        <!-- Header Móvil -->
+        <header class="mobile-header">
+            <button id="mobile-menu-button" class="p-2 rounded-lg hover:bg-gray-100 touch-feedback" 
+                    onclick="toggleSidebar()" 
+                    style="touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,0.1);">
+                <i class="fas fa-bars text-gray-600 text-xl"></i>
+            </button>
+            
+            <div class="flex-1 flex items-center justify-center">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center justify-center">
+                        {% if system_config.company_logo %}
+                            <img src="{{ system_config.company_logo.url }}" 
+                                 alt="{{ system_config.company_name|default:'Logo' }}" 
+                                 class="w-8 h-8 object-contain">
+                        {% else %}
+                            <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-white text-sm"></i>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="flex flex-col">
-                        <span class="text-xl font-bold tracking-tight">Olcha Tecnología</span>
-                        <span class="text-xs text-slate-400 font-medium">Seguridad Corporativa</span>
-                    </div>
-                </a>
-                
-                <!-- Usuario y navegación -->
-                <div class="flex items-center space-x-4">
-                    <!-- Notificaciones -->
-                    <button class="relative p-2 text-slate-300 hover:text-white transition-colors">
-                        <i class="fas fa-bell text-lg"></i>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">3</span>
+                    <h1 class="text-lg font-bold text-gray-900">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Componente de notificaciones universal -->
+                <div class="relative">
+                    <button id="mobile-notifications-btn" class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i id="mobile-notification-bell" class="fas fa-bell text-xl"></i>
+                        <span id="mobile-notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse hidden">
+                            <span id="mobile-notification-count">0</span>
+                        </span>
                     </button>
                     
-                    <!-- Perfil de usuario -->
-                    <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center shadow-lg">
-                            <span class="text-white text-sm font-bold">
-                                {{ user.first_name.0|default:user.username.0|upper }}
-                            </span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-semibold text-white">{{ user.get_full_name|default:user.username }}</div>
-                            <div class="text-xs text-primary-200">
-                                {% user_role_display user %}
+                    <!-- Dropdown de notificaciones móvil -->
+                    <div id="mobile-notifications-dropdown" class="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Notificaciones</h3>
+                                <button id="mobile-mark-all-read" class="text-sm text-blue-600 hover:text-blue-800">
+                                    Marcar todas como leídas
+                                </button>
                             </div>
                         </div>
+                        <div id="mobile-notifications-list" class="max-h-64 overflow-y-auto">
+                            <div class="p-4 text-center text-gray-500">
+                                <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                                <p>No hay notificaciones</p>
+                            </div>
+                        </div>
+                        <div class="p-3 border-t border-gray-200">
+                            <a href="{% url 'accounts:notifications' %}" class="block text-center text-sm text-blue-600 hover:text-blue-800">
+                                Ver todas las notificaciones
+                            </a>
+                        </div>
                     </div>
-                    
-                    <!-- Botón de salir -->
-                    <a href="{% url 'logout' %}" 
-                       class="inline-flex items-center px-4 py-2 border border-red-400/30 rounded-xl text-sm font-medium text-red-200 bg-red-900/20 hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-300 backdrop-blur-lg">
-                        <i class="fas fa-sign-out-alt mr-2"></i>
-                        Salir
-                    </a>
+                </div>
+                
+                <span class="text-sm font-medium text-gray-700">{{ user.first_name|default:user.username }}</span>
+                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-primary-600 text-sm"></i>
                 </div>
             </div>
         </header>
 
-        <!-- Header Móvil -->
-        <header class="mobile-only mobile-header">
-            <div class="flex items-center justify-between w-full">
-                <!-- Botón menú -->
-                <button id="mobile-menu-button" class="p-2 text-white hover:text-primary-300 transition-colors touch-feedback">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-                
-                <!-- Logo -->
-                <a href="{% url 'dashboard:index' %}" class="flex items-center space-x-2 text-white">
-                    <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white text-sm"></i>
-                    </div>
-                    <span class="text-lg font-bold">Olcha</span>
-                </a>
-                
-                <!-- Notificaciones -->
-                <button class="relative p-2 text-white hover:text-primary-300 transition-colors touch-feedback">
-                    <i class="fas fa-bell text-lg"></i>
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">3</span>
-                </button>
-            </div>
-        </header>
+        <!-- Overlay para sidebar móvil -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-        <!-- Sidebar mejorado -->
-        <nav id="sidebar" class="sidebar fixed top-16 left-0 h-full w-64 z-40 overflow-y-auto transition-transform duration-300 md:transform-none -transform-x-full">
-            <div class="p-4">
-                <div class="space-y-6">
-                    <!-- Dashboard Principal -->
-                    <div>
-                        <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider mb-3 px-2">Panel de Control</h3>
-                        <a href="{% url 'dashboard:index' %}" 
-                           class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg {% if request.resolver_match.url_name == 'index' %}active text-white{% else %}text-sidebar-text hover:text-white{% endif %}">
-                            <i class="fas fa-tachometer-alt sidebar-icon mr-3 text-lg"></i>
-                            <span class="font-medium">Dashboard</span>
-                        </a>
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar w-64 fixed inset-y-0 left-0 z-50 hidden lg:block bg-gray-900" style="background-color: var(--theme-sidebar) !important;">
+            <div class="h-full px-3 py-6 overflow-y-auto flex flex-col">
+                <!-- Logo -->
+                <div class="flex flex-col items-start justify-start mb-8 px-4">
+                    <!-- Logo arriba -->
+                    <div id="sidebar-logo-container" class="mb-4">
+                        {% if system_config.company_logo %}
+                            <!-- DEBUG: Logo configurado -->
+                            <img id="sidebar-logo" 
+                                 src="{{ system_config.company_logo.url }}" 
+                                 alt="{{ system_config.company_name|default:'Logo' }}" 
+                                 class="w-16 h-16 object-contain"
+                                 data-original-src="{{ system_config.company_logo.url }}"
+                                 onload="console.log('✅ Logo cargado:', this.src)"
+                                 onerror="console.error('❌ Error cargando logo:', this.src)">
+                            <!-- DEBUG: Información del logo -->
+                            <div class="hidden">Logo DB: {{ system_config.company_logo.name }}</div>
+                        {% else %}
+                            <!-- DEBUG: Sin logo configurado -->
+                            <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                                <i id="sidebar-default-icon" class="fas fa-shield-alt text-primary-600 text-2xl"></i>
+                            </div>
+                            <div class="hidden">Sin logo configurado</div>
+                        {% endif %}
                     </div>
                     
-                    <!-- Sistema de Mantenimiento -->
-                    <div>
-                        <div class="flex items-center mb-3 px-2">
-                            <div class="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-2">
-                                <i class="fas fa-tools text-white text-xs"></i>
-                            </div>
-                            <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider">Mantenimiento</h3>
+                    <!-- Texto abajo del logo -->
+                    <div class="text-white text-left">
+                        <h2 id="sidebar-company-name" class="text-lg font-bold leading-tight">{{ system_config.company_name|default:'Corporativo Aqua Administración' }}</h2>
+                        <p id="sidebar-company-subtitle" class="text-xs text-gray-300 mt-1">{{ system_config.company_subtitle|default:'Administración Corporativa' }}</p>
+                    </div>
+                </div>
+
+                <!-- Navegación Principal -->
+                <div class="flex-1">
+                
+                <!-- Dashboard Principal (para todos) -->
+                <div class="mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Panel de Control</h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard:index' %}" 
+                           class="sidebar-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                            <i class="fas fa-home w-5 text-center mr-3"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- DEBUG: Mostrar información completa del usuario y rol -->
+                <div class="mb-6 px-4">
+                    <div class="bg-gray-800 p-3 rounded-lg text-xs text-gray-300 space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-user text-blue-400"></i>
+                            <div><strong>Usuario:</strong> {{ user.username }}</div>
                         </div>
-                        <div class="space-y-1">
+                        
+                        {% if user.user_role %}
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-id-badge text-green-400"></i>
+                                <div><strong>Rol:</strong> {{ user.user_role.get_role_display }}</div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-toggle-on text-green-400"></i>
+                                <div><strong>Estado:</strong> {% if user.user_role.is_active %}Activo{% else %}Inactivo{% endif %}</div>
+                            </div>
+                            
+                            {% if user.user_role.role == 'tenant' and user.user_role.tenant_profile %}
+                                <div class="bg-green-900 p-2 rounded mt-2">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-building text-green-300"></i>
+                                        <div><strong>Local:</strong> {{ user.user_role.tenant_profile.tenant_name }}</div>
+                                    </div>
+                                    <div class="text-green-200 text-xs mt-1">
+                                        Oficina: {{ user.user_role.tenant_profile.numero_oficina|default:"No especificada" }}
+                                    </div>
+                                </div>
+                            {% elif user.user_role.role == 'tenant' %}
+                                <div class="bg-yellow-900 p-2 rounded mt-2 text-yellow-200">
+                                    <i class="fas fa-exclamation-triangle"></i> Sin local asignado
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-exclamation-triangle text-red-400"></i>
+                                <div class="text-red-400"><strong>⚠️ Sin rol asignado</strong></div>
+                            </div>
+                            {% if user.is_superuser %}
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-crown text-yellow-400"></i>
+                                    <div class="text-green-400">Es superusuario</div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if user.groups.exists %}
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-users text-blue-400 mt-0.5"></i>
+                                <div>
+                                    <strong>Grupos:</strong> 
+                                    {% for group in user.groups.all %}
+                                        <span class="bg-blue-800 px-2 py-1 rounded text-xs">{{ group.name }}</span>{% if not forloop.last %} {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="pt-2 border-t border-gray-700">
+                            <div class="text-xs text-gray-400">
+                                <div><strong>Email:</strong> {{ user.email|default:"No especificado" }}</div>
+                                <div><strong>Registrado:</strong> {{ user.date_joined|date:"d/m/Y H:i" }}</div>
+                            </div>
+                            <div class="mt-2 space-y-2">
+                                <a href="{% url 'accounts:debug_user_info' %}" 
+                                   class="inline-flex items-center px-2 py-1 bg-indigo-800 hover:bg-indigo-700 rounded text-xs text-white transition-colors">
+                                    <i class="fas fa-bug mr-1"></i>
+                                    Ver Info Completa
+                                </a>
+                                <button onclick="window.reloadSystemConfig()" 
+                                        class="inline-flex items-center px-2 py-1 bg-green-800 hover:bg-green-700 rounded text-xs text-white transition-colors">
+                                    <i class="fas fa-sync-alt mr-1"></i>
+                                    Recargar Logo
+                                </button>
+                                <button onclick="window.debugLogo()" 
+                                        class="inline-flex items-center px-2 py-1 bg-blue-800 hover:bg-blue-700 rounded text-xs text-white transition-colors">
+                                    <i class="fas fa-bug mr-1"></i>
+                                    Debug Logo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMINISTRADOR O SUPERUSUARIO -->
+                {% if user.is_superuser or user.user_role and user.user_role.role == 'admin' %}
+                    <!-- Mantenimiento -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                                <i class="fas fa-tools mr-1"></i> Mantenimiento
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
                             <a href="{% url 'maintenance:dashboard' %}" 
-                               class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'maintenance' in request.path and 'dashboard' in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                <i class="fas fa-chart-line sidebar-icon mr-3"></i>
+                               class="sidebar-link {% if 'maintenance' in request.path and 'dashboard' in request.path %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
                                 <span>Dashboard</span>
                             </a>
+                            <a href="{% url 'maintenance:reports_list' %}" 
+                               class="sidebar-link {% if 'reports' in request.path %}active{% endif %}">
+                                <i class="fas fa-exclamation-circle w-5 text-center mr-3"></i>
+                                <span>Reportes de Inquilinos</span>
+                                {% if user.is_superuser or user.user_role.role == 'admin' %}
+                                    {% if pending_maintenance_reports > 0 %}
+                                    <!-- Badge de notificación dinámico -->
+                                    <span id="reports-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-pulse">
+                                        <span class="reports-count">{{ pending_maintenance_reports }}</span>
+                                    </span>
+                                    {% else %}
+                                    <span id="reports-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-pulse hidden">
+                                        <span class="reports-count">0</span>
+                                    </span>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
                             <a href="{% url 'maintenance:checklists_list' %}" 
-                               class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'checklist' in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                <i class="fas fa-clipboard-list sidebar-icon mr-3"></i>
+                               class="sidebar-link {% if 'checklist' in request.path %}active{% endif %}">
+                                <i class="fas fa-clipboard-list w-5 text-center mr-3"></i>
                                 <span>Checklists</span>
                             </a>
                             <a href="{% url 'maintenance:cameras_list' %}" 
-                               class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'camera' in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                <i class="fas fa-video sidebar-icon mr-3"></i>
+                               class="sidebar-link {% if 'camera' in request.path %}active{% endif %}">
+                                <i class="fas fa-video w-5 text-center mr-3"></i>
                                 <span>Cámaras</span>
                             </a>
                             <a href="{% url 'maintenance:areas_list' %}" 
-                               class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'area' in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                <i class="fas fa-map-marker-alt sidebar-icon mr-3"></i>
+                               class="sidebar-link {% if 'area' in request.path %}active{% endif %}">
+                                <i class="fas fa-map-marked-alt w-5 text-center mr-3"></i>
                                 <span>Áreas</span>
                             </a>
+                        </nav>
+                    </div>
+
+                    <!-- Seguridad -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-green-400 uppercase tracking-wider">
+                                <i class="fas fa-shield-alt mr-1"></i> Seguridad
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link {% if 'visits' in request.path and 'visit_list' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-users w-5 text-center mr-3"></i>
+                                <span>Todas las Visitas</span>
+                            </a>
+                            <a href="{% url 'visits:visit_create' %}" 
+                               class="sidebar-link {% if 'visit_create' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                                <span>Registrar Visita</span>
+                            </a>
+                            <a href="{% url 'dashboard:guards_list' %}" 
+                               class="sidebar-link {% if 'guards' in request.path and 'guard_list' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-user-shield w-5 text-center mr-3"></i>
+                                <span>Vigilantes</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Inquilinos -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                                <i class="fas fa-building mr-1"></i> Inquilinos
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'tenants:tenant_list' %}" 
+                               class="sidebar-link {% if 'tenants' in request.path and 'tenant_list' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-building w-5 text-center mr-3"></i>
+                                <span>Todos los Inquilinos</span>
+                            </a>
+                            <a href="{% url 'tenants:tenant_create' %}" 
+                               class="sidebar-link {% if 'tenant_create' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-plus w-5 text-center mr-3"></i>
+                                <span>Registrar Inquilino</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Personal -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                                <i class="fas fa-users mr-1"></i> Personal
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'guards:guard_create' %}" 
+                               class="sidebar-link {% if 'guard_create' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                                <span>Registrar Vigilante</span>
+                            </a>
+                            <a href="{% url 'accounts:users_list' %}" 
+                               class="sidebar-link {% if 'users_list' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-users-cog w-5 text-center mr-3"></i>
+                                <span>Gestión Usuarios</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Configuración -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Configuración</h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'dashboard:admin_panel' %}" 
+                               class="sidebar-link {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                                <span>Panel Admin</span>
+                            </a>
+                            <a href="{% url 'accounts:notifications' %}" 
+                               class="sidebar-link {% if 'notifications' in request.resolver_match.url_name %}active{% endif %} relative">
+                                <i class="fas fa-bell w-5 text-center mr-3"></i>
+                                <span>Notificaciones</span>
+                                <!-- Badge de notificaciones pendientes -->
+                                <span id="sidebar-notification-badge" class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white animate-bounce hidden">
+                                    <span id="sidebar-notification-count">0</span>
+                                </span>
+                            </a>
+                            <a href="{% url 'dashboard:system_configuration' %}" 
+                               class="sidebar-link {% if 'system_configuration' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-cog w-5 text-center mr-3"></i>
+                                <span>Configuración</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                <!-- VIGILANTE (GUARD) -->
+                {% elif user|in_group:"Vigilantes" %}
+                    <!-- Seguridad -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-green-400 uppercase tracking-wider">
+                                <i class="fas fa-shield-alt mr-1"></i> Seguridad
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'guards:guard_dashboard' %}" 
+                               class="sidebar-link {% if 'guard_dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                                <span>Mi Dashboard</span>
+                            </a>
+                            <a href="{% url 'visits:visit_create' %}" 
+                               class="sidebar-link {% if 'visit_create' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                                <span>Registrar Visita</span>
+                            </a>
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link {% if 'visits' in request.path and 'visit_list' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-users w-5 text-center mr-3"></i>
+                                <span>Visitas del Día</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Reportes -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wider">
+                                <i class="fas fa-clipboard-list mr-1"></i> Reportes
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="#" class="sidebar-link">
+                                <i class="fas fa-exclamation-triangle w-5 text-center mr-3"></i>
+                                <span>Reportes de Incidentes</span>
+                            </a>
+                            <a href="#" class="sidebar-link">
+                                <i class="fas fa-plus-circle w-5 text-center mr-3"></i>
+                                <span>Nuevo Reporte</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                <!-- INQUILINO (TENANT) -->
+                {% elif user|in_group:"Inquilinos" %}
+                    <!-- Mi Local -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+                                <i class="fas fa-building mr-1"></i> Mi Local
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'dashboard:tenant_dashboard' %}" 
+                               class="sidebar-link {% if 'tenant_dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-tachometer-alt w-5 text-center mr-3"></i>
+                                <span>Panel de Inquilino</span>
+                            </a>
+                            <a href="#" 
+                               class="sidebar-link">
+                                <i class="fas fa-building w-5 text-center mr-3"></i>
+                                <span>Información del Local</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Visitas -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                                <i class="fas fa-users mr-1"></i> Gestión de Visitas
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'visits:visit_create' %}" 
+                               class="sidebar-link">
+                                <i class="fas fa-user-plus w-5 text-center mr-3"></i>
+                                <span>Registrar Visita</span>
+                            </a>
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link">
+                                <i class="fas fa-calendar-alt w-5 text-center mr-3"></i>
+                                <span>Mis Visitas</span>
+                            </a>
+                            <a href="{% url 'dashboard:visits_list' %}" 
+                               class="sidebar-link">
+                                <i class="fas fa-clock w-5 text-center mr-3"></i>
+                                <span>Visitas de Hoy</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Servicios y Mantenimiento -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                                <i class="fas fa-tools mr-1"></i> Servicios
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'maintenance:dashboard' %}" 
+                               class="sidebar-link {% if 'maintenance' in request.resolver_match.app_name %}active{% endif %}">
+                                <i class="fas fa-wrench w-5 text-center mr-3"></i>
+                                <span>Mantenimiento</span>
+                            </a>
+                            <a href="{% url 'maintenance:reports_list' %}" 
+                               class="sidebar-link {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-exclamation-circle w-5 text-center mr-3"></i>
+                                <span>Mis Reportes</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Comunicación -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-green-400 uppercase tracking-wider">
+                                <i class="fas fa-comments mr-1"></i> Comunicación
+                            </h3>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="{% url 'dashboard:admin_panel' %}" 
+                               class="sidebar-link {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-envelope w-5 text-center mr-3"></i>
+                                <span>Contactar Administración</span>
+                            </a>
+                            <a href="{% url 'dashboard:index' %}" 
+                               class="sidebar-link {% if 'announcements' in request.resolver_match.url_name %}active{% endif %}">
+                                <i class="fas fa-bullhorn w-5 text-center mr-3"></i>
+                                <span>Anuncios</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                <!-- USUARIO SIN ROL ESPECÍFICO O PROBLEMA DE CONFIGURACIÓN -->
+                {% else %}
+                    <!-- Mensaje de advertencia para usuarios sin rol -->
+                    <div class="mb-6">
+                        <div class="px-4 mb-2">
+                            <h3 class="text-xs font-semibold text-red-400 uppercase tracking-wider">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Configuración Requerida
+                            </h3>
+                        </div>
+                        <div class="px-4">
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-red-600 text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-red-800 mb-2">Acceso Limitado</h4>
+                                        <p class="text-red-700 mb-3">Tu cuenta no tiene un rol específico asignado en el sistema.</p>
+                                        
+                                        <div class="bg-white rounded p-3 mb-3">
+                                            <h5 class="font-medium text-gray-800 mb-2">Información de tu cuenta:</h5>
+                                            <ul class="text-sm text-gray-600 space-y-1">
+                                                <li><strong>Usuario:</strong> {{ user.username }}</li>
+                                                <li><strong>Nombre:</strong> {{ user.get_full_name|default:"No especificado" }}</li>
+                                                <li><strong>Email:</strong> {{ user.email|default:"No especificado" }}</li>
+                                                {% if user.groups.exists %}
+                                                    <li><strong>Grupos:</strong> 
+                                                        {% for group in user.groups.all %}
+                                                            {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="text-red-700">
+                                            <p class="font-medium">¿Qué puedes hacer?</p>
+                                            <ol class="list-decimal list-inside mt-2 space-y-1 text-sm">
+                                                <li>Contacta al administrador del sistema</li>
+                                                <li>Solicita que se te asigne el rol apropiado</li>
+                                                <li>Verifica que tu perfil esté completo</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Para Administradores y Superusuarios -->
-                    {% if user|is_admin_or_superuser %}
-                        <!-- Gestión de Seguridad -->
-                        <div>
-                            <div class="flex items-center mb-3 px-2">
-                                <div class="w-6 h-6 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mr-2">
-                                    <i class="fas fa-shield-halved text-white text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider">Seguridad</h3>
+                    <!-- Opciones básicas disponibles -->
+                    {% if user.is_superuser %}
+                        <div class="mb-6">
+                            <div class="px-4 mb-2">
+                                <h3 class="text-xs font-semibold text-yellow-400 uppercase tracking-wider">
+                                    <i class="fas fa-crown mr-1"></i> Superusuario
+                                </h3>
                             </div>
-                            <div class="space-y-1">
-                                <a href="{% url 'dashboard:visits_list' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'visits' in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-user-friends sidebar-icon mr-3"></i>
-                                    <span>Visitas</span>
+                            <nav class="space-y-1">
+                                <a href="/admin/" 
+                                   class="sidebar-link" target="_blank">
+                                    <i class="fas fa-cogs w-5 text-center mr-3"></i>
+                                    <span>Panel de Administración</span>
+                                    <i class="fas fa-external-link-alt ml-auto text-xs"></i>
                                 </a>
-                                <a href="{% url 'visits:visit_create' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'visit_create' in request.resolver_match.url_name %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-user-check sidebar-icon mr-3"></i>
-                                    <span>Registrar Visita</span>
+                                <a href="{% url 'accounts:users_list' %}" 
+                                   class="sidebar-link">
+                                    <i class="fas fa-users w-5 text-center mr-3"></i>
+                                    <span>Gestión de Usuarios</span>
                                 </a>
-                            </div>
+                            </nav>
                         </div>
-                        
-                        <!-- Gestión de Inquilinos -->
-                        <div>
-                            <div class="flex items-center mb-3 px-2">
-                                <div class="w-6 h-6 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center mr-2">
-                                    <i class="fas fa-building text-white text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider">Inquilinos</h3>
+                    {% else %}
+                        <div class="mb-6">
+                            <div class="px-4 mb-2">
+                                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    <i class="fas fa-user mr-1"></i> Acceso Básico
+                                </h3>
                             </div>
-                            <div class="space-y-1">
-                                <a href="{% url 'dashboard:tenants_list' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'tenants' in request.path and 'create' not in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-users-cog sidebar-icon mr-3"></i>
-                                    <span>Inquilinos</span>
+                            <nav class="space-y-1">
+                                <a href="{% url 'dashboard:index' %}" 
+                                   class="sidebar-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                                    <i class="fas fa-home w-5 text-center mr-3"></i>
+                                    <span>Página Principal</span>
                                 </a>
-                                <a href="{% url 'tenants:tenant_create' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'tenant_create' in request.resolver_match.url_name %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-user-plus sidebar-icon mr-3"></i>
-                                    <span>Registrar Inquilino</span>
+                                <a href="{% url 'accounts:profile' %}" 
+                                   class="sidebar-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                                    <i class="fas fa-user-edit w-5 text-center mr-3"></i>
+                                    <span>Mi Perfil</span>
                                 </a>
-                            </div>
-                        </div>
-                        
-                        <!-- Personal de Seguridad -->
-                        <div>
-                            <div class="flex items-center mb-3 px-2">
-                                <div class="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-2">
-                                    <i class="fas fa-user-shield text-white text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider">Personal</h3>
-                            </div>
-                            <div class="space-y-1">
-                                <a href="{% url 'dashboard:guards_list' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'guards' in request.path and 'create' not in request.path %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-user-tie sidebar-icon mr-3"></i>
-                                    <span>Vigilantes</span>
-                                </a>
-                                <a href="{% url 'guards:guard_create' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg {% if 'guard_create' in request.resolver_match.url_name %}active text-white{% else %}text-sidebar-text{% endif %}">
-                                    <i class="fas fa-user-plus sidebar-icon mr-3"></i>
-                                    <span>Registrar Vigilante</span>
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <!-- Administración -->
-                        <div>
-                            <h3 class="text-xs font-semibold text-sidebar-muted uppercase tracking-wider mb-3 px-2">Configuración</h3>
-                            <a href="/admin/" target="_blank" class="sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg text-sidebar-text hover:text-white">
-                                <i class="fas fa-cogs sidebar-icon mr-3"></i>
-                                Administración
-                            </a>
+                            </nav>
                         </div>
                     {% endif %}
-                    
-                    <!-- Para Vigilantes -->
-                    {% if user|has_group:"Vigilantes" %}
-                        <div>
-                            <div class="flex items-center mb-3 px-2">
-                                <div class="w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mr-2">
-                                    <i class="fas fa-clipboard-check text-white text-xs"></i>
-                                </div>
-                                <h3 class="text-xs font-bold text-sidebar-muted uppercase tracking-wider">Mis Tareas</h3>
-                            </div>
-                            <div class="space-y-1">
-                                <a href="{% url 'visits:visit_create' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-sidebar-text">
-                                    <i class="fas fa-user-check sidebar-icon mr-3"></i>
-                                    <span>Registrar Visita</span>
-                                </a>
-                                <a href="{% url 'dashboard:my_shift' %}" 
-                                   class="sidebar-item flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-sidebar-text">
-                                    <i class="fas fa-clock sidebar-icon mr-3"></i>
-                                    <span>Mi Turno</span>
-                                </a>
-                            </div>
+                {% endif %}
+                </div>
+
+                <!-- Usuario y Cerrar Sesión -->
+                <div class="mt-auto mb-6">
+                    <div class="px-4 mb-2">
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario</h3>
+                    </div>
+                    <nav class="space-y-1">
+                        <div class="px-4 py-2 text-gray-300 text-sm">
+                            <i class="fas fa-user w-5 text-center mr-3"></i>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
                         </div>
-                    {% endif %}
+                        <a href="{% url 'logout' %}" 
+                           class="sidebar-link">
+                            <i class="fas fa-sign-out-alt w-5 text-center mr-3"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </nav>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content desktop-only ml-0 md:ml-64 pt-16 min-h-screen bg-gray-50 transition-all duration-300">
-            <div class="content-area p-4 md:p-6">
+        <!-- Contenido Principal -->
+        <main class="lg:ml-64 min-h-screen">
+            <!-- Header Desktop (solo visible en pantallas grandes) -->
+            <header class="hidden lg:flex sticky top-0 z-40 bg-white border-b border-gray-200 px-8 py-4 items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        {% block page_title %}Sistema de Gestión{% endblock %}
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Icono de notificaciones para desktop -->
+                    <div class="relative">
+                        <button id="desktop-notifications-btn" class="relative p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 group">
+                            <i id="desktop-notification-bell" class="fas fa-bell text-xl group-hover:scale-110 transition-transform"></i>
+                            <span id="desktop-notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg hidden notification-badge">
+                                <span id="desktop-notification-count">0</span>
+                            </span>
+                        </button>
+                        
+                        <!-- Dropdown de notificaciones desktop -->
+                        <div id="desktop-notifications-dropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 hidden transform transition-all duration-200 scale-95 opacity-0">
+                            <div class="p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-bell text-white"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-bold text-gray-900">Notificaciones</h3>
+                                            <p class="text-sm text-gray-600">Mantente al día con las actualizaciones</p>
+                                        </div>
+                                    </div>
+                                    <button id="desktop-mark-all-read" class="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                                        Marcar todas como leídas
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="desktop-notifications-list" class="max-h-80 overflow-y-auto">
+                                <div class="p-8 text-center text-gray-500">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                    </div>
+                                    <p class="text-lg font-medium">No hay notificaciones</p>
+                                    <p class="text-sm">Te notificaremos cuando llegue algo nuevo</p>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                                <a href="{% url 'accounts:notifications' %}" class="block text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors">
+                                    <i class="fas fa-list mr-2"></i>Ver todas las notificaciones
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del usuario -->
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="text-xs text-gray-500">
+                                {% if user.user_role %}
+                                    {{ user.user_role.get_role_display }}
+                                {% else %}
+                                    Usuario
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                            <span class="text-white font-bold text-sm">{{ user.first_name.0|default:user.username.0|upper }}</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="main-content p-4 lg:p-8">
                 <!-- Mensajes del sistema -->
                 {% if messages %}
                     <div class="mb-6 space-y-3">
                         {% for message in messages %}
-                            <div class="animate-slide-in px-4 py-3 rounded-xl border-l-4 shadow-lg {% if message.tags == 'success' %}bg-green-50 border-green-400 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-red-400 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-400 text-yellow-800{% else %}bg-blue-50 border-blue-400 text-blue-800{% endif %}" role="alert">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 mr-3">
-                                        {% if message.tags == 'success' %}
-                                            <i class="fas fa-check-circle text-lg"></i>
-                                        {% elif message.tags == 'error' %}
-                                            <i class="fas fa-exclamation-circle text-lg"></i>
-                                        {% elif message.tags == 'warning' %}
-                                            <i class="fas fa-exclamation-triangle text-lg"></i>
-                                        {% else %}
-                                            <i class="fas fa-info-circle text-lg"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex-1 font-medium">
-                                        {{ message }}
-                                    </div>
-                                    <button onclick="this.parentElement.parentElement.remove()" 
-                                            class="ml-4 text-gray-400 hover:text-gray-600 transition-colors">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                            <div class="flex items-center p-4 rounded-lg border-l-4 {{ message.tags|default:'info' }} bg-white shadow-sm animate-slide-up">
+                                <div class="flex-shrink-0 mr-3">
+                                    {% if message.tags == 'success' %}
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                    {% elif message.tags == 'error' %}
+                                        <i class="fas fa-exclamation-circle text-red-500"></i>
+                                    {% elif message.tags == 'warning' %}
+                                        <i class="fas fa-exclamation-triangle text-yellow-500"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle text-blue-500"></i>
+                                    {% endif %}
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-            </div>
-        </main>
-
-        <!-- Main Content Móvil -->
-        <main class="mobile-only mobile-content bg-gray-50">
-            <div class="px-4 py-4">
-                <!-- Mensajes del sistema móvil -->
-                {% if messages %}
-                    <div class="mb-4 space-y-2">
-                        {% for message in messages %}
-                            <div class="animate-slide-up px-3 py-2 rounded-lg border-l-4 shadow-sm {% if message.tags == 'success' %}bg-green-50 border-green-400 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-red-400 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-400 text-yellow-800{% else %}bg-blue-50 border-blue-400 text-blue-800{% endif %}" role="alert">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 mr-2">
-                                        {% if message.tags == 'success' %}
-                                            <i class="fas fa-check-circle"></i>
-                                        {% elif message.tags == 'error' %}
-                                            <i class="fas fa-exclamation-circle"></i>
-                                        {% elif message.tags == 'warning' %}
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                        {% else %}
-                                            <i class="fas fa-info-circle"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex-1 font-medium text-sm">
-                                        {{ message }}
-                                    </div>
-                                    <button onclick="this.parentElement.parentElement.remove()" 
-                                            class="ml-2 text-gray-400 hover:text-gray-600 transition-colors touch-feedback">
-                                        <i class="fas fa-times text-sm"></i>
-                                    </button>
+                                <div class="flex-1 font-medium text-sm">
+                                    {{ message }}
                                 </div>
+                                <button onclick="this.parentElement.parentElement.remove()" 
+                                        class="ml-2 text-gray-400 hover:text-gray-600 transition-colors touch-feedback">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
                             </div>
                         {% endfor %}
                     </div>
@@ -820,7 +1681,13 @@
                 </a>
                 
                 <a href="{% url 'dashboard:admin_panel' %}" 
-                   class="mobile-nav-item touch-feedback {% if 'admin' in request.path %}active{% endif %}">
+                   class="mobile-nav-item touch-feedback {% if 'admin_panel' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="mobile-nav-icon fas fa-tachometer-alt"></i>
+                    <span class="mobile-nav-text">Panel</span>
+                </a>
+                
+                <a href="{% url 'dashboard:system_configuration' %}" 
+                   class="mobile-nav-item touch-feedback {% if 'system_configuration' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="mobile-nav-icon fas fa-cog"></i>
                     <span class="mobile-nav-text">Config</span>
                 </a>
@@ -854,43 +1721,481 @@
     <!-- Mobile App JavaScript -->
     <script src="/static/js/mobile-app.js"></script>
     
+    <!-- Sistema de Notificaciones Robusto -->
+    <script src="/static/js/notifications-system.js"></script>
+    
     <!-- JavaScript mejorado -->
     <script>
+                    
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }
+            } catch (e) {
+                console.log('Error reproduciendo sonido:', e);
+            }
+        }
+        
+        initEventListeners() {
+            // Botón de notificaciones móvil
+            const mobileBtn = document.getElementById('mobile-notifications-btn');
+            const mobileDropdown = document.getElementById('mobile-notifications-dropdown');
+            
+            if (mobileBtn && mobileDropdown) {
+                mobileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    mobileDropdown.classList.toggle('hidden');
+                    if (!mobileDropdown.classList.contains('hidden')) {
+                        this.loadNotificationsInDropdown();
+                    }
+                });
+                
+                // Cerrar dropdown al hacer click fuera
+                document.addEventListener('click', (e) => {
+                    if (!mobileBtn.contains(e.target) && !mobileDropdown.contains(e.target)) {
+                        mobileDropdown.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Marcar todas como leídas
+            const markAllReadBtn = document.getElementById('mobile-mark-all-read');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', () => {
+                    this.markAllAsRead();
+                });
+            }
+        }
+        
+        async loadInitialNotifications() {
+            try {
+                const response = await fetch('/api/notifications/');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.updateNotificationCounts(data.unread_count || 0);
+                }
+            } catch (error) {
+                console.error('Error cargando notificaciones iniciales:', error);
+            }
+        }
+        
+        async loadNotificationsInDropdown() {
+            try {
+                const response = await fetch('/api/notifications/?limit=5');
+                if (response.ok) {
+                    const data = await response.json();
+                    this.renderNotificationsDropdown(data.notifications || []);
+                }
+            } catch (error) {
+                console.error('Error cargando notificaciones:', error);
+            }
+        }
+        
+        renderNotificationsDropdown(notifications) {
+            const listContainer = document.getElementById('mobile-notifications-list');
+            if (!listContainer) return;
+            
+            if (notifications.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                        <p>No hay notificaciones</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listContainer.innerHTML = notifications.map(notification => `
+                <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''}" 
+                     onclick="window.location.href='${notification.action_url || '/accounts/notifications/'}'">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            ${this.getNotificationIcon(notification.notification_type)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">
+                                ${notification.title}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">
+                                ${notification.message.substring(0, 100)}...
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">
+                                ${this.formatRelativeTime(notification.created_at)}
+                            </p>
+                        </div>
+                        ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        getNotificationIcon(type) {
+            const icons = {
+                'maintenance_request': '<i class="fas fa-tools text-orange-500"></i>',
+                'incident_report': '<i class="fas fa-exclamation-triangle text-red-500"></i>',
+                'system_alert': '<i class="fas fa-bell text-blue-500"></i>',
+                'general': '<i class="fas fa-info-circle text-gray-500"></i>'
+            };
+            return icons[type] || icons['general'];
+        }
+        
+        formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Hace un momento';
+            if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
+            if (diffInMinutes < 1440) return `Hace ${Math.floor(diffInMinutes / 60)} h`;
+            return `Hace ${Math.floor(diffInMinutes / 1440)} días`;
+        }
+        
+        updateNotificationCounts(count) {
+            this.unreadCount = count;
+            
+            // Actualizar badges
+            const badges = [
+                'mobile-notification-badge',
+                'sidebar-notification-badge', 
+                'reports-badge'
+            ];
+            
+            const countElements = [
+                'mobile-notification-count',
+                'sidebar-notification-count',
+                'reports-count'
+            ];
+            
+            badges.forEach(badgeId => {
+                const badge = document.getElementById(badgeId);
+                if (badge) {
+                    if (count > 0) {
+                        badge.classList.remove('hidden');
+                        badge.classList.add('animate-pulse');
+                    } else {
+                        badge.classList.add('hidden');
+                        badge.classList.remove('animate-pulse');
+                    }
+                }
+            });
+            
+            countElements.forEach(countId => {
+                const countEl = document.getElementById(countId);
+                if (countEl) {
+                    countEl.textContent = count > 99 ? '99+' : count;
+                }
+            });
+            
+            // Actualizar campana
+            const bell = document.getElementById('mobile-notification-bell');
+            if (bell) {
+                if (count > 0) {
+                    bell.classList.add('animate-bounce', 'text-red-500');
+                    bell.classList.remove('text-gray-600');
+                } else {
+                    bell.classList.remove('animate-bounce', 'text-red-500');
+                    bell.classList.add('text-gray-600');
+                }
+            }
+        }
+        
+        async checkForNewNotifications() {
+            try {
+                const response = await fetch(`/api/notifications/?since=${this.lastNotificationCheck}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Si hay nuevas notificaciones
+                    if (data.new_notifications && data.new_notifications.length > 0) {
+                        this.handleNewNotifications(data.new_notifications);
+                    }
+                    
+                    // Actualizar contador total
+                    if (data.unread_count !== undefined) {
+                        this.updateNotificationCounts(data.unread_count);
+                    }
+                    
+                    this.lastNotificationCheck = Date.now();
+                }
+            } catch (error) {
+                console.error('Error verificando nuevas notificaciones:', error);
+            }
+        }
+        
+        handleNewNotifications(newNotifications) {
+            newNotifications.forEach(notification => {
+                // Reproducir sonido
+                this.playNotificationSound();
+                
+                // Mostrar notificación del navegador
+                this.showBrowserNotification(notification);
+                
+                // Mostrar notificación toast
+                this.showToastNotification(notification);
+                
+                // Hacer vibrar si es móvil
+                if ('vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+            });
+        }
+        
+        showBrowserNotification(notification) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const browserNotification = new Notification(notification.title, {
+                    body: notification.message.substring(0, 100),
+                    icon: '/static/img/logo.png',
+                    badge: '/static/img/badge.png',
+                    tag: `notification-${notification.id}`,
+                    requireInteraction: notification.priority === 'urgent'
+                });
+                
+                browserNotification.onclick = () => {
+                    window.focus();
+                    if (notification.action_url) {
+                        window.location.href = notification.action_url;
+                    }
+                    browserNotification.close();
+                };
+                
+                // Auto cerrar después de 10 segundos excepto las urgentes
+                if (notification.priority !== 'urgent') {
+                    setTimeout(() => browserNotification.close(), 10000);
+                }
+            }
+        }
+        
+        showToastNotification(notification) {
+            const priorityColors = {
+                'urgent': 'bg-red-600',
+                'high': 'bg-orange-600', 
+                'medium': 'bg-blue-600',
+                'low': 'bg-gray-600'
+            };
+            
+            const color = priorityColors[notification.priority] || priorityColors['medium'];
+            const isUrgent = notification.priority === 'urgent';
+            
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 right-4 ${color} text-white p-4 rounded-lg shadow-2xl z-50 max-w-sm transform translate-x-full transition-transform duration-500 ${isUrgent ? 'animate-pulse border-4 border-yellow-400' : ''}`;
+            toast.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 text-lg">
+                        ${this.getNotificationIcon(notification.notification_type)}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${notification.title}</h4>
+                        <p class="text-xs mt-1 opacity-90">${notification.message.substring(0, 150)}${notification.message.length > 150 ? '...' : ''}</p>
+                        ${notification.action_url ? `<button onclick="window.location.href='${notification.action_url}'" class="mt-2 text-xs bg-white bg-opacity-20 px-3 py-1 rounded hover:bg-opacity-30 transition-colors font-medium">Ver detalles</button>` : ''}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200 text-lg">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Animar entrada
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remover (urgentes se quedan más tiempo)
+            const autoRemoveTime = isUrgent ? 20000 : 10000;
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        if (toast.parentElement) {
+                            toast.remove();
+                        }
+                    }, 500);
+                }
+            }, autoRemoveTime);
+        }
+        
+        async markAllAsRead() {
+            try {
+                const response = await fetch('/api/notifications/mark-all-read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    }
+                });
+                
+                if (response.ok) {
+                    this.updateNotificationCounts(0);
+                    this.loadNotificationsInDropdown();
+                    
+                    // Mostrar mensaje de confirmación
+                    window.showNotification('Todas las notificaciones han sido marcadas como leídas', 'success');
+                }
+            } catch (error) {
+                console.error('Error marcando notificaciones como leídas:', error);
+            }
+        }
+        
+        requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('✅ Permisos de notificación concedidos');
+                        this.showToastNotification({
+                            title: '🔔 Notificaciones Activadas',
+                            message: 'Ahora recibirás alertas instantáneas de nuevos reportes de mantenimiento',
+                            notification_type: 'system_alert',
+                            priority: 'medium'
+                        });
+                    }
+                });
+            }
+        }
+        
+        startPolling() {
+            // Verificar nuevas notificaciones cada 15 segundos para ser más responsivo
+            setInterval(() => {
+                this.checkForNewNotifications();
+            }, 15000);
+            
+            // Primera verificación después de 3 segundos
+            setTimeout(() => {
+                this.checkForNewNotifications();
+            }, 3000);
+        }
+    }
+    
+    // Inicializar sistema de notificaciones cuando el DOM esté listo
+    let notificationSystem;
+    // Código duplicado comentado - cargado desde archivo externo
+    /*
+    document.addEventListener('DOMContentLoaded', function() {
+        notificationSystem = new RobustNotificationSystem();
+    });
+    
+    // Función global para mostrar notificaciones desde otros scripts
+    window.showMaintenanceNotification = function(message, type = 'info') {
+        if (notificationSystem) {
+            notificationSystem.showToastNotification({
+                title: '🔧 Sistema de Mantenimiento',
+                message: message,
+                notification_type: 'system_alert',
+                priority: type === 'error' ? 'high' : 'medium'
+            });
+        }
+    };
+    */
+    </script>
+    
+    <!-- JavaScript mejorado -->
+    <script>
+        // Variables globales
+        let isSidebarOpen = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        // Función global para toggle sidebar
+        function toggleSidebar() {
+            console.log('🔧 toggleSidebar called, current state:', isSidebarOpen);
+            
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            if (!sidebar || !sidebarOverlay) {
+                console.error('❌ Sidebar elements not found - sidebar:', !!sidebar, 'overlay:', !!sidebarOverlay);
+                return;
+            }
+
+            isSidebarOpen = !isSidebarOpen;
+            
+            console.log('📱 Screen width:', window.innerWidth);
+            console.log('🎯 New sidebar state will be:', isSidebarOpen ? 'OPEN' : 'CLOSED');
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('mobile-open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Sidebar opened - classes added');
+                console.log('📋 Sidebar classes:', sidebar.className);
+                console.log('📋 Overlay classes:', sidebarOverlay.className);
+            } else {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                console.log('✅ Sidebar closed - classes removed');
+            }
+            
+            // Verificar estilos aplicados
+            setTimeout(() => {
+                const computedStyle = window.getComputedStyle(sidebar);
+                console.log('🎨 Sidebar transform:', computedStyle.transform);
+                console.log('🎨 Sidebar z-index:', computedStyle.zIndex);
+                console.log('🎨 Sidebar position:', computedStyle.position);
+            }, 100);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing mobile menu...');
+            
             // Elementos
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             
-            // Variables de estado
-            let touchStartX = 0;
-            let touchStartY = 0;
-            let isSidebarOpen = false;
+            console.log('Elements found:', {
+                mobileMenuButton: !!mobileMenuButton,
+                sidebar: !!sidebar,
+                sidebarOverlay: !!sidebarOverlay
+            });
 
-            // Función para abrir/cerrar sidebar móvil
-            function toggleSidebar() {
-                if (window.innerWidth <= 768) {
-                    isSidebarOpen = !isSidebarOpen;
-                    if (isSidebarOpen) {
-                        sidebar.classList.add('mobile-open');
-                        sidebarOverlay.classList.add('active');
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        sidebar.classList.remove('mobile-open');
-                        sidebarOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                }
-            }
-
-            // Event listeners para botón de menú
+            // Event listeners adicionales para el botón de menú
             if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleSidebar);
+                // Click normal
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Button clicked');
+                    toggleSidebar();
+                });
+
+                // Touch específicamente para móviles
+                mobileMenuButton.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Button touched');
+                    toggleSidebar();
+                });
+
+                // Feedback visual
+                mobileMenuButton.addEventListener('touchstart', function(e) {
+                    this.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                });
+
+                mobileMenuButton.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.backgroundColor = '';
+                    }, 150);
+                });
+            } else {
+                console.error('Mobile menu button not found!');
             }
 
             // Cerrar sidebar al hacer click en overlay
             if (sidebarOverlay) {
                 sidebarOverlay.addEventListener('click', function() {
+                    if (isSidebarOpen) {
+                        toggleSidebar();
+                    }
+                });
+
+                sidebarOverlay.addEventListener('touchend', function() {
                     if (isSidebarOpen) {
                         toggleSidebar();
                     }
@@ -905,12 +2210,12 @@
 
             document.addEventListener('touchmove', function(e) {
                 if (window.innerWidth > 768) return;
-                
+
                 const touchX = e.touches[0].clientX;
                 const touchY = e.touches[0].clientY;
                 const deltaX = touchX - touchStartX;
                 const deltaY = touchY - touchStartY;
-                
+
                 // Swipe horizontal para abrir/cerrar sidebar
                 if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
                     if (deltaX > 0 && touchStartX < 50 && !isSidebarOpen) {
@@ -938,9 +2243,7 @@
                     document.body.style.overflow = '';
                     isSidebarOpen = false;
                 }
-            });
-
-            // PWA: Prevenir pull-to-refresh en iOS
+            });            // PWA: Prevenir pull-to-refresh en iOS
             document.addEventListener('touchmove', function(e) {
                 if (e.touches.length > 1) {
                     e.preventDefault();
@@ -1051,17 +2354,8 @@
             }
 
             // Service Worker para PWA
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js')
-                        .then(function(registration) {
-                            console.log('SW registered: ', registration);
-                        })
-                        .catch(function(registrationError) {
-                            console.log('SW registration failed: ', registrationError);
-                        });
-                });
-            }
+            // Service Worker removido para evitar errores 404
+            console.log('Service Worker disabled for development');
         });
     </script>
     

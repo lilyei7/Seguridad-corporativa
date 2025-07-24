@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Anuncios del Sistema{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard:index' %}" class="p-2 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-semibold text-gray-900">Anuncios del Sistema</h1>
+                    <p class="text-sm text-gray-500">Información importante y actualizaciones</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="container mx-auto px-4 py-6 max-w-4xl">
+        {% if announcements %}
+            <div class="space-y-6">
+                {% for announcement in announcements %}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        {% if announcement.type == 'info' %}
+                                            <div class="bg-blue-100 p-2 rounded-lg">
+                                                <i class="fas fa-info-circle text-blue-600"></i>
+                                            </div>
+                                        {% elif announcement.type == 'warning' %}
+                                            <div class="bg-yellow-100 p-2 rounded-lg">
+                                                <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                                            </div>
+                                        {% elif announcement.type == 'success' %}
+                                            <div class="bg-green-100 p-2 rounded-lg">
+                                                <i class="fas fa-check-circle text-green-600"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="bg-gray-100 p-2 rounded-lg">
+                                                <i class="fas fa-bullhorn text-gray-600"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900">
+                                                {{ announcement.title }}
+                                            </h3>
+                                            <p class="text-sm text-gray-500">
+                                                {{ announcement.date|date:"d/m/Y H:i" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="prose max-w-none text-gray-700">
+                                        {{ announcement.content|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Estado Vacío -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-bullhorn text-gray-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        No hay anuncios disponibles
+                    </h3>
+                    <p class="text-gray-500 mb-6">
+                        No se han publicado anuncios recientemente. Revisa esta sección periódicamente para estar al día con las novedades.
+                    </p>
+                    <a href="{% url 'dashboard:index' %}" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-home mr-2"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Anuncios de Ejemplo -->
+        <div class="mt-8 space-y-6">
+            <!-- Anuncio de Bienvenida -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-rocket text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                Sistema de Seguridad Corporativa - Versión 2.0
+                            </h3>
+                            <p class="text-sm text-gray-500 mb-3">
+                                {{ "now"|date:"d/m/Y" }}
+                            </p>
+                            <div class="text-gray-700 space-y-3">
+                                <p>
+                                    Bienvenido a la nueva versión del Sistema de Seguridad Corporativa. 
+                                    Esta actualización incluye nuevas funcionalidades y mejoras en la experiencia de usuario.
+                                </p>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nuevas Características:</h4>
+                                    <ul class="list-disc list-inside space-y-1 text-sm text-gray-600">
+                                        <li>Dashboard mejorado con estadísticas en tiempo real</li>
+                                        <li>Sistema de gestión de visitas optimizado</li>
+                                        <li>Nuevas opciones de configuración</li>
+                                        <li>Interfaz responsive para dispositivos móviles</li>
+                                        <li>Sistema de notificaciones mejorado</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anuncio de Mantenimiento -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-yellow-100 p-3 rounded-lg">
+                            <i class="fas fa-tools text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                Mantenimiento Programado
+                            </h3>
+                            <p class="text-sm text-gray-500 mb-3">
+                                {{ "now"|date:"d/m/Y" }}
+                            </p>
+                            <div class="text-gray-700">
+                                <p>
+                                    Se realizará mantenimiento del sistema el próximo domingo de 2:00 AM a 4:00 AM. 
+                                    Durante este tiempo, el sistema podría no estar disponible temporalmente.
+                                </p>
+                                <div class="mt-3 bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-400">
+                                    <p class="text-sm text-yellow-800">
+                                        <strong>Nota:</strong> Se recomienda completar todas las tareas importantes antes del mantenimiento programado.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anuncio de Seguridad -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i class="fas fa-shield-alt text-green-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                Recordatorio de Seguridad
+                            </h3>
+                            <p class="text-sm text-gray-500 mb-3">
+                                {{ "now"|date:"d/m/Y" }}
+                            </p>
+                            <div class="text-gray-700">
+                                <p class="mb-3">
+                                    Recuerda seguir las buenas prácticas de seguridad al utilizar el sistema:
+                                </p>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>Mantén tu contraseña segura y no la compartas</li>
+                                    <li>Cierra sesión al terminar de usar el sistema</li>
+                                    <li>Reporta cualquier actividad sospechosa</li>
+                                    <li>Actualiza tu información de contacto regularmente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
