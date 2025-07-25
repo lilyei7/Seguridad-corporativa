@@ -25,6 +25,16 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
     
+    <!-- Favicon tradicional para evitar 404 -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    
+    <!-- Iconos Apple específicos para evitar búsquedas automáticas -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/apple-touch-icon-120x120-precomposed.png">
+    
     <!-- Iconos PWA Completos -->
     <link rel="icon" type="image/png" href="{% static 'icons/xd.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/xd.png' %}">
