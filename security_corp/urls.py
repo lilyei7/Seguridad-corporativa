@@ -23,15 +23,33 @@ from test_notifications_view import test_notifications
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', login_view, name='login'),
+    path('', login_view, name='home'),
+    path('login/', login_view, name='login'),  # Añadir esta línea específica para login
     path('logout/', logout_view, name='logout'),
     path('test-notifications/', test_notifications, name='test_notifications'),
+    
+    # Dashboard principal (original)
     path('dashboard/', include('dashboard.urls')),
+    
+    # Paneles específicos por rol - URLs en español
+    path('administracion/', include('admin_panel.urls')),
+    path('inquilino/', include('tenant_panel.urls')),
+    path('vigilante/', include('guard_panel.urls')),
+    
+    # Versiones móviles optimizadas
+    path('', include('mobile_app.urls')),
+    
+    # Push notifications
+    path('notifications/', include('notifications.urls')),
+    
+    # Apps originales (mantener compatibilidad)
     path('tenants/', include('tenants.urls')),
     path('visits/', include('visits.urls')),
     path('guards/', include('guards.urls')),
     path('accounts/', include('accounts.urls')),
     path('maintenance/', include('maintenance.urls')),
+    
+    # APIs
     path('api/', include('accounts.api_urls')),
     path('api/maintenance/', include('maintenance.api_urls')),
 ]

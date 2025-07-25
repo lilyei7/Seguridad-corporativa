@@ -1,375 +1,446 @@
-<!-- Componente de notificaciones tipo campana -->
-<div class="relative" id="notifications-dropdown">
-    <!-- Botón de notificaciones -->
-    <button id="notifications-btn" class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zm-8-13a6 6 0 016 6c0 2-3 6-3 6s-3-4-3-6a6 6 0 016-6z"></path>
-        </svg>
-        
-        <!-- Badge de contador -->
-        <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">
-            0
-        </span>
-    </button>
-    
-    <!-- Dropdown de notificaciones -->
-    <div id="notifications-menu" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 hidden">
-        <!-- Header -->
-        <div class="px-4 py-3 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Notificaciones</h3>
-                <button id="mark-all-read-btn" class="text-sm text-blue-600 hover:text-blue-800">
-                    Marcar todas como leídas
-                </button>
+<!-- Componente de Notificaciones Push -->
+<div class="notification-container" id="notification-container">
+    <!-- Botón principal de notificaciones -->
+    <div class="relative">
+        <button type="button" 
+                id="notification-bell" 
+                class="relative p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                onclick="toggleNotificationPanel()">
+            <i class="fas fa-bell text-xl"></i>
+            <!-- Badge contador -->
+            <span id="notification-badge" 
+                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">
+                0
+            </span>
+        </button>
+
+        <!-- Panel de notificaciones -->
+        <div id="notification-panel" 
+             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 hidden">
+            
+            <!-- Header del panel -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">Notificaciones</h3>
+                <div class="flex space-x-2">
+                    <button id="notification-toggle-btn" 
+                            class="text-xs px-3 py-1 rounded-full transition-colors">
+                        <i class="fas fa-bell"></i>
+                        <span class="ml-1">Activar</span>
+                    </button>
+                    <button onclick="markAllAsRead()" 
+                            class="text-xs text-blue-600 hover:text-blue-800">
+                        Marcar todo como leído
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <!-- Lista de notificaciones -->
-        <div id="notifications-list" class="max-h-96 overflow-y-auto">
-            <!-- Las notificaciones se cargarán dinámicamente -->
-            <div class="p-4 text-center text-gray-500">
-                <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                <p>No hay notificaciones</p>
+
+            <!-- Estado de notificaciones -->
+            <div class="p-3 bg-gray-50 border-b border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-2 h-2 rounded-full mr-2" id="notification-status-dot"></div>
+                    <span id="notification-status" class="text-sm text-gray-600">
+                        Verificando estado...
+                    </span>
+                </div>
             </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="px-4 py-3 border-t border-gray-200">
-            <a href="{% url 'accounts:notifications' %}" class="block text-center text-blue-600 hover:text-blue-800 font-medium">
-                Ver todas las notificaciones
-            </a>
+
+            <!-- Lista de notificaciones -->
+            <div id="notification-list" class="max-h-96 overflow-y-auto">
+                <!-- Las notificaciones se cargan dinámicamente -->
+                <div class="p-4 text-center text-gray-500" id="no-notifications">
+                    <i class="fas fa-bell-slash text-3xl mb-2"></i>
+                    <p>No hay notificaciones</p>
+                </div>
+            </div>
+
+            <!-- Footer con acciones -->
+            <div class="p-3 border-t border-gray-200 bg-gray-50">
+                <div class="flex justify-between items-center">
+                    <button onclick="refreshNotifications()" 
+                            class="text-sm text-blue-600 hover:text-blue-800 flex items-center">
+                        <i class="fas fa-sync-alt mr-1"></i>
+                        Actualizar
+                    </button>
+                    <a href="/api/notifications/all/" 
+                       class="text-sm text-blue-600 hover:text-blue-800">
+                        Ver todas
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Estilos CSS específicos -->
-<style>
-.notification-item {
-    transition: all 0.3s ease;
-}
+<!-- Toast para notificaciones en tiempo real -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+    <!-- Los toasts se añaden dinámicamente -->
+</div>
 
-.notification-item:hover {
-    background-color: #f8fafc;
-}
+<!-- Modal de configuración de notificaciones -->
+<div id="notification-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Configuración de Notificaciones</h3>
+                <button onclick="closeNotificationSettings()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
-.notification-unread {
-    background-color: #eff6ff;
-    border-left: 4px solid #3b82f6;
-}
-
-.notification-read {
-    background-color: #ffffff;
-    border-left: 4px solid #e5e7eb;
-}
-
-.notification-priority-urgent {
-    border-left-color: #ef4444 !important;
-}
-
-.notification-priority-high {
-    border-left-color: #f97316 !important;
-}
-
-.notification-priority-medium {
-    border-left-color: #3b82f6 !important;
-}
-
-.notification-priority-low {
-    border-left-color: #10b981 !important;
-}
-
-#notification-count {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.notification-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-.notification-maintenance {
-    background-color: #f59e0b;
-    color: white;
-}
-
-.notification-incident {
-    background-color: #ef4444;
-    color: white;
-}
-
-.notification-visit {
-    background-color: #10b981;
-    color: white;
-}
-
-.notification-system {
-    background-color: #3b82f6;
-    color: white;
-}
-
-.notification-general {
-    background-color: #6b7280;
-    color: white;
-}
-</style>
-
-<!-- JavaScript para funcionalidad de notificaciones -->
-<script>
-class NotificationManager {
-    constructor() {
-        this.isOpen = false;
-        this.notifications = [];
-        this.unreadCount = 0;
-        this.init();
-    }
-    
-    init() {
-        this.bindEvents();
-        this.loadNotifications();
-        this.startPolling();
-    }
-    
-    bindEvents() {
-        const btn = document.getElementById('notifications-btn');
-        const menu = document.getElementById('notifications-menu');
-        const markAllBtn = document.getElementById('mark-all-read-btn');
-        
-        // Toggle dropdown
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleDropdown();
-        });
-        
-        // Cerrar dropdown al hacer clic fuera
-        document.addEventListener('click', (e) => {
-            if (!menu.contains(e.target) && !btn.contains(e.target)) {
-                this.closeDropdown();
-            }
-        });
-        
-        // Marcar todas como leídas
-        markAllBtn.addEventListener('click', () => {
-            this.markAllAsRead();
-        });
-    }
-    
-    toggleDropdown() {
-        const menu = document.getElementById('notifications-menu');
-        this.isOpen = !this.isOpen;
-        
-        if (this.isOpen) {
-            menu.classList.remove('hidden');
-            this.loadNotifications();
-        } else {
-            menu.classList.add('hidden');
-        }
-    }
-    
-    closeDropdown() {
-        const menu = document.getElementById('notifications-menu');
-        menu.classList.add('hidden');
-        this.isOpen = false;
-    }
-    
-    async loadNotifications() {
-        try {
-            const response = await fetch('/api/notifications/');
-            const data = await response.json();
-            
-            this.notifications = data.notifications;
-            this.unreadCount = data.unread_count;
-            
-            this.updateUI();
-        } catch (error) {
-            console.error('Error loading notifications:', error);
-        }
-    }
-    
-    updateUI() {
-        this.updateCounter();
-        this.renderNotifications();
-    }
-    
-    updateCounter() {
-        const counter = document.getElementById('notification-count');
-        
-        if (this.unreadCount > 0) {
-            counter.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
-            counter.classList.remove('hidden');
-        } else {
-            counter.classList.add('hidden');
-        }
-    }
-    
-    renderNotifications() {
-        const container = document.getElementById('notifications-list');
-        
-        if (this.notifications.length === 0) {
-            container.innerHTML = `
-                <div class="p-4 text-center text-gray-500">
-                    <i class="fas fa-bell-slash text-2xl mb-2"></i>
-                    <p>No hay notificaciones</p>
+            <div class="space-y-4">
+                <!-- Configuraciones por tipo -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="visits-notifications" class="mr-2">
+                        <span>Notificaciones de visitas</span>
+                    </label>
                 </div>
-            `;
-            return;
-        }
-        
-        const html = this.notifications.map(notification => 
-            this.renderNotificationItem(notification)
-        ).join('');
-        
-        container.innerHTML = html;
-        
-        // Bind click events
-        container.querySelectorAll('.notification-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const id = e.currentTarget.dataset.id;
-                this.markAsRead(id);
-            });
-        });
-    }
-    
-    renderNotificationItem(notification) {
-        const isUnread = !notification.is_read;
-        const readClass = isUnread ? 'notification-unread' : 'notification-read';
-        const priorityClass = `notification-priority-${notification.priority}`;
-        
-        const iconMap = {
-            'maintenance_request': 'fas fa-tools notification-maintenance',
-            'incident_report': 'fas fa-exclamation-triangle notification-incident',
-            'visit_notification': 'fas fa-user-friends notification-visit',
-            'system_alert': 'fas fa-cog notification-system',
-            'general': 'fas fa-bell notification-general'
-        };
-        
-        const iconClass = iconMap[notification.notification_type] || iconMap['general'];
-        
-        return `
-            <div class="notification-item ${readClass} ${priorityClass} p-4 border-b border-gray-100 cursor-pointer" 
-                 data-id="${notification.id}">
-                <div class="flex items-start space-x-3">
-                    <div class="notification-icon ${iconClass.split(' ').slice(1).join(' ')}">
-                        <i class="${iconClass.split(' ')[0]}"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">
-                            ${notification.title}
-                        </p>
-                        <p class="text-sm text-gray-600 mt-1 line-clamp-2">
-                            ${notification.message}
-                        </p>
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-xs text-gray-500">
-                                ${this.formatTime(notification.created_at)}
-                            </span>
-                            ${isUnread ? '<span class="text-xs text-blue-600 font-medium">Nueva</span>' : ''}
-                        </div>
-                    </div>
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="maintenance-notifications" class="mr-2">
+                        <span>Notificaciones de mantenimiento</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="emergency-notifications" class="mr-2" checked disabled>
+                        <span>Alertas de emergencia (obligatorio)</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="announcements-notifications" class="mr-2">
+                        <span>Anuncios generales</span>
+                    </label>
                 </div>
             </div>
-        `;
+
+            <div class="flex justify-end space-x-2 mt-6">
+                <button onclick="closeNotificationSettings()" 
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                    Cancelar
+                </button>
+                <button onclick="saveNotificationSettings()" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales para notificaciones
+let notificationPanel = null;
+let notificationList = null;
+let isNotificationPanelOpen = false;
+
+// Incluir el script principal de notificaciones
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar script de notificaciones si no está cargado
+    if (!window.notificationManager && typeof NotificationManager !== 'undefined') {
+        window.notificationManager = new NotificationManager();
     }
     
-    formatTime(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diff = now - date;
-        
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-        
-        if (minutes < 1) return 'Ahora';
-        if (minutes < 60) return `${minutes}m`;
-        if (hours < 24) return `${hours}h`;
-        if (days < 7) return `${days}d`;
-        
-        return date.toLocaleDateString();
-    }
+    initNotificationComponent();
+});
+
+function initNotificationComponent() {
+    notificationPanel = document.getElementById('notification-panel');
+    notificationList = document.getElementById('notification-list');
     
-    async markAsRead(notificationId) {
-        try {
-            const response = await fetch(`/api/notifications/${notificationId}/read/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
-                },
-            });
-            
-            if (response.ok) {
-                // Actualizar el estado local
-                const notification = this.notifications.find(n => n.id == notificationId);
-                if (notification && !notification.is_read) {
-                    notification.is_read = true;
-                    this.unreadCount--;
-                    this.updateUI();
-                }
-            }
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
+    // Cargar notificaciones iniciales
+    loadNotifications();
+    
+    // Actualizar cada 30 segundos
+    setInterval(loadNotifications, 30000);
+    
+    // Cerrar panel al hacer click fuera
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('notification-container');
+        if (!container.contains(event.target) && isNotificationPanelOpen) {
+            closeNotificationPanel();
         }
-    }
-    
-    async markAllAsRead() {
-        try {
-            const response = await fetch('/api/notifications/mark-all-read/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json',
-                },
-            });
-            
-            if (response.ok) {
-                this.notifications.forEach(n => n.is_read = true);
-                this.unreadCount = 0;
-                this.updateUI();
-            }
-        } catch (error) {
-            console.error('Error marking all notifications as read:', error);
-        }
-    }
-    
-    startPolling() {
-        // Verificar nuevas notificaciones cada 30 segundos
-        setInterval(() => {
-            this.loadNotifications();
-        }, 30000);
-    }
-    
-    // Método para añadir notificación en tiempo real
-    addNotification(notification) {
-        this.notifications.unshift(notification);
-        if (!notification.is_read) {
-            this.unreadCount++;
-        }
-        this.updateUI();
-        
-        // Mostrar notificación toast si está implementado
-        this.showToast(notification);
-    }
-    
-    showToast(notification) {
-        // Implementar notificación toast si se desea
-        console.log('Nueva notificación:', notification.title);
+    });
+}
+
+function toggleNotificationPanel() {
+    if (isNotificationPanelOpen) {
+        closeNotificationPanel();
+    } else {
+        openNotificationPanel();
     }
 }
 
-// Inicializar el gestor de notificaciones cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof window.notificationManager === 'undefined') {
-        window.notificationManager = new NotificationManager();
+function openNotificationPanel() {
+    notificationPanel.classList.remove('hidden');
+    isNotificationPanelOpen = true;
+    loadNotifications(); // Actualizar al abrir
+}
+
+function closeNotificationPanel() {
+    notificationPanel.classList.add('hidden');
+    isNotificationPanelOpen = false;
+}
+
+async function loadNotifications() {
+    try {
+        const response = await fetch('/api/notifications/unread/');
+        if (response.ok) {
+            const notifications = await response.json();
+            updateNotificationList(notifications);
+            updateNotificationBadge(notifications.length);
+        }
+    } catch (error) {
+        console.error('Error cargando notificaciones:', error);
     }
+}
+
+function updateNotificationList(notifications) {
+    const noNotifications = document.getElementById('no-notifications');
+    
+    if (notifications.length === 0) {
+        notificationList.innerHTML = `
+            <div class="p-4 text-center text-gray-500" id="no-notifications">
+                <i class="fas fa-bell-slash text-3xl mb-2"></i>
+                <p>No hay notificaciones</p>
+            </div>
+        `;
+        return;
+    }
+
+    const notificationHTML = notifications.map(notification => `
+        <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''}"
+             onclick="openNotification(${notification.id}, '${notification.action_url || '#'}')">
+            <div class="flex items-start space-x-3">
+                ${notification.icon_url ? 
+                    `<img src="${notification.icon_url}" alt="" class="w-6 h-6 mt-1">` :
+                    `<div class="w-6 h-6 mt-1 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bell text-white text-xs"></i>
+                    </div>`
+                }
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 ${!notification.is_read ? 'font-semibold' : ''}">
+                        ${notification.title}
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">
+                        ${notification.body}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">
+                        ${formatNotificationTime(notification.created_at)}
+                    </p>
+                </div>
+                ${!notification.is_read ? 
+                    `<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>` : ''
+                }
+            </div>
+        </div>
+    `).join('');
+
+    notificationList.innerHTML = notificationHTML;
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('notification-badge');
+    const statusDot = document.getElementById('notification-status-dot');
+    
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    if (statusDot) {
+        statusDot.className = count > 0 ? 
+            'w-2 h-2 rounded-full mr-2 bg-red-500' : 
+            'w-2 h-2 rounded-full mr-2 bg-green-500';
+    }
+}
+
+async function openNotification(notificationId, actionUrl) {
+    // Marcar como leída
+    await markNotificationAsRead(notificationId);
+    
+    // Abrir URL si existe
+    if (actionUrl && actionUrl !== '#') {
+        window.location.href = actionUrl;
+    }
+    
+    // Actualizar lista
+    loadNotifications();
+}
+
+async function markNotificationAsRead(notificationId) {
+    try {
+        const response = await fetch('/api/notifications/mark-read/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                notification_ids: [notificationId]
+            })
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error marcando notificación como leída:', error);
+        return false;
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        const response = await fetch('/api/notifications/mark-all-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+        
+        if (response.ok) {
+            loadNotifications();
+            showToast('Todas las notificaciones marcadas como leídas', 'success');
+        }
+    } catch (error) {
+        console.error('Error marcando todas como leídas:', error);
+        showToast('Error al marcar notificaciones', 'error');
+    }
+}
+
+function refreshNotifications() {
+    loadNotifications();
+    showToast('Notificaciones actualizadas', 'info');
+}
+
+function formatNotificationTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    
+    return date.toLocaleDateString();
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toastId = 'toast-' + Date.now();
+    
+    const typeStyles = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-yellow-500'
+    };
+
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `${typeStyles[type]} text-white px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <span>${message}</span>
+            <button onclick="removeToast('${toastId}')" class="ml-3 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Mostrar toast
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto-ocultar después de 4 segundos
+    setTimeout(() => {
+        removeToast(toastId);
+    }, 4000);
+}
+
+function removeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return '';
+}
+
+// Configuración de notificaciones
+function openNotificationSettings() {
+    document.getElementById('notification-settings-modal').classList.remove('hidden');
+    loadNotificationSettings();
+}
+
+function closeNotificationSettings() {
+    document.getElementById('notification-settings-modal').classList.add('hidden');
+}
+
+async function loadNotificationSettings() {
+    try {
+        const response = await fetch('/api/notifications/preferences/');
+        if (response.ok) {
+            const preferences = await response.json();
+            document.getElementById('visits-notifications').checked = preferences.visit_notifications;
+            document.getElementById('maintenance-notifications').checked = preferences.maintenance_notifications;
+            document.getElementById('announcements-notifications').checked = preferences.announcement_notifications;
+        }
+    } catch (error) {
+        console.error('Error cargando preferencias:', error);
+    }
+}
+
+async function saveNotificationSettings() {
+    const preferences = {
+        visit_notifications: document.getElementById('visits-notifications').checked,
+        maintenance_notifications: document.getElementById('maintenance-notifications').checked,
+        announcement_notifications: document.getElementById('announcements-notifications').checked
+    };
+
+    try {
+        const response = await fetch('/api/notifications/preferences/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(preferences)
+        });
+
+        if (response.ok) {
+            closeNotificationSettings();
+            showToast('Preferencias guardadas correctamente', 'success');
+        } else {
+            showToast('Error guardando preferencias', 'error');
+        }
+    } catch (error) {
+        console.error('Error guardando preferencias:', error);
+        showToast('Error guardando preferencias', 'error');
+    }
+}
+</script>
 });
 </script>

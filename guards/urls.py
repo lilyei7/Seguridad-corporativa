@@ -4,6 +4,9 @@ from . import views
 app_name = 'guards'
 
 urlpatterns = [
+    # Lista de vigilantes
+    path('', views.guard_list, name='guard_list'),
+    
     # Vigilantes
     path('create/', views.guard_create, name='guard_create'),
     path('<int:guard_id>/', views.guard_detail, name='guard_detail'),

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="{% block theme_color %}#1e40af{% endblock %}">
+    
+    <title>{% block title %}SecureCorp Móvil{% endblock %}</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/static/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192x192.png">
+    
+    <!-- Tailwind CSS optimizado para móvil -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Alpine.js para interactividad -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        /* Estilos optimizados para móvil */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .mobile-card {
+            @apply bg-white rounded-lg shadow-md p-4 border border-gray-100;
+        }
+        
+        .mobile-button {
+            @apply w-full py-3 px-4 rounded-lg font-medium text-center transition-all duration-200 active:scale-95;
+        }
+        
+        .mobile-button-primary {
+            @apply mobile-button bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800;
+        }
+        
+        .mobile-button-success {
+            @apply mobile-button bg-green-600 text-white hover:bg-green-700 active:bg-green-800;
+        }
+        
+        .mobile-button-warning {
+            @apply mobile-button bg-orange-600 text-white hover:bg-orange-700 active:bg-orange-800;
+        }
+        
+        .mobile-button-danger {
+            @apply mobile-button bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
+        }
+        
+        .mobile-header {
+            background: {% block header_gradient %}linear-gradient(135deg, #1e40af 0%, #3b82f6 100%){% endblock %};
+        }
+        
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .bottom-nav {
+            bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Animaciones de tap */
+        .tap-active:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+        
+        /* Swipe gestures */
+        .swipe-card {
+            transition: transform 0.3s ease;
+        }
+        
+        /* Haptic feedback simulation */
+        .haptic:active {
+            animation: haptic 0.1s ease;
+        }
+        
+        @keyframes haptic {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.98); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50 overflow-x-hidden">
+    <!-- Header -->
+    <header class="mobile-header text-white safe-area-top sticky top-0 z-50 shadow-lg">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    {% block header_icon %}
+                    <i class="fas fa-shield-alt text-xl"></i>
+                    {% endblock %}
+                    <div>
+                        <h1 class="text-lg font-semibold">{% block header_title %}SecureCorp{% endblock %}</h1>
+                        <p class="text-xs opacity-90">{% block header_subtitle %}{{ user.get_full_name|default:user.username }}{% endblock %}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    {% block header_actions %}
+                    <!-- Notificaciones -->
+                    <button class="relative p-2 rounded-full hover:bg-white/10 tap-active" onclick="showNotifications()">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </button>
+                    
+                    <!-- Menú usuario -->
+                    <button class="p-2 rounded-full hover:bg-white/10 tap-active" onclick="showUserMenu()">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="flex-1 pb-20">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Navegación inferior fija -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 bottom-nav safe-area-bottom">
+        <div class="flex">
+            {% block bottom_nav %}
+            <a href="#" class="flex-1 py-2 px-1 text-center text-xs">
+                <i class="fas fa-home text-lg block mb-1"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="#" class="flex-1 py-2 px-1 text-center text-xs">
+                <i class="fas fa-list text-lg block mb-1"></i>
+                <span>Lista</span>
+            </a>
+            <a href="#" class="flex-1 py-2 px-1 text-center text-xs">
+                <i class="fas fa-plus text-lg block mb-1"></i>
+                <span>Agregar</span>
+            </a>
+            <a href="#" class="flex-1 py-2 px-1 text-center text-xs">
+                <i class="fas fa-chart-bar text-lg block mb-1"></i>
+                <span>Reportes</span>
+            </a>
+            {% endblock %}
+        </div>
+    </nav>
+
+    <!-- Modales -->
+    <!-- Modal de notificaciones -->
+    <div id="notifications-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" onclick="hideNotifications()">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl p-4 safe-area-bottom" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Notificaciones</h3>
+                <button onclick="hideNotifications()" class="p-2 hover:bg-gray-100 rounded-full">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-3 max-h-60 overflow-y-auto">
+                <div class="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                    <p class="font-medium text-sm">Nueva visita programada</p>
+                    <p class="text-xs text-gray-600">Juan Pérez - Hoy 15:30</p>
+                </div>
+                <div class="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                    <p class="font-medium text-sm">Solicitud de mantenimiento</p>
+                    <p class="text-xs text-gray-600">Ascensor Bloque A - Hace 2 horas</p>
+                </div>
+                <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                    <p class="font-medium text-sm">Visita aprobada</p>
+                    <p class="text-xs text-gray-600">María González - Hace 1 hora</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de usuario -->
+    <div id="user-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" onclick="hideUserMenu()">
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl p-4 safe-area-bottom" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Mi Cuenta</h3>
+                <button onclick="hideUserMenu()" class="p-2 hover:bg-gray-100 rounded-full">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <a href="#" class="flex items-center p-3 hover:bg-gray-50 rounded-lg">
+                    <i class="fas fa-user-cog w-8 text-center text-gray-600"></i>
+                    <span class="ml-3">Configuración</span>
+                </a>
+                <a href="#" class="flex items-center p-3 hover:bg-gray-50 rounded-lg">
+                    <i class="fas fa-question-circle w-8 text-center text-gray-600"></i>
+                    <span class="ml-3">Ayuda</span>
+                </a>
+                <a href="{% url 'logout' %}" class="flex items-center p-3 hover:bg-gray-50 rounded-lg text-red-600">
+                    <i class="fas fa-sign-out-alt w-8 text-center"></i>
+                    <span class="ml-3">Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Funciones para modales
+        function showNotifications() {
+            document.getElementById('notifications-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideNotifications() {
+            document.getElementById('notifications-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showUserMenu() {
+            document.getElementById('user-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideUserMenu() {
+            document.getElementById('user-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // PWA Installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            // Mostrar botón de instalación
+            const installButton = document.createElement('button');
+            installButton.innerHTML = '<i class="fas fa-download mr-2"></i>Instalar App';
+            installButton.className = 'mobile-button-primary fixed top-20 right-4 z-40 text-sm px-3 py-2';
+            installButton.onclick = installApp;
+            document.body.appendChild(installButton);
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((result) => {
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        }
+
+        // Haptic feedback (para dispositivos compatibles)
+        function hapticFeedback(type = 'medium') {
+            if (navigator.vibrate) {
+                switch(type) {
+                    case 'light': navigator.vibrate(10); break;
+                    case 'medium': navigator.vibrate(50); break;
+                    case 'heavy': navigator.vibrate(100); break;
+                }
+            }
+        }
+
+        // Agregar haptic feedback a botones
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.haptic').forEach(element => {
+                element.addEventListener('touchstart', () => hapticFeedback('light'));
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

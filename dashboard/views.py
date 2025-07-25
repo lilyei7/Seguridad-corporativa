@@ -15,10 +15,40 @@ from .models import SecurityIncident, SecurityCheckpoint, SystemThemeConfigurati
 from .forms import SecurityIncidentForm, IncidentStatusForm
 
 
+def get_user_role_redirect(user):
+    """
+    Determina a qué panel debe ser redirigido el usuario según su rol
+    """
+    # 1. Administradores y staff
+    if user.is_staff or user.is_superuser:
+        return '/administracion/'
+    
+    # 2. Vigilantes
+    try:
+        guard = Guard.objects.get(user=user)
+        if guard.status == 'activo':
+            return '/vigilante/'
+    except Guard.DoesNotExist:
+        pass
+    
+    # 3. Inquilinos
+    try:
+        tenant = Tenant.objects.get(assigned_user=user)
+        if tenant.is_active:
+            return '/inquilino/'
+    except Tenant.DoesNotExist:
+        pass
+    
+    # 4. Default: dashboard original
+    return 'dashboard:index'
+
+
 def login_view(request):
     """Vista para el login del sistema"""
     if request.user.is_authenticated:
-        return redirect('dashboard:index')
+        # Redirigir según el rol del usuario
+        redirect_url = get_user_role_redirect(request.user)
+        return redirect(redirect_url)
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -27,7 +57,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', 'dashboard:index')
+            
+            # Determinar redirección según rol
+            redirect_url = get_user_role_redirect(user)
+            next_url = request.GET.get('next', redirect_url)
             return redirect(next_url)
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
@@ -44,6 +77,16 @@ def logout_view(request):
 @login_required
 def dashboard_index(request):
     """Vista principal del dashboard que redirige según el tipo de usuario"""
+    
+    # Redirección automática según el rol del usuario
+    redirect_url = get_user_role_redirect(request.user)
+    
+    # Si la redirección no es al dashboard original, redirigir
+    if redirect_url != 'dashboard:index':
+        return redirect(redirect_url)
+    
+    # Solo continuar aquí si no hay un panel específico para el usuario
+    # (usuarios sin rol específico verán el dashboard original)
     
     # Detectar si es dispositivo móvil
     user_agent = request.META.get('HTTP_USER_AGENT', '').lower()

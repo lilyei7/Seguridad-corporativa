@@ -1,0 +1,456 @@
+{% extends 'mobile_app/base_mobile.html' %}
+{% load static %}
+
+{% block title %}Vigilante - Dashboard Móvil{% endblock %}
+
+{% block extra_head %}
+<meta name="theme-color" content="#dc2626">
+<style>
+    body {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        min-height: 100vh;
+    }
+    .emergency-btn {
+        background: linear-gradient(45deg, #dc2626, #ef4444);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        transform: scale(1);
+        transition: all 0.3s ease;
+    }
+    .emergency-btn:active {
+        transform: scale(0.95);
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.6);
+    }
+    .visit-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .quick-action {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+    .quick-action:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen text-white p-4 pb-20">
+    <!-- Header con información del vigilante -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-2xl font-bold">👮‍♂️ Vigilancia Móvil</h1>
+                <p class="text-blue-200">{{ user.get_full_name|default:user.username }}</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-blue-200" id="current-time"></div>
+                <div class="text-xs text-blue-300">Turno Activo</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de Emergencia (Prominente) -->
+    <div class="mb-6">
+        <button onclick="triggerEmergency()" 
+                class="emergency-btn w-full py-6 rounded-2xl text-white font-bold text-xl flex items-center justify-center space-x-3">
+            <i class="fas fa-exclamation-triangle text-3xl"></i>
+            <span>🚨 EMERGENCIA</span>
+        </button>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="quick-action rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-blue-400">{{ pending_visits_count|default:0 }}</div>
+            <div class="text-xs text-blue-200">Visitas Pendientes</div>
+        </div>
+        <div class="quick-action rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-green-400">{{ approved_today|default:0 }}</div>
+            <div class="text-xs text-blue-200">Aprobadas Hoy</div>
+        </div>
+        <div class="quick-action rounded-xl p-4 text-center">
+            <div class="text-2xl font-bold text-yellow-400">{{ visitors_inside|default:0 }}</div>
+            <div class="text-xs text-blue-200">Visitantes Dentro</div>
+        </div>
+    </div>
+
+    <!-- Visitas Pendientes -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold mb-4 flex items-center">
+            <i class="fas fa-clock mr-2"></i>
+            Visitas Pendientes HOY
+        </h2>
+        
+        <div id="pending-visits" class="space-y-3">
+            {% if pending_visits %}
+                {% for visit in pending_visits %}
+                <div class="visit-card rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-800">{{ visit.visitor_name }}</h3>
+                            <p class="text-sm text-gray-600">
+                                Para: {{ visit.tenant.get_full_name }}
+                                {% if visit.tenant.tenant_profile.unit_number %}
+                                (Unidad {{ visit.tenant.tenant_profile.unit_number }})
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ visit.visit_date|date:"d/m/Y" }} - {{ visit.visit_time|time:"H:i" }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            {% if visit.priority == 'urgent' %}
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">🔥 Urgente</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="approveVisit({{ visit.id }})" 
+                                class="flex-1 bg-green-500 text-white py-3 rounded-lg font-medium flex items-center justify-center">
+                            <i class="fas fa-check mr-2"></i>
+                            Aprobar
+                        </button>
+                        <button onclick="rejectVisit({{ visit.id }})" 
+                                class="flex-1 bg-red-500 text-white py-3 rounded-lg font-medium flex items-center justify-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Rechazar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="visit-card rounded-xl p-6 text-center">
+                    <i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i>
+                    <p class="text-gray-600">No hay visitas pendientes</p>
+                    <p class="text-sm text-gray-500">¡Todo al día! 👍</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="mb-6">
+        <h2 class="text-xl font-bold mb-4 flex items-center">
+            <i class="fas fa-bolt mr-2"></i>
+            Acciones Rápidas
+        </h2>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="openIncidentReport()" 
+                    class="quick-action rounded-xl p-4 text-center">
+                <i class="fas fa-exclamation-circle text-2xl text-yellow-400 mb-2"></i>
+                <div class="text-sm font-medium">Reportar Incidente</div>
+            </button>
+            
+            <button onclick="viewAllVisits()" 
+                    class="quick-action rounded-xl p-4 text-center">
+                <i class="fas fa-list text-2xl text-blue-400 mb-2"></i>
+                <div class="text-sm font-medium">Ver Todas las Visitas</div>
+            </button>
+            
+            <button onclick="callAdmin()" 
+                    class="quick-action rounded-xl p-4 text-center">
+                <i class="fas fa-phone text-2xl text-green-400 mb-2"></i>
+                <div class="text-sm font-medium">Llamar Administración</div>
+            </button>
+            
+            <button onclick="openCamera()" 
+                    class="quick-action rounded-xl p-4 text-center">
+                <i class="fas fa-camera text-2xl text-purple-400 mb-2"></i>
+                <div class="text-sm font-medium">Tomar Foto</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Visitantes Actuales -->
+    {% if current_visitors %}
+    <div class="mb-6">
+        <h2 class="text-xl font-bold mb-4 flex items-center">
+            <i class="fas fa-users mr-2"></i>
+            Visitantes Actuales ({{ current_visitors|length }})
+        </h2>
+        
+        <div class="space-y-2">
+            {% for visitor in current_visitors %}
+            <div class="visit-card rounded-lg p-3 flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-gray-800">{{ visitor.visitor_name }}</div>
+                    <div class="text-sm text-gray-600">
+                        Visitando: {{ visitor.tenant.get_full_name }}
+                        {% if visitor.tenant.tenant_profile.unit_number %}
+                        ({{ visitor.tenant.tenant_profile.unit_number }})
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        Entrada: {{ visitor.arrival_time|time:"H:i" }}
+                    </div>
+                </div>
+                <button onclick="registerExit({{ visitor.id }})" 
+                        class="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-sign-out-alt mr-1"></i>
+                    Salida
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Componente de notificaciones -->
+{% include 'components/notifications.html' %}
+
+<!-- Modal de Emergencia -->
+<div id="emergency-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div class="text-center mb-4">
+                <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-800">¿Confirmar Emergencia?</h3>
+                <p class="text-gray-600 text-sm">Se alertará a toda la administración</p>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="confirmEmergency()" 
+                        class="w-full bg-red-500 text-white py-3 rounded-lg font-bold">
+                    🚨 SÍ, ES EMERGENCIA
+                </button>
+                <button onclick="closeEmergencyModal()" 
+                        class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-medium">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white rounded-lg p-6 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p class="text-gray-600">Procesando...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Actualizar hora en tiempo real
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    document.getElementById('current-time').textContent = timeString;
+}
+
+setInterval(updateTime, 1000);
+updateTime();
+
+// Funciones de emergencia
+function triggerEmergency() {
+    document.getElementById('emergency-modal').classList.remove('hidden');
+}
+
+function closeEmergencyModal() {
+    document.getElementById('emergency-modal').classList.add('hidden');
+}
+
+function confirmEmergency() {
+    showLoading();
+    
+    fetch('/api/guards/emergency/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            message: 'Alerta de emergencia activada por vigilante',
+            location: 'Puesto de vigilancia',
+            timestamp: new Date().toISOString()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        closeEmergencyModal();
+        if (data.success) {
+            showAlert('🚨 Alerta de emergencia enviada', 'error');
+        } else {
+            showAlert('Error enviando alerta', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        closeEmergencyModal();
+        showAlert('Error de conexión', 'error');
+    });
+}
+
+// Funciones para visitas
+function approveVisit(visitId) {
+    showLoading();
+    
+    fetch(`/api/visits/${visitId}/approve/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            showAlert('✅ Visita aprobada correctamente', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error aprobando visita', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error de conexión', 'error');
+    });
+}
+
+function rejectVisit(visitId) {
+    const reason = prompt('¿Motivo del rechazo? (opcional)');
+    showLoading();
+    
+    fetch(`/api/visits/${visitId}/reject/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            reason: reason || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            showAlert('❌ Visita rechazada', 'warning');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error rechazando visita', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error de conexión', 'error');
+    });
+}
+
+function registerExit(visitId) {
+    showLoading();
+    
+    fetch(`/api/visits/${visitId}/exit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            showAlert('👋 Salida registrada', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Error registrando salida', 'error');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error de conexión', 'error');
+    });
+}
+
+// Acciones rápidas
+function openIncidentReport() {
+    window.location.href = '/vigilante/incidentes/nuevo/';
+}
+
+function viewAllVisits() {
+    window.location.href = '/vigilante/visitas/';
+}
+
+function callAdmin() {
+    if (confirm('¿Llamar a administración?')) {
+        window.location.href = 'tel:+1234567890'; // Número de administración
+    }
+}
+
+function openCamera() {
+    // Intentar abrir la cámara del dispositivo
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        window.location.href = '/vigilante/incidentes/foto/';
+    } else {
+        showAlert('Cámara no disponible en este dispositivo', 'warning');
+    }
+}
+
+// Utilidades
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+function showAlert(message, type = 'info') {
+    // Crear alerta temporal
+    const alert = document.createElement('div');
+    alert.className = `fixed top-4 left-4 right-4 z-50 p-4 rounded-lg text-white font-medium ${
+        type === 'success' ? 'bg-green-500' :
+        type === 'error' ? 'bg-red-500' :
+        type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+    }`;
+    alert.textContent = message;
+    
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return '';
+}
+
+// Auto-refresh cada 30 segundos para visitas pendientes
+setInterval(() => {
+    fetch('/api/visits/pending/')
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar contador sin recargar página
+            document.querySelector('.quick-action .text-blue-400').textContent = data.count || 0;
+        })
+        .catch(error => console.log('Error actualizando visitas:', error));
+}, 30000);
+</script>
+{% endblock %}

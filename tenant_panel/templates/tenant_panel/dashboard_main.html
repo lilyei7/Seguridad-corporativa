@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Portal del Inquilino{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header personalizado para inquilinos -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Portal del Inquilino</h1>
+                <p class="text-green-100">Bienvenido, {{ user.get_full_name|default:user.username }}</p>
+                {% if user.tenant %}
+                <p class="text-green-200 text-sm">Unidad: {{ user.tenant.unit_number }}</p>
+                {% endif %}
+            </div>
+            <div class="text-right">
+                <div class="bg-green-500 rounded-full p-4">
+                    <i class="fas fa-home text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del Inquilino -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Visitas Programadas</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ visits_scheduled }}</p>
+                </div>
+                <div class="bg-blue-100 rounded-full p-3">
+                    <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Solicitudes Mantenimiento</p>
+                    <p class="text-3xl font-bold text-orange-600">{{ maintenance_requests }}</p>
+                </div>
+                <div class="bg-orange-100 rounded-full p-3">
+                    <i class="fas fa-tools text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm">Estado Cuenta</p>
+                    <p class="text-3xl font-bold text-green-600">Al día</p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mi Información -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-info-circle text-green-600 mr-2"></i>
+            Mi Información
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <p class="text-gray-600 text-sm">Nombre</p>
+                <p class="font-semibold">{{ user.get_full_name|default:user.username }}</p>
+            </div>
+            {% if user.tenant %}
+            <div>
+                <p class="text-gray-600 text-sm">Unidad</p>
+                <p class="font-semibold">{{ user.tenant.unit_number }}</p>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm">Estado</p>
+                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    Activo
+                </span>
+            </div>
+            <div>
+                <p class="text-gray-600 text-sm">Fecha de Ingreso</p>
+                <p class="font-semibold">{{ user.tenant.move_in_date|date:"d M Y"|default:"No especificada" }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Gestionar Visitas -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+             onclick="window.location.href='{% url 'tenant_panel:create_visit' %}'">
+            <div class="text-center">
+                <div class="bg-blue-100 rounded-full p-4 inline-block mb-4">
+                    <i class="fas fa-calendar-plus text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Solicitar Visita</h3>
+                <p class="text-gray-600 text-sm">Programa una nueva visita para tus invitados</p>
+            </div>
+        </div>
+
+        <!-- Ver Mis Visitas -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+             onclick="window.location.href='{% url 'tenant_panel:visits' %}'">
+            <div class="text-center">
+                <div class="bg-green-100 rounded-full p-4 inline-block mb-4">
+                    <i class="fas fa-history text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Mis Visitas</h3>
+                <p class="text-gray-600 text-sm">Consulta el historial de tus visitas</p>
+            </div>
+        </div>
+
+        <!-- Solicitar Mantenimiento -->
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+             onclick="window.location.href='{% url 'tenant_panel:maintenance' %}'">
+            <div class="text-center">
+                <div class="bg-orange-100 rounded-full p-4 inline-block mb-4">
+                    <i class="fas fa-tools text-orange-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Mantenimiento</h3>
+                <p class="text-gray-600 text-sm">Reporta problemas de mantenimiento</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mis Visitas Recientes -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Próximas Visitas -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-calendar-day text-blue-600 mr-2"></i>
+                Próximas Visitas
+            </h2>
+            {% if upcoming_visits %}
+                <div class="space-y-3">
+                    {% for visit in upcoming_visits %}
+                    <div class="border-l-4 border-blue-500 pl-4 py-2">
+                        <p class="font-semibold">{{ visit.visitor_name }}</p>
+                        <p class="text-sm text-gray-600">{{ visit.scheduled_date }} - {{ visit.scheduled_time }}</p>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            {{ visit.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-8">No tienes visitas programadas</p>
+            {% endif %}
+        </div>
+
+        <!-- Solicitudes de Mantenimiento -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-wrench text-orange-600 mr-2"></i>
+                Solicitudes de Mantenimiento
+            </h2>
+            {% if maintenance_reports %}
+                <div class="space-y-3">
+                    {% for report in maintenance_reports %}
+                    <div class="border-l-4 border-orange-500 pl-4 py-2">
+                        <p class="font-semibold">{{ report.title }}</p>
+                        <p class="text-sm text-gray-600">{{ report.created_at|date:"d M Y" }}</p>
+                        <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                            {{ report.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-8">No tienes solicitudes de mantenimiento</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 20px;
+}
+
+.bg-gradient-to-r {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+}
+
+.hover\:shadow-lg:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+</style>
+{% endblock %}

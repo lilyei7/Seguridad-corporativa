@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Estadísticas del Inquilino -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="tenant-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Visitas Hoy</p>
+                <p class="text-3xl font-bold text-green-600">{{ my_visits_today }}</p>
+            </div>
+            <div class="bg-green-100 rounded-full p-3">
+                <i class="fas fa-calendar-day text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tenant-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Visitas Pendientes</p>
+                <p class="text-3xl font-bold text-yellow-600">{{ pending_visits }}</p>
+            </div>
+            <div class="bg-yellow-100 rounded-full p-3">
+                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tenant-card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm">Visitas Aprobadas</p>
+                <p class="text-3xl font-bold text-blue-600">{{ approved_visits }}</p>
+            </div>
+            <div class="bg-blue-100 rounded-full p-3">
+                <i class="fas fa-check-circle text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Inquilino -->
+{% if tenant %}
+<div class="tenant-card p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+        <i class="fas fa-info-circle text-green-600 mr-2"></i>
+        Mi Información
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <p class="text-sm text-gray-600">Apartamento</p>
+            <p class="text-lg font-medium text-gray-900">{{ tenant.unit_number }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Propietario</p>
+            <p class="text-lg font-medium text-gray-900">{{ tenant.assigned_user.get_full_name|default:tenant.assigned_user.username }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Email</p>
+            <p class="text-lg font-medium text-gray-900">{{ tenant.assigned_user.email|default:"No registrado" }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-600">Estado</p>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full {% if tenant.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if tenant.is_active %}Activo{% else %}Inactivo{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Visitas Recientes y Próximas -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Visitas Recientes -->
+    <div class="tenant-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-history text-green-600 mr-2"></i>
+                Visitas Recientes
+            </h3>
+            <a href="{% url 'tenant_panel:visits' %}" class="text-sm text-green-600 hover:text-green-800">Ver todas</a>
+        </div>
+        
+        {% if recent_visits %}
+            <div class="space-y-3">
+                {% for visit in recent_visits %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                        <p class="text-sm text-gray-600">{{ visit.created_at|date:"d M Y H:i" }}</p>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full
+                        {% if visit.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif visit.status == 'approved' %}bg-green-100 text-green-800
+                        {% elif visit.status == 'completed' %}bg-blue-100 text-blue-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ visit.get_status_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-center py-4">No hay visitas recientes</p>
+        {% endif %}
+    </div>
+    
+    <!-- Próximas Visitas -->
+    <div class="tenant-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-calendar-alt text-green-600 mr-2"></i>
+                Próximas Visitas
+            </h3>
+            <a href="{% url 'tenant_panel:create_visit' %}" class="text-sm text-green-600 hover:text-green-800">Nueva visita</a>
+        </div>
+        
+        {% if upcoming_visits %}
+            <div class="space-y-3">
+                {% for visit in upcoming_visits %}
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div>
+                        <p class="font-medium text-gray-900">{{ visit.visitor_name }}</p>
+                        <p class="text-sm text-gray-600">{{ visit.scheduled_date|date:"d M Y" }} - {{ visit.scheduled_time|time:"H:i" }}</p>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        Aprobada
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-center py-4">No hay visitas programadas</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Reportes de Mantenimiento -->
+{% if my_maintenance_reports %}
+<div class="tenant-card p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-tools text-green-600 mr-2"></i>
+            Mis Reportes de Mantenimiento
+        </h3>
+        <a href="{% url 'tenant_panel:maintenance' %}" class="text-sm text-green-600 hover:text-green-800">Ver todos</a>
+    </div>
+    
+    <div class="space-y-3">
+        {% for report in my_maintenance_reports %}
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+                <p class="font-medium text-gray-900">{{ report.title }}</p>
+                <p class="text-sm text-gray-600">{{ report.created_at|date:"d M Y H:i" }}</p>
+            </div>
+            <span class="px-2 py-1 text-xs font-semibold rounded-full
+                {% if report.status == 'pending' %}bg-yellow-100 text-yellow-800
+                {% elif report.status == 'in_progress' %}bg-blue-100 text-blue-800
+                {% elif report.status == 'completed' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ report.get_status_display }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Acciones Rápidas -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+    <a href="{% url 'tenant_panel:create_visit' %}" class="tenant-card p-6 hover:shadow-lg transition-all duration-200 block">
+        <div class="text-center">
+            <div class="bg-green-100 rounded-full p-4 inline-block mb-4">
+                <i class="fas fa-plus text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Registrar Visita</h3>
+            <p class="text-gray-600 text-sm">Solicitar autorización para una nueva visita</p>
+        </div>
+    </a>
+    
+    <a href="{% url 'maintenance:report_create' %}" class="tenant-card p-6 hover:shadow-lg transition-all duration-200 block">
+        <div class="text-center">
+            <div class="bg-orange-100 rounded-full p-4 inline-block mb-4">
+                <i class="fas fa-wrench text-orange-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Reporte de Mantenimiento</h3>
+            <p class="text-gray-600 text-sm">Reportar un problema o solicitar mantenimiento</p>
+        </div>
+    </a>
+</div>
+{% endblock %}

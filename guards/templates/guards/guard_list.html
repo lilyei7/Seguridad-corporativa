@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Vigilantes - SecureCorp{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Gestión de Vigilantes</h1>
+                    <p class="mt-2 text-gray-600">Administra el personal de seguridad del corporativo</p>
+                </div>
+                <a href="{% url 'guards:guard_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Nuevo Vigilante
+                </a>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user-shield text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Vigilantes</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_guards }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Activos</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ active_guards }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-times-circle text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Inactivos</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ inactive_guards }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros y búsqueda -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <form method="get" class="flex flex-col lg:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="search" class="sr-only">Buscar vigilante</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               name="search" 
+                               id="search"
+                               value="{{ request.GET.search }}"
+                               placeholder="Buscar por nombre, usuario o ID de empleado..."
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <div class="lg:w-48">
+                    <select name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todos los estados</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activos</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-filter mr-2"></i>Filtrar
+                </button>
+            </form>
+        </div>
+
+        <!-- Lista de vigilantes -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Vigilantes ({{ guards.count }})</h3>
+            </div>
+            
+            {% if guards %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vigilante</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Empleado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Turno</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for guard in guards %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user-shield text-blue-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ guard.user.get_full_name }}</div>
+                                            <div class="text-sm text-gray-500">{{ guard.user.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ guard.employee_id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <div>{{ guard.phone_number|default:"No especificado" }}</div>
+                                    <div class="text-xs text-gray-500">{{ guard.user.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ guard.get_shift_display }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if guard.status == 'activo' %}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            {{ guard.get_status_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            {{ guard.get_status_display }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'guards:guard_detail' guard.id %}" class="text-blue-600 hover:text-blue-900">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'guards:guard_edit' guard.id %}" class="text-yellow-600 hover:text-yellow-900">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'guards:toggle_guard_status' guard.id %}" 
+                                           class="{% if guard.status == 'activo' %}text-red-600 hover:text-red-900{% else %}text-green-600 hover:text-green-900{% endif %}"
+                                           onclick="return confirm('¿Estás seguro de cambiar el estado de este vigilante?')">
+                                            {% if guard.status == 'activo' %}
+                                                <i class="fas fa-ban"></i>
+                                            {% else %}
+                                                <i class="fas fa-check"></i>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user-shield text-gray-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay vigilantes</h3>
+                    <p class="text-gray-500 mb-4">No se encontraron vigilantes con los filtros aplicados.</p>
+                    <a href="{% url 'guards:guard_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Registrar Primer Vigilante
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

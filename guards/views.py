@@ -4,8 +4,41 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.contrib.auth.models import User, Group
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 from .models import Guard, SecurityPoint, SecurityRoute, RoutePoint
 from .forms import GuardForm, SecurityPointForm, SecurityRouteForm, GuardAssignmentForm
+
+
+@login_required
+def guard_list(request):
+    """Vista para listar todos los vigilantes"""
+    guards = Guard.objects.select_related('user').order_by('user__first_name', 'user__last_name')
+    
+    # Búsqueda
+    search = request.GET.get('search')
+    if search:
+        guards = guards.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(employee_id__icontains=search)
+        )
+    
+    # Filtros
+    status = request.GET.get('status')
+    if status == 'active':
+        guards = guards.filter(status='activo')
+    elif status == 'inactive':
+        guards = guards.filter(status__in=['inactivo', 'suspendido'])
+    
+    context = {
+        'guards': guards,
+        'total_guards': Guard.objects.count(),
+        'active_guards': Guard.objects.filter(status='activo').count(),
+        'inactive_guards': Guard.objects.filter(status__in=['inactivo', 'suspendido']).count(),
+    }
+    
+    return render(request, 'guards/guard_list.html', context)
 
 
 @login_required

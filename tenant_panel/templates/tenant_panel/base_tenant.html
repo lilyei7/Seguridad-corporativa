@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Inquilinos - SecureCorp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tenant-sidebar {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .tenant-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .tenant-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .tenant-nav-item {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tenant-nav-item:hover,
+    .tenant-nav-item.active {
+        background: rgba(255,255,255,0.2);
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header del Panel de Inquilinos -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-building text-2xl text-green-600 mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Panel de Inquilinos</h1>
+                        <p class="text-sm text-gray-600">Gestión de visitas y servicios</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-user mr-1"></i>
+                        {{ user.get_full_name|default:user.username }}
+                    </div>
+                    {% if tenant %}
+                    <div class="text-sm text-gray-500">
+                        Apt. {{ tenant.unit_number }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar de Navegación -->
+            <div class="lg:w-64 flex-shrink-0">
+                <div class="tenant-sidebar rounded-lg p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-home mr-2"></i>
+                        Mi Panel
+                    </h3>
+                    <nav class="space-y-2">
+                        <a href="{% url 'tenant_panel:dashboard' %}" class="tenant-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'tenant_panel:visits' %}" class="tenant-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-clipboard-list w-5 h-5 mr-3"></i>
+                            Mis Visitas
+                        </a>
+                        <a href="{% url 'tenant_panel:create_visit' %}" class="tenant-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-plus w-5 h-5 mr-3"></i>
+                            Nueva Visita
+                        </a>
+                        <a href="{% url 'tenant_panel:maintenance' %}" class="tenant-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-tools w-5 h-5 mr-3"></i>
+                            Mantenimiento
+                        </a>
+                        <a href="{% url 'tenant_panel:profile' %}" class="tenant-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-user-cog w-5 h-5 mr-3"></i>
+                            Mi Perfil
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="flex-1">
+                {% block tenant_content %}
+                <div class="tenant-card p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Contenido del Panel</h2>
+                    <p class="text-gray-600">Contenido específico de cada sección aparecerá aquí.</p>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Marcar elemento activo en la navegación
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.tenant-nav-item');
+    
+    navItems.forEach(item => {
+        if (item.getAttribute('href') === currentPath) {
+            item.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}

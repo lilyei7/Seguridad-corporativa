@@ -2,9 +2,50 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.db.models import Q
 from .models import Visit, VisitLog
 from .forms import VisitForm
 from guards.models import Guard
+
+
+@login_required
+def visit_list(request):
+    """Vista para listar todas las visitas"""
+    visits = Visit.objects.select_related('tenant', 'approved_by', 'registered_by').order_by('-created_at')
+    
+    # Búsqueda
+    search = request.GET.get('search')
+    if search:
+        visits = visits.filter(
+            Q(visitor_name__icontains=search) |
+            Q(visitor_id_number__icontains=search) |
+            Q(tenant__unit_number__icontains=search) |
+            Q(purpose__icontains=search)
+        )
+    
+    # Filtros
+    status = request.GET.get('status')
+    if status:
+        visits = visits.filter(status=status)
+    
+    date_filter = request.GET.get('date')
+    if date_filter == 'today':
+        visits = visits.filter(scheduled_date=timezone.now().date())
+    elif date_filter == 'week':
+        from datetime import timedelta
+        week_ago = timezone.now().date() - timedelta(days=7)
+        visits = visits.filter(scheduled_date__gte=week_ago)
+    
+    context = {
+        'visits': visits,
+        'total_visits': Visit.objects.count(),
+        'pending_visits': Visit.objects.filter(status='pending').count(),
+        'approved_visits': Visit.objects.filter(status='approved').count(),
+        'completed_visits': Visit.objects.filter(status='completed').count(),
+        'status_choices': Visit.STATUS_CHOICES,
+    }
+    
+    return render(request, 'visits/visit_list.html', context)
 
 
 @login_required

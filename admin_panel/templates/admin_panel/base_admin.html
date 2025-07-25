@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Administración - SecureCorp{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-sidebar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .admin-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: scale(1.02);
+    }
+    
+    .admin-nav-item {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-nav-item:hover,
+    .admin-nav-item.active {
+        background: rgba(255,255,255,0.2);
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header del Panel de Administración -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-2xl text-indigo-600 mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Panel de Administración</h1>
+                        <p class="text-sm text-gray-600">Gestión completa del sistema SecureCorp</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-600">
+                        <i class="fas fa-user-shield mr-1"></i>
+                        {{ user.get_full_name|default:user.username }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        {% now "d M Y - H:i" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar de Navegación -->
+            <div class="lg:w-64 flex-shrink-0">
+                <div class="admin-sidebar rounded-lg p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-cogs mr-2"></i>
+                        Administración
+                    </h3>
+                    <nav class="space-y-2">
+                        <a href="{% url 'admin_panel:dashboard' %}" class="admin-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                            Dashboard Principal
+                        </a>
+                        <a href="{% url 'admin_panel:users' %}" class="admin-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-users w-5 h-5 mr-3"></i>
+                            Gestión de Usuarios
+                        </a>
+                        <a href="{% url 'admin_panel:system' %}" class="admin-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-server w-5 h-5 mr-3"></i>
+                            Configuración del Sistema
+                        </a>
+                        <a href="{% url 'admin_panel:reports' %}" class="admin-nav-item flex items-center py-3 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200">
+                            <i class="fas fa-chart-bar w-5 h-5 mr-3"></i>
+                            Reportes y Análisis
+                        </a>
+                        
+                        <!-- Separador -->
+                        <hr class="border-white border-opacity-30 my-4">
+                        
+                        <!-- Accesos Rápidos -->
+                        <div class="text-sm text-white text-opacity-80 mb-2">Accesos Rápidos</div>
+                        <a href="{% url 'tenants:tenant_list' %}" class="admin-nav-item flex items-center py-2 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200 text-sm">
+                            <i class="fas fa-building w-4 h-4 mr-3"></i>
+                            Inquilinos
+                        </a>
+                        <a href="{% url 'guards:guard_list' %}" class="admin-nav-item flex items-center py-2 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200 text-sm">
+                            <i class="fas fa-user-shield w-4 h-4 mr-3"></i>
+                            Vigilantes
+                        </a>
+                        <a href="{% url 'visits:visit_list' %}" class="admin-nav-item flex items-center py-2 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200 text-sm">
+                            <i class="fas fa-clipboard-list w-4 h-4 mr-3"></i>
+                            Visitas
+                        </a>
+                        <a href="{% url 'maintenance:reports_list' %}" class="admin-nav-item flex items-center py-2 px-4 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200 text-sm">
+                            <i class="fas fa-tools w-4 h-4 mr-3"></i>
+                            Mantenimiento
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="flex-1">
+                {% block admin_content %}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Contenido del Panel</h2>
+                    <p class="text-gray-600">Contenido específico de cada sección aparecerá aquí.</p>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Marcar elemento activo en la navegación
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.admin-nav-item');
+    
+    navItems.forEach(item => {
+        if (item.getAttribute('href') === currentPath) {
+            item.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}
