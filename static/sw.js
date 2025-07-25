@@ -206,8 +206,8 @@ function buildNotificationOptions(data) {
         requireInteraction: true,
         silent: false,
         actions: [
-          { action: 'view', title: '🚨 Ver Emergencia', icon: '/static/icons/icon-72.svg' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.svg' }
+          { action: 'view', title: '🚨 Ver Emergencia', icon: '/static/icons/icon-72.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
         ],
         vibrate: [200, 100, 200, 100, 200],
         tag: 'emergency-alert'
@@ -217,9 +217,9 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'approve', title: '✅ Aprobar', icon: '/static/icons/icon-72.svg' },
-          { action: 'reject', title: '❌ Rechazar', icon: '/static/icons/icon-72.svg' },
-          { action: 'view', title: 'Ver Detalles', icon: '/static/icons/icon-72.svg' }
+          { action: 'approve', title: '✅ Aprobar', icon: '/static/icons/icon-72.png' },
+          { action: 'reject', title: '❌ Rechazar', icon: '/static/icons/icon-72.png' },
+          { action: 'view', title: 'Ver Detalles', icon: '/static/icons/icon-72.png' }
         ],
         vibrate: [100, 50, 100],
         tag: 'visit-approval'
@@ -229,8 +229,8 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'view', title: '🔧 Ver Reporte', icon: '/static/icons/icon-72.svg' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.svg' }
+          { action: 'view', title: '🔧 Ver Reporte', icon: '/static/icons/icon-72.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
         ],
         vibrate: [100],
         tag: 'maintenance-alert'
@@ -241,8 +241,8 @@ function buildNotificationOptions(data) {
         ...baseOptions,
         requireInteraction: true,
         actions: [
-          { action: 'view', title: '🛡️ Ver Alerta', icon: '/static/icons/icon-72.svg' },
-          { action: 'emergency', title: '🚨 Emergencia', icon: '/static/icons/icon-72.svg' }
+          { action: 'view', title: '🛡️ Ver Alerta', icon: '/static/icons/icon-72.png' },
+          { action: 'emergency', title: '🚨 Emergencia', icon: '/static/icons/icon-72.png' }
         ],
         vibrate: [200, 100, 200, 100, 200, 100, 200],
         tag: 'security-breach'
@@ -252,8 +252,8 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'view', title: 'Ver', icon: '/static/icons/icon-72.svg' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.svg' }
+          { action: 'view', title: 'Ver', icon: '/static/icons/icon-72.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
         ],
         vibrate: [100]
       };
@@ -331,7 +331,7 @@ async function handleQuickAction(action, visitId) {
       // Mostrar notificación de confirmación
       self.registration.showNotification('SecureCorp', {
         body: `Visita ${action === 'approve' ? 'aprobada' : 'rechazada'} exitosamente`,
-        icon: '/static/icons/icon-192.svg',
+        icon: '/static/icons/icon-192.png',
         tag: 'quick-action-result',
         silent: true
       });
