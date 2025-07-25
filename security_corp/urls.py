@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from dashboard.views import login_view, logout_view
-from dashboard.icon_views import favicon_view, apple_touch_icon_view
+from dashboard.icon_views import favicon_view, apple_touch_icon_view, serve_xd_icon_direct
 from test_notifications_view import test_notifications
 
 urlpatterns = [
@@ -32,10 +32,10 @@ urlpatterns = [
     
     # Iconos para PWA - Solucionar errores 404
     path('favicon.ico', favicon_view, name='favicon'),
-    path('apple-touch-icon.png', apple_touch_icon_view, name='apple_touch_icon'),
-    path('apple-touch-icon-precomposed.png', apple_touch_icon_view, name='apple_touch_icon_precomposed'),
-    path('apple-touch-icon-120x120.png', apple_touch_icon_view, name='apple_touch_icon_120'),
-    path('apple-touch-icon-120x120-precomposed.png', apple_touch_icon_view, name='apple_touch_icon_120_precomposed'),
+    path('apple-touch-icon.png', serve_xd_icon_direct, name='apple_touch_icon'),
+    path('apple-touch-icon-precomposed.png', serve_xd_icon_direct, name='apple_touch_icon_precomposed'),
+    path('apple-touch-icon-120x120.png', serve_xd_icon_direct, name='apple_touch_icon_120'),
+    path('apple-touch-icon-120x120-precomposed.png', serve_xd_icon_direct, name='apple_touch_icon_120_precomposed'),
     
     # PWA Demo
     path('pwa-demo/', TemplateView.as_view(template_name='pwa_demo.html'), name='pwa_demo'),
