@@ -87,6 +87,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'dashboard.context_processors.theme_context',
+                'dashboard.context_processors.pwa_context',
                 'maintenance.context_processors.maintenance_notifications',
             ],
         },
@@ -158,16 +159,55 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# Login/Logout URLs
-# Configuración de Notificaciones Push
-VAPID_PRIVATE_KEY = "FRT0DyM-s2vGaGcDZb1RIfPZh8Th4D0J7gV-XOjJJcQ"
-VAPID_PUBLIC_KEY = "BH7O8kO9VJ6KZ9wP2X4mL3N5R8T1Q6W9Y2V5K8L1M4N7P0Q3R6T9W2Y5Z8A1B4C7D0E3F6G9H2I5J8K1L4M7N0P3Q6R9S2T5U8V1W4X7Y0Z3A6B9C2D5E8F1G4H7I0J3K6L9M2N5O8P1Q4R7S0T3U6V9W2X5Y8Z1A4B7C0D3E6F9G2H5I8J1K4L7M0N3O6P9Q2R5S8T1U4V7W0X3Y6Z9A2B5C8D1E4F7G0H3I6J9K2L5M8N1O4P7Q0R3S6T9U2V5W8X1Y4Z7A0B3C6D9E2F5G8H1I4J7K0L3M6N9O2P5Q8R1S4T7U0V3W6X9Y2Z5A8B1C4D7E0F3G6H9I2J5K8L1M4N7O0P3Q6R9S2T5U8V1W4X7Y0"
-VAPID_CONTACT_EMAIL = "admin@olcha.com"
+# ============================================
+# CONFIGURACIÓN PWA Y NOTIFICACIONES PUSH
+# ============================================
 
+# Claves VAPID para notificaciones push
+VAPID_PRIVATE_KEY = "xJnZmem6ZiLND7I15juVENn6kWDBXjZdfCt6T6vIL0Y"
+VAPID_PUBLIC_KEY = "BH7O8kO9VJ6KZ9wP2X4mL3N5R8T1Q6W9Y2V5K8L1M4N7P0Q3R6T9W2Y5Z8A1B4C7D0E3F6G9H2I5J8K1L4M7N0P3Q6R9S2T5U8V1W4X7Y0Z3A6B9C2D5E8F1G4H7I0J3K6L9M2N5O8P1Q4R7S0T3U6V9W2X5Y8Z1A4B7C0D3E6F9G2H5I8J1K4L7M0N3O6P9Q2R5S8T1U4V7W0X3Y6Z9A2B5C8D1E4F7G0H3I6J9K2L5M8N1O4P7Q0R3S6T9U2V5W8X1Y4Z7A0B3C6D9E2F5G8H1I4J7K0L3M6N9O2P5Q8R1S4T7U0V3W6X9Y2Z5A8B1C4D7E0F3G6H9I2J5K8L1M4N7O0P3Q6R9S2T5U8V1W4X7Y0"
+VAPID_CONTACT_EMAIL = "admin@securecorp.com"
+
+# Configuración de pywebpush
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": VAPID_PUBLIC_KEY,
     "VAPID_PRIVATE_KEY": VAPID_PRIVATE_KEY,
     "VAPID_ADMIN_EMAIL": VAPID_CONTACT_EMAIL
+}
+
+# Configuración PWA
+PWA_CONFIG = {
+    'name': 'SecureCorp Admin - Sistema de Seguridad Corporativa',
+    'short_name': 'SecureCorp',
+    'description': 'Sistema avanzado de gestión de seguridad corporativa con notificaciones push',
+    'theme_color': '#0ea5e9',
+    'background_color': '#0ea5e9',
+    'start_url': '/dashboard/',
+    'display': 'standalone',
+    'orientation': 'portrait-primary',
+    'version': '1.0.0'
+}
+
+# URLs importantes para cache del Service Worker
+PWA_CACHE_URLS = [
+    '/',
+    '/dashboard/',
+    '/vigilante-movil/',
+    '/admin-movil/',
+    '/inquilino-movil/',
+    '/login/',
+    '/accounts/login/',
+]
+
+# Configuración de notificaciones push
+PUSH_NOTIFICATIONS_SETTINGS = {
+    'DEFAULT_ICON': '/static/icons/icon-192.svg',
+    'DEFAULT_BADGE': '/static/icons/icon-72.svg',
+    'REQUIRE_INTERACTION': False,
+    'SILENT': False,
+    'VIBRATE_PATTERN': [100, 50, 100],
+    'TTL': 86400,  # 24 horas
+    'URGENCY': 'normal'  # 'very-low', 'low', 'normal', 'high'
 }
 
 # Configuración de autenticación

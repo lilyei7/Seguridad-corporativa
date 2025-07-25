@@ -17,6 +17,6 @@ urlpatterns = [
     path('api/preferences/', views.NotificationPreferencesView.as_view(), name='preferences'),
     
     # APIs de testing y administración
-    path('api/test/', views.test_notification, name='test_notification'),
+    path('api/test/', views.NotificationTestView.as_view(), name='test_notification'),
     path('api/emergency/', views.send_emergency_alert, name='emergency_alert'),
 ]

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generador de Íconos SecureCorp</title>
+    <style>
+        .icon-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            border-radius: 12px;
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+        .size-72 { width: 72px; height: 72px; font-size: 24px; }
+        .size-96 { width: 96px; height: 96px; font-size: 32px; }
+        .size-128 { width: 128px; height: 128px; font-size: 42px; }
+        .size-144 { width: 144px; height: 144px; font-size: 48px; }
+        .size-152 { width: 152px; height: 152px; font-size: 50px; }
+        .size-192 { width: 192px; height: 192px; font-size: 64px; }
+        .size-384 { width: 384px; height: 384px; font-size: 128px; }
+        .size-512 { width: 512px; height: 512px; font-size: 170px; }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <div class="icon size-72" id="icon-72">🛡️</div>
+        <div class="icon size-96" id="icon-96">🛡️</div>
+        <div class="icon size-128" id="icon-128">🛡️</div>
+        <div class="icon size-144" id="icon-144">🛡️</div>
+        <div class="icon size-152" id="icon-152">🛡️</div>
+        <div class="icon size-192" id="icon-192">🛡️</div>
+    </div>
+    <div class="icon-container">
+        <div class="icon size-384" id="icon-384">🛡️</div>
+        <div class="icon size-512" id="icon-512">🛡️</div>
+    </div>
+    
+    <script>
+        // Este script ayudará a generar los íconos como imágenes
+        function generateIcons() {
+            ['72', '96', '128', '144', '152', '192', '384', '512'].forEach(size => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const iconSize = parseInt(size);
+                
+                canvas.width = iconSize;
+                canvas.height = iconSize;
+                
+                // Crear gradiente
+                const gradient = ctx.createLinearGradient(0, 0, iconSize, iconSize);
+                gradient.addColorStop(0, '#0ea5e9');
+                gradient.addColorStop(1, '#0284c7');
+                
+                // Fondo con gradiente
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, iconSize, iconSize);
+                
+                // Borde redondeado (simulado con arcos)
+                const radius = iconSize * 0.15;
+                ctx.globalCompositeOperation = 'destination-in';
+                ctx.beginPath();
+                ctx.roundRect(0, 0, iconSize, iconSize, radius);
+                ctx.fill();
+                
+                // Resetear composición
+                ctx.globalCompositeOperation = 'source-over';
+                
+                // Ícono de escudo (SVG path simplificado)
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = iconSize * 0.02;
+                
+                const centerX = iconSize / 2;
+                const centerY = iconSize / 2;
+                const shieldSize = iconSize * 0.4;
+                
+                // Dibujar escudo
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - shieldSize);
+                ctx.lineTo(centerX - shieldSize * 0.6, centerY - shieldSize * 0.3);
+                ctx.lineTo(centerX - shieldSize * 0.6, centerY + shieldSize * 0.2);
+                ctx.lineTo(centerX, centerY + shieldSize);
+                ctx.lineTo(centerX + shieldSize * 0.6, centerY + shieldSize * 0.2);
+                ctx.lineTo(centerX + shieldSize * 0.6, centerY - shieldSize * 0.3);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Añadir marca de verificación
+                ctx.strokeStyle = '#0ea5e9';
+                ctx.lineWidth = iconSize * 0.04;
+                ctx.beginPath();
+                ctx.moveTo(centerX - shieldSize * 0.2, centerY);
+                ctx.lineTo(centerX - shieldSize * 0.05, centerY + shieldSize * 0.15);
+                ctx.lineTo(centerX + shieldSize * 0.25, centerY - shieldSize * 0.15);
+                ctx.stroke();
+                
+                // Convertir a blob y descargar
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `icon-${size}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        }
+        
+        // Auto-generar íconos después de 2 segundos
+        setTimeout(generateIcons, 2000);
+    </script>
+</body>
+</html>

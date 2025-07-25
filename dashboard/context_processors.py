@@ -1,3 +1,4 @@
+from django.conf import settings
 from .models import SystemThemeConfiguration, UserThemePreference
 
 
@@ -40,5 +41,35 @@ def theme_context(request):
     else:
         context['active_theme_colors'] = context.get('system_theme_colors', {})
         context['is_dark_mode'] = system_config.dark_mode if system_config else False
+    
+    return context
+
+
+def pwa_context(request):
+    """Context processor para datos de PWA y notificaciones push"""
+    context = {}
+    
+    # VAPID public key para notificaciones push
+    vapid_public_key = getattr(settings, 'VAPID_PUBLIC_KEY', None)
+    if vapid_public_key:
+        context['vapid_public_key'] = vapid_public_key
+    
+    # URLs importantes para PWA
+    context['pwa_urls'] = {
+        'dashboard': '/dashboard/',
+        'admin_mobile': '/admin-movil/',
+        'guard_mobile': '/vigilante-movil/',
+        'tenant_mobile': '/inquilino-movil/',
+        'offline': '/offline/',
+    }
+    
+    # Configuración PWA
+    context['pwa_config'] = {
+        'app_name': 'SecureCorp Admin',
+        'app_short_name': 'SecureCorp',
+        'theme_color': '#0ea5e9',
+        'background_color': '#0ea5e9',
+        'version': '1.0.0'
+    }
     
     return context

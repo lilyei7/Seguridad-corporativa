@@ -1,29 +1,56 @@
 <!DOCTYPE html>
 {% load user_tags %}
 {% load role_tags %}
+{% load static %}
 <html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>{% block title %}Olcha Tecnología En Seguridad{% endblock %}</title>
+    <title>{% block title %}SecureCorp Admin - Sistema de Seguridad Corporativa{% endblock %}</title>
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags Avanzados -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Olcha Security">
-    <meta name="application-name" content="Olcha Security">
+    <meta name="apple-mobile-web-app-title" content="SecureCorp">
+    <meta name="application-name" content="SecureCorp">
     <meta name="msapplication-TileColor" content="#0ea5e9">
+    <meta name="msapplication-config" content="{% static 'browserconfig.xml' %}">
     <meta name="theme-color" content="#0ea5e9">
-    <meta name="description" content="Sistema de gestión de seguridad corporativa y mantenimiento para Olcha Tecnología">
+    <meta name="description" content="Sistema avanzado de gestión de seguridad corporativa con notificaciones push, vigilancia en tiempo real y mantenimiento inteligente">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="keywords" content="seguridad, corporativa, vigilancia, notificaciones, push, mantenimiento, edificios">
+    <meta name="author" content="SecureCorp Admin">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/static/manifest.json">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
     
-    <!-- Favicon y iconos PWA -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230ea5e9'%3E%3Cpath d='M12 2L2 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z'/%3E%3C/svg%3E">
+    <!-- Iconos PWA Completos -->
+    <link rel="icon" type="image/png" href="{% static 'icons/icon-192.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/icon-192.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'icons/icon-152.png' %}">
+    <link rel="apple-touch-icon" sizes="144x144" href="{% static 'icons/icon-144.png' %}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{% static 'icons/icon-128.png' %}">
+    <link rel="apple-touch-icon" sizes="114x114" href="{% static 'icons/icon-128.png' %}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'icons/icon-72.png' %}">
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static 'icons/icon-72.png' %}">
+    <link rel="apple-touch-icon" sizes="60x60" href="{% static 'icons/icon-72.png' %}">
+    <link rel="apple-touch-icon" sizes="57x57" href="{% static 'icons/icon-72.png' %}">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="{% static 'icons/icon-192.png' %}">
+    <meta name="msapplication-square70x70logo" content="{% static 'icons/icon-72.png' %}">
+    <meta name="msapplication-square150x150logo" content="{% static 'icons/icon-152.png' %}">
+    <meta name="msapplication-square310x310logo" content="{% static 'icons/icon-512.png' %}">
+    
+    <!-- Preload crítico -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    
+    <!-- DNS Prefetch para mejorar rendimiento -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -3561,6 +3588,386 @@ Ver consola para detalles completos.
     
     <!-- Scripts de Notificaciones Push -->
     <script src="/static/js/notifications/notification-manager.js"></script>
+    
+    <!-- ================================================ -->
+    <!-- PWA Y NOTIFICACIONES PUSH - SISTEMA COMPLETO -->
+    <!-- ================================================ -->
+    <script>
+        // ============================================
+        // PWA SERVICE WORKER REGISTRATION
+        // ============================================
+        
+        // Variables globales para PWA
+        let swRegistration = null;
+        let pushSubscription = null;
+        let deferredPrompt = null;
+        
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            console.log('🚀 SecureCorp PWA: Registrando Service Worker...');
+            
+            navigator.serviceWorker.register("{% static 'sw.js' %}")
+                .then(function(registration) {
+                    console.log('✅ SecureCorp PWA: Service Worker registrado exitosamente:', registration.scope);
+                    swRegistration = registration;
+                    
+                    // Verificar actualizaciones del SW
+                    registration.addEventListener('updatefound', () => {
+                        console.log('🔄 SecureCorp PWA: Nueva versión del Service Worker disponible');
+                        showUpdateAvailable();
+                    });
+                    
+                    // Inicializar notificaciones push
+                    initializePushNotifications();
+                })
+                .catch(function(error) {
+                    console.error('❌ SecureCorp PWA: Error registrando Service Worker:', error);
+                });
+                
+            // Escuchar mensajes del Service Worker
+            navigator.serviceWorker.addEventListener('message', event => {
+                console.log('💬 SecureCorp PWA: Mensaje del SW:', event.data);
+                
+                if (event.data && event.data.type === 'CACHE_UPDATED') {
+                    showUpdateAvailable();
+                }
+            });
+        } else {
+            console.warn('⚠️ SecureCorp PWA: Service Worker o Push Manager no soportado');
+        }
+        
+        // ============================================
+        // INSTALACIÓN DE PWA
+        // ============================================
+        
+        // Detectar prompt de instalación
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 SecureCorp PWA: Prompt de instalación disponible');
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+        
+        // Mostrar botón de instalación
+        function showInstallButton() {
+            const installButton = document.getElementById('pwa-install-button');
+            if (installButton) {
+                installButton.style.display = 'block';
+                installButton.addEventListener('click', installPWA);
+            } else {
+                // Crear botón dinámicamente si no existe
+                createInstallButton();
+            }
+        }
+        
+        // Crear botón de instalación dinámico
+        function createInstallButton() {
+            const button = document.createElement('button');
+            button.id = 'pwa-install-button';
+            button.innerHTML = `
+                <i class="fas fa-download mr-2"></i>
+                Instalar App
+            `;
+            button.className = 'fixed bottom-20 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 hover:bg-blue-700 transition-colors';
+            button.addEventListener('click', installPWA);
+            document.body.appendChild(button);
+            
+            // Auto-ocultar después de 10 segundos
+            setTimeout(() => {
+                if (button.parentNode) {
+                    button.style.opacity = '0.5';
+                }
+            }, 10000);
+        }
+        
+        // Instalar PWA
+        async function installPWA() {
+            if (!deferredPrompt) {
+                console.log('❌ SecureCorp PWA: No hay prompt de instalación disponible');
+                return;
+            }
+            
+            console.log('📱 SecureCorp PWA: Iniciando instalación...');
+            deferredPrompt.prompt();
+            
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`📱 SecureCorp PWA: Resultado instalación: ${outcome}`);
+            
+            if (outcome === 'accepted') {
+                showNotification('✅ ¡SecureCorp instalado exitosamente!', 'success');
+            }
+            
+            deferredPrompt = null;
+            hideInstallButton();
+        }
+        
+        // Ocultar botón de instalación
+        function hideInstallButton() {
+            const installButton = document.getElementById('pwa-install-button');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+        }
+        
+        // Detectar cuando la app se instaló
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('✅ SecureCorp PWA: App instalada exitosamente');
+            showNotification('🎉 SecureCorp instalado como aplicación', 'success');
+            hideInstallButton();
+        });
+        
+        // ============================================
+        // NOTIFICACIONES PUSH
+        // ============================================
+        
+        // Inicializar sistema de notificaciones push
+        async function initializePushNotifications() {
+            try {
+                // Verificar permisos
+                const permission = await Notification.requestPermission();
+                console.log(`🔔 SecureCorp PWA: Permiso de notificaciones: ${permission}`);
+                
+                if (permission === 'granted') {
+                    console.log('✅ SecureCorp PWA: Notificaciones habilitadas');
+                    await subscribeToPush();
+                } else {
+                    console.log('❌ SecureCorp PWA: Notificaciones no permitidas');
+                    showNotificationPermissionPrompt();
+                }
+            } catch (error) {
+                console.error('❌ SecureCorp PWA: Error inicializando notificaciones:', error);
+            }
+        }
+        
+        // Suscribirse a notificaciones push
+        async function subscribeToPush() {
+            try {
+                if (!swRegistration) {
+                    console.log('❌ SecureCorp PWA: Service Worker no registrado');
+                    return;
+                }
+                
+                // Verificar suscripción existente
+                pushSubscription = await swRegistration.pushManager.getSubscription();
+                
+                if (!pushSubscription) {
+                    console.log('📬 SecureCorp PWA: Creando nueva suscripción push...');
+                    
+                    // VAPID key pública (ya tienes las claves generadas)
+                    const vapidPublicKey = '{{ vapid_public_key|default:"BMqmYyLCvqqGqwFAKZKw-GEe5sV6UzZ9CNzLz3_8KyZ1FjRi_ZHk1cZGlE8pBx5Q9MJr1V8lZnkZKQDGDXYcFhA" }}';
+                    
+                    pushSubscription = await swRegistration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                    });
+                    
+                    console.log('✅ SecureCorp PWA: Suscripción push creada');
+                }
+                
+                // Enviar suscripción al servidor
+                await sendSubscriptionToServer(pushSubscription);
+                
+            } catch (error) {
+                console.error('❌ SecureCorp PWA: Error en suscripción push:', error);
+            }
+        }
+        
+        // Enviar suscripción al servidor Django
+        async function sendSubscriptionToServer(subscription) {
+            try {
+                const response = await fetch('/api/notifications/subscribe/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        subscription: subscription.toJSON(),
+                        user_agent: navigator.userAgent,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ SecureCorp PWA: Suscripción enviada al servidor');
+                } else {
+                    console.error('❌ SecureCorp PWA: Error enviando suscripción:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ SecureCorp PWA: Error de red enviando suscripción:', error);
+            }
+        }
+        
+        // Mostrar prompt para habilitar notificaciones
+        function showNotificationPermissionPrompt() {
+            const promptHtml = `
+                <div id="notification-prompt" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl p-6 max-w-md w-full">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-bell text-3xl text-blue-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">Habilitar Notificaciones</h3>
+                            <p class="text-gray-600 text-sm">
+                                Recibe alertas importantes de seguridad, aprobaciones de visitas y emergencias en tiempo real.
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <button onclick="enableNotifications()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                🔔 Habilitar Notificaciones
+                            </button>
+                            <button onclick="dismissNotificationPrompt()" class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors">
+                                Ahora No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', promptHtml);
+        }
+        
+        // Habilitar notificaciones desde el prompt
+        async function enableNotifications() {
+            dismissNotificationPrompt();
+            await initializePushNotifications();
+        }
+        
+        // Cerrar prompt de notificaciones
+        function dismissNotificationPrompt() {
+            const prompt = document.getElementById('notification-prompt');
+            if (prompt) {
+                prompt.remove();
+            }
+        }
+        
+        // ============================================
+        // FUNCIONES AUXILIARES
+        // ============================================
+        
+        // Convertir VAPID key a Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+                
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            
+            return outputArray;
+        }
+        
+        // Mostrar aviso de actualización disponible
+        function showUpdateAvailable() {
+            const updateBanner = document.createElement('div');
+            updateBanner.id = 'update-banner';
+            updateBanner.className = 'fixed top-0 left-0 right-0 bg-blue-600 text-white p-3 z-50 text-center';
+            updateBanner.innerHTML = `
+                <div class="flex items-center justify-between max-w-4xl mx-auto">
+                    <span>🆕 Nueva versión disponible</span>
+                    <div class="space-x-2">
+                        <button onclick="updateApp()" class="bg-white text-blue-600 px-3 py-1 rounded text-sm font-medium">
+                            Actualizar
+                        </button>
+                        <button onclick="dismissUpdate()" class="text-white hover:text-gray-200">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertBefore(updateBanner, document.body.firstChild);
+        }
+        
+        // Actualizar aplicación
+        function updateApp() {
+            if (swRegistration && swRegistration.waiting) {
+                swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+            }
+        }
+        
+        // Cerrar banner de actualización
+        function dismissUpdate() {
+            const banner = document.getElementById('update-banner');
+            if (banner) {
+                banner.remove();
+            }
+        }
+        
+        // Obtener CSRF token
+        function getCSRFToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        }
+        
+        // ============================================
+        // MEJORAS DE EXPERIENCIA MÓVIL
+        // ============================================
+        
+        // Prevenir zoom en iOS al hacer focus en inputs
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        }
+        
+        // Manejar cambios de orientación
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+            }, 100);
+        });
+        
+        // Detectar si está ejecutándose como PWA
+        function isPWA() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone === true;
+        }
+        
+        // Agregar clase CSS si es PWA
+        if (isPWA()) {
+            document.documentElement.classList.add('pwa-mode');
+            console.log('📱 SecureCorp PWA: Ejecutándose como aplicación instalada');
+        }
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        
+        // Inicializar todo cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 SecureCorp PWA: Sistema PWA inicializado completamente');
+            
+            // Mostrar prompt de notificaciones después de 3 segundos
+            setTimeout(() => {
+                if (Notification.permission === 'default') {
+                    showNotificationPermissionPrompt();
+                }
+            }, 3000);
+        });
+        
+        // Exponer funciones globalmente para uso en templates
+        window.SecureCorpPWA = {
+            installPWA,
+            enableNotifications,
+            subscribeToPush,
+            isPWA: isPWA()
+        };
+        
+        console.log('✅ SecureCorp PWA: Todas las funcionalidades cargadas exitosamente');
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>

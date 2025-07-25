@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from dashboard.views import login_view, logout_view
 from test_notifications_view import test_notifications
 
@@ -27,6 +28,10 @@ urlpatterns = [
     path('login/', login_view, name='login'),  # Añadir esta línea específica para login
     path('logout/', logout_view, name='logout'),
     path('test-notifications/', test_notifications, name='test_notifications'),
+    
+    # PWA Demo
+    path('pwa-demo/', TemplateView.as_view(template_name='pwa_demo.html'), name='pwa_demo'),
+    path('offline/', TemplateView.as_view(template_name='offline.html'), name='offline'),
     
     # Dashboard principal (original)
     path('dashboard/', include('dashboard.urls')),

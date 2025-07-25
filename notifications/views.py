@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 import json
 import logging
 
@@ -16,18 +17,29 @@ logger = logging.getLogger(__name__)
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 class PushSubscribeView(View):
-    """Vista para suscribirse a notificaciones push"""
+    """Vista para suscribirse a notificaciones push desde PWA"""
     
     def post(self, request):
         try:
             data = json.loads(request.body)
             subscription_data = data.get('subscription')
+            user_agent = data.get('user_agent', '')
             
             if not subscription_data:
                 return JsonResponse({'error': 'Datos de suscripción requeridos'}, status=400)
             
-            # Suscribir usuario
-            subscription = push_service.subscribe_user(request.user, subscription_data)
+            logger.info(f"📱 PWA: Suscripción push recibida para usuario {request.user.username}")
+            
+            # Suscribir usuario con datos adicionales de PWA
+            subscription = push_service.subscribe_user(
+                user=request.user, 
+                subscription_data=subscription_data,
+                device_info={
+                    'user_agent': user_agent,
+                    'is_pwa': True,
+                    'timestamp': data.get('timestamp')
+                }
+            )
             
             return JsonResponse({
                 'success': True,
@@ -261,3 +273,65 @@ def send_emergency_alert(request):
     except Exception as e:
         logger.error(f"Error enviando alerta de emergencia: {str(e)}")
         return JsonResponse({'error': 'Error interno del servidor'}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(login_required, name='dispatch')
+class NotificationTestView(View):
+    """Vista para probar notificaciones push desde PWA Demo"""
+    
+    def post(self, request):
+        try:
+            import time
+            
+            data = json.loads(request.body)
+            notification_type = data.get('type', 'general')
+            title = data.get('title', 'SecureCorp')
+            body = data.get('body', 'Notificación de prueba')
+            url = data.get('url', '/dashboard/')
+            
+            logger.info(f"🧪 PWA Demo: Enviando notificación de prueba tipo '{notification_type}' para {request.user.username}")
+            
+            # Crear notificación de prueba
+            notification_data = {
+                'title': title,
+                'body': body,
+                'type': notification_type,
+                'url': url,
+                'icon': '/static/icons/icon-192.svg',
+                'badge': '/static/icons/icon-72.svg',
+                'tag': f'test-{notification_type}-{int(time.time())}',
+                'data': {
+                    'test': True,
+                    'timestamp': int(time.time()),
+                    'user_id': request.user.id
+                }
+            }
+            
+            # Enviar notificación usando el servicio de push
+            result = push_service.send_notification(
+                user=request.user,
+                notification_type=notification_type,
+                title=title,
+                message=body,
+                data=notification_data.get('data', {}),
+                url=url
+            )
+            
+            if result.get('success'):
+                logger.info(f"✅ PWA Demo: Notificación enviada exitosamente")
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Notificación {notification_type} enviada',
+                    'type': notification_type
+                })
+            else:
+                logger.error(f"❌ PWA Demo: Error enviando notificación: {result.get('error')}")
+                return JsonResponse({
+                    'success': False,
+                    'error': result.get('error', 'Error desconocido')
+                }, status=500)
+                
+        except Exception as e:
+            logger.error(f"❌ PWA Demo: Error en test de notificación: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)

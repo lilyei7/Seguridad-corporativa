@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Demo PWA - SecureCorp{% endblock %}
+
+{% block extra_head %}
+<style>
+    .demo-card {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        border-radius: 1rem;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    .feature-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        border-left: 4px solid #0ea5e9;
+    }
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .status-active { background-color: #10b981; }
+    .status-inactive { background-color: #ef4444; }
+    .status-pending { background-color: #f59e0b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="demo-card text-center">
+            <h1 class="text-3xl font-bold mb-4">🚀 SecureCorp PWA Demo</h1>
+            <p class="text-lg opacity-90">
+                Prueba todas las funcionalidades de la Progressive Web App con notificaciones push
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Estado de PWA -->
+            <div class="feature-card">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-mobile-alt text-blue-600 mr-2"></i>
+                    Estado de PWA
+                </h2>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center">
+                        <span class="status-indicator" id="sw-status"></span>
+                        <span>Service Worker: <span id="sw-text">Verificando...</span></span>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <span class="status-indicator" id="push-status"></span>
+                        <span>Notificaciones Push: <span id="push-text">Verificando...</span></span>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <span class="status-indicator" id="install-status"></span>
+                        <span>Instalación: <span id="install-text">Verificando...</span></span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 space-y-2">
+                    <button id="install-btn" onclick="SecureCorpPWA.installPWA()" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors" 
+                            style="display: none;">
+                        📱 Instalar App
+                    </button>
+                    
+                    <button onclick="SecureCorpPWA.enableNotifications()" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors">
+                        🔔 Habilitar Notificaciones
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test de Notificaciones -->
+            <div class="feature-card">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-bell text-yellow-600 mr-2"></i>
+                    Probar Notificaciones
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="testNotification('general')" 
+                            class="bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600">
+                        📢 General
+                    </button>
+                    
+                    <button onclick="testNotification('emergency')" 
+                            class="bg-red-500 text-white py-2 px-3 rounded text-sm hover:bg-red-600">
+                        🚨 Emergencia
+                    </button>
+                    
+                    <button onclick="testNotification('visit_approval')" 
+                            class="bg-green-500 text-white py-2 px-3 rounded text-sm hover:bg-green-600">
+                        👥 Visita
+                    </button>
+                    
+                    <button onclick="testNotification('maintenance_alert')" 
+                            class="bg-yellow-500 text-white py-2 px-3 rounded text-sm hover:bg-yellow-600">
+                        🔧 Mantenim.
+                    </button>
+                    
+                    <button onclick="testNotification('security_breach')" 
+                            class="bg-purple-500 text-white py-2 px-3 rounded text-sm hover:bg-purple-600">
+                        🛡️ Seguridad
+                    </button>
+                    
+                    <button onclick="testLocalNotification()" 
+                            class="bg-gray-500 text-white py-2 px-3 rounded text-sm hover:bg-gray-600">
+                        📱 Local
+                    </button>
+                </div>
+                
+                <div class="mt-4">
+                    <textarea id="custom-message" 
+                              class="w-full p-2 border rounded text-sm" 
+                              placeholder="Mensaje personalizado..."
+                              rows="2"></textarea>
+                    <button onclick="testCustomNotification()" 
+                            class="w-full mt-2 bg-indigo-500 text-white py-2 px-4 rounded hover:bg-indigo-600">
+                        📝 Enviar Personalizada
+                    </button>
+                </div>
+            </div>
+
+            <!-- Funciones Móviles -->
+            <div class="feature-card">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-smartphone text-green-600 mr-2"></i>
+                    Funciones Móviles
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="/vigilante-movil/" 
+                       class="block bg-blue-100 text-blue-800 py-2 px-3 rounded hover:bg-blue-200 transition-colors">
+                        👮‍♂️ Panel Vigilante Móvil
+                    </a>
+                    
+                    <a href="/admin-movil/" 
+                       class="block bg-purple-100 text-purple-800 py-2 px-3 rounded hover:bg-purple-200 transition-colors">
+                        👨‍💼 Panel Admin Móvil
+                    </a>
+                    
+                    <a href="/inquilino-movil/" 
+                       class="block bg-green-100 text-green-800 py-2 px-3 rounded hover:bg-green-200 transition-colors">
+                        🏠 Panel Inquilino Móvil
+                    </a>
+                </div>
+                
+                <div class="mt-4 p-3 bg-gray-100 rounded">
+                    <p class="text-sm text-gray-600">
+                        <strong>Orientación:</strong> <span id="orientation">Detectando...</span><br>
+                        <strong>Conectividad:</strong> <span id="online-status">Online</span><br>
+                        <strong>Modo PWA:</strong> <span id="pwa-mode">No</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información Técnica -->
+            <div class="feature-card">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-cog text-gray-600 mr-2"></i>
+                    Información Técnica
+                </h2>
+                
+                <div class="text-sm space-y-2">
+                    <div>
+                        <strong>VAPID Public Key:</strong>
+                        <div class="bg-gray-100 p-2 rounded text-xs break-all">
+                            {{ vapid_public_key|truncatechars:50 }}...
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Service Worker URL:</strong>
+                        <div class="bg-gray-100 p-2 rounded text-xs">
+                            {% static 'sw.js' %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>Manifest URL:</strong>
+                        <div class="bg-gray-100 p-2 rounded text-xs">
+                            {% static 'manifest.json' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button onclick="clearCaches()" 
+                            class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                        🗑️ Limpiar Cache
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log de Eventos -->
+        <div class="feature-card mt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-list text-blue-600 mr-2"></i>
+                    Log de Eventos
+                </h2>
+                <button onclick="clearLog()" class="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+                    Limpiar
+                </button>
+            </div>
+            
+            <div id="event-log" class="bg-gray-100 p-3 rounded h-40 overflow-y-auto text-sm font-mono">
+                <div class="text-gray-500">Esperando eventos...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+
+let eventLog = [];
+
+// ============================================
+// FUNCIONES DE ESTADO
+// ============================================
+
+function updatePWAStatus() {
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(registration => {
+            if (registration) {
+                setStatus('sw', 'active', 'Registrado');
+            } else {
+                setStatus('sw', 'inactive', 'No registrado');
+            }
+        });
+    } else {
+        setStatus('sw', 'inactive', 'No soportado');
+    }
+    
+    // Notificaciones Push
+    if ('Notification' in window && 'PushManager' in window) {
+        const permission = Notification.permission;
+        if (permission === 'granted') {
+            setStatus('push', 'active', 'Habilitadas');
+        } else if (permission === 'denied') {
+            setStatus('push', 'inactive', 'Denegadas');
+        } else {
+            setStatus('push', 'pending', 'Pendientes');
+        }
+    } else {
+        setStatus('push', 'inactive', 'No soportado');
+    }
+    
+    // Estado de instalación
+    if (window.SecureCorpPWA && window.SecureCorpPWA.isPWA) {
+        setStatus('install', 'active', 'Instalada');
+        document.getElementById('pwa-mode').textContent = 'Sí';
+    } else {
+        setStatus('install', 'pending', 'No instalada');
+        document.getElementById('pwa-mode').textContent = 'No';
+    }
+    
+    // Mostrar botón de instalación si está disponible
+    if (window.deferredPrompt) {
+        document.getElementById('install-btn').style.display = 'block';
+    }
+}
+
+function setStatus(type, status, text) {
+    const statusEl = document.getElementById(`${type}-status`);
+    const textEl = document.getElementById(`${type}-text`);
+    
+    statusEl.className = `status-indicator status-${status}`;
+    textEl.textContent = text;
+}
+
+// ============================================
+// FUNCIONES DE NOTIFICACIONES
+// ============================================
+
+async function testNotification(type) {
+    const messages = {
+        general: { title: 'SecureCorp', body: 'Notificación general de prueba', url: '/dashboard/' },
+        emergency: { title: '🚨 EMERGENCIA', body: 'Protocolo de emergencia activado', url: '/emergencia/' },
+        visit_approval: { title: '👥 Nueva Visita', body: 'Visita pendiente de aprobación', url: '/visits/' },
+        maintenance_alert: { title: '🔧 Mantenimiento', body: 'Reporte de mantenimiento creado', url: '/maintenance/' },
+        security_breach: { title: '🛡️ Alerta de Seguridad', body: 'Brecha de seguridad detectada', url: '/security/' }
+    };
+    
+    const message = messages[type];
+    if (!message) return;
+    
+    try {
+        logEvent(`📤 Enviando notificación ${type}...`);
+        
+        const response = await fetch('/api/notifications/test/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                type: type,
+                title: message.title,
+                body: message.body,
+                url: message.url
+            })
+        });
+        
+        if (response.ok) {
+            logEvent(`✅ Notificación ${type} enviada exitosamente`);
+        } else {
+            logEvent(`❌ Error enviando notificación ${type}: ${response.status}`);
+        }
+    } catch (error) {
+        logEvent(`❌ Error de red enviando notificación: ${error.message}`);
+    }
+}
+
+async function testCustomNotification() {
+    const message = document.getElementById('custom-message').value.trim();
+    if (!message) {
+        alert('Escribe un mensaje personalizado');
+        return;
+    }
+    
+    try {
+        logEvent(`📤 Enviando notificación personalizada...`);
+        
+        const response = await fetch('/api/notifications/test/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({
+                type: 'custom',
+                title: 'SecureCorp - Mensaje Personalizado',
+                body: message,
+                url: '/dashboard/'
+            })
+        });
+        
+        if (response.ok) {
+            logEvent(`✅ Notificación personalizada enviada`);
+            document.getElementById('custom-message').value = '';
+        } else {
+            logEvent(`❌ Error enviando notificación personalizada: ${response.status}`);
+        }
+    } catch (error) {
+        logEvent(`❌ Error enviando notificación personalizada: ${error.message}`);
+    }
+}
+
+function testLocalNotification() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        logEvent(`📱 Mostrando notificación local...`);
+        
+        new Notification('SecureCorp - Notificación Local', {
+            body: 'Esta es una notificación local de prueba',
+            icon: '{% static "icons/icon-192.svg" %}',
+            badge: '{% static "icons/icon-72.svg" %}',
+            tag: 'local-test',
+            vibrate: [100, 50, 100]
+        });
+        
+        logEvent(`✅ Notificación local mostrada`);
+    } else {
+        logEvent(`❌ Notificaciones no habilitadas`);
+        alert('Habilita las notificaciones primero');
+    }
+}
+
+// ============================================
+// FUNCIONES DE UTILIDAD
+// ============================================
+
+function updateDeviceInfo() {
+    // Orientación
+    const orientation = screen.orientation ? screen.orientation.type : 'desconocida';
+    document.getElementById('orientation').textContent = orientation;
+    
+    // Estado online/offline
+    document.getElementById('online-status').textContent = navigator.onLine ? 'Online' : 'Offline';
+}
+
+async function clearCaches() {
+    if ('caches' in window) {
+        try {
+            logEvent(`🗑️ Limpiando caches...`);
+            const cacheNames = await caches.keys();
+            
+            for (const cacheName of cacheNames) {
+                await caches.delete(cacheName);
+                logEvent(`🗑️ Cache eliminado: ${cacheName}`);
+            }
+            
+            logEvent(`✅ Todos los caches eliminados`);
+            alert('Caches eliminados. Recarga la página para regenerarlos.');
+        } catch (error) {
+            logEvent(`❌ Error eliminando caches: ${error.message}`);
+        }
+    } else {
+        logEvent(`❌ API de Cache no soportada`);
+    }
+}
+
+function logEvent(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    
+    eventLog.unshift(logEntry);
+    if (eventLog.length > 50) {
+        eventLog = eventLog.slice(0, 50);
+    }
+    
+    updateLogDisplay();
+}
+
+function updateLogDisplay() {
+    const logContainer = document.getElementById('event-log');
+    logContainer.innerHTML = eventLog.map(entry => `<div>${entry}</div>`).join('');
+    logContainer.scrollTop = 0;
+}
+
+function clearLog() {
+    eventLog = [];
+    updateLogDisplay();
+}
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    logEvent(`🚀 SecureCorp PWA Demo inicializado`);
+    
+    updatePWAStatus();
+    updateDeviceInfo();
+    
+    // Escuchar cambios de orientación
+    if (screen.orientation) {
+        screen.orientation.addEventListener('change', updateDeviceInfo);
+    }
+    
+    // Escuchar cambios de conectividad
+    window.addEventListener('online', () => {
+        logEvent(`🌐 Conexión restaurada`);
+        updateDeviceInfo();
+    });
+    
+    window.addEventListener('offline', () => {
+        logEvent(`🌐 Conexión perdida`);
+        updateDeviceInfo();
+    });
+    
+    // Actualizar estado cada 5 segundos
+    setInterval(updatePWAStatus, 5000);
+    
+    logEvent(`✅ Monitoreo iniciado`);
+});
+</script>
+{% endblock %}
