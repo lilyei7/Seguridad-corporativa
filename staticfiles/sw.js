@@ -10,8 +10,7 @@ const urlsToCache = [
   '/admin-movil/',
   '/inquilino-movil/',
   '/static/manifest.json',
-  '/static/icons/icon-192.png',
-  '/static/icons/icon-512.png',
+  '/static/icons/xd.png',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap'
@@ -184,8 +183,8 @@ self.addEventListener('push', function(event) {
 function buildNotificationOptions(data) {
   const baseOptions = {
     body: data.body || 'Nueva notificación de SecureCorp',
-    icon: '/static/icons/icon-192.png',
-    badge: '/static/icons/icon-72.png',
+    icon: '/static/icons/xd.png',
+    badge: '/static/icons/xd.png',
     tag: data.tag || 'securecorp-notification',
     renotify: true,
     requireInteraction: false,
@@ -206,8 +205,8 @@ function buildNotificationOptions(data) {
         requireInteraction: true,
         silent: false,
         actions: [
-          { action: 'view', title: '🚨 Ver Emergencia', icon: '/static/icons/icon-72.png' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
+          { action: 'view', title: '🚨 Ver Emergencia', icon: '/static/icons/xd.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/xd.png' }
         ],
         vibrate: [200, 100, 200, 100, 200],
         tag: 'emergency-alert'
@@ -217,9 +216,9 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'approve', title: '✅ Aprobar', icon: '/static/icons/icon-72.png' },
-          { action: 'reject', title: '❌ Rechazar', icon: '/static/icons/icon-72.png' },
-          { action: 'view', title: 'Ver Detalles', icon: '/static/icons/icon-72.png' }
+          { action: 'approve', title: '✅ Aprobar', icon: '/static/icons/xd.png' },
+          { action: 'reject', title: '❌ Rechazar', icon: '/static/icons/xd.png' },
+          { action: 'view', title: 'Ver Detalles', icon: '/static/icons/xd.png' }
         ],
         vibrate: [100, 50, 100],
         tag: 'visit-approval'
@@ -229,8 +228,8 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'view', title: '🔧 Ver Reporte', icon: '/static/icons/icon-72.png' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
+          { action: 'view', title: '🔧 Ver Reporte', icon: '/static/icons/xd.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/xd.png' }
         ],
         vibrate: [100],
         tag: 'maintenance-alert'
@@ -241,8 +240,8 @@ function buildNotificationOptions(data) {
         ...baseOptions,
         requireInteraction: true,
         actions: [
-          { action: 'view', title: '🛡️ Ver Alerta', icon: '/static/icons/icon-72.png' },
-          { action: 'emergency', title: '🚨 Emergencia', icon: '/static/icons/icon-72.png' }
+          { action: 'view', title: '🛡️ Ver Alerta', icon: '/static/icons/xd.png' },
+          { action: 'emergency', title: '🚨 Emergencia', icon: '/static/icons/xd.png' }
         ],
         vibrate: [200, 100, 200, 100, 200, 100, 200],
         tag: 'security-breach'
@@ -252,8 +251,8 @@ function buildNotificationOptions(data) {
       return {
         ...baseOptions,
         actions: [
-          { action: 'view', title: 'Ver', icon: '/static/icons/icon-72.png' },
-          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/icon-72.png' }
+          { action: 'view', title: 'Ver', icon: '/static/icons/xd.png' },
+          { action: 'dismiss', title: 'Cerrar', icon: '/static/icons/xd.png' }
         ],
         vibrate: [100]
       };
@@ -331,7 +330,7 @@ async function handleQuickAction(action, visitId) {
       // Mostrar notificación de confirmación
       self.registration.showNotification('SecureCorp', {
         body: `Visita ${action === 'approve' ? 'aprobada' : 'rechazada'} exitosamente`,
-        icon: '/static/icons/icon-192.png',
+        icon: '/static/icons/xd.png',
         tag: 'quick-action-result',
         silent: true
       });

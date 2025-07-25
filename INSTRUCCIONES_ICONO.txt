@@ -1,0 +1,24 @@
+"""
+INSTRUCCIONES PARA CONFIGURAR EL ICONO PERSONALIZADO
+
+1. Guarda tu icono PNG (el que me enviaste) como:
+   c:\Users\lilye\OneDrive\Documentos\Seguridad corporativa\static\icons\xd.png
+
+2. Asegúrate de que el archivo sea PNG y tenga buena calidad
+   - Tamaño recomendado: mínimo 512x512 px para mejor calidad
+   - Fondo transparente o sólido según prefieras
+
+3. Después de copiar el archivo, ejecuta:
+   python manage.py collectstatic --noinput
+
+4. Para probar la PWA:
+   - Abre el navegador en modo incógnito
+   - Ve a la URL de tu aplicación
+   - Deberías ver la opción "Agregar a pantalla de inicio" o "Instalar app"
+   - El icono personalizado debería aparecer
+
+IMPORTANTE:
+- El navegador cachea el manifest.json y los iconos
+- Si no ves cambios inmediatos, borra el cache del navegador
+- En Chrome: F12 > Application > Storage > Clear storage
+"""
